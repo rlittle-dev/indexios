@@ -148,6 +148,8 @@ export default function Home() {
         // Free tier: Same rigorous analysis, but frontend will limit detail visibility
         analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency.
 
+CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
+
 CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
 - ALWAYS extract exact name/email from resume text
 - Apply IDENTICAL methodology to every resume
@@ -235,6 +237,8 @@ INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressi
         // Starter tier: Basic analysis
         analysisPrompt = `You are an HR screening specialist. Score this resume with STRICT, CONSISTENT methodology.
 
+CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
+
 CRITICAL CONSISTENCY RULES:
 - ALWAYS extract exact name from resume
 - ALWAYS extract email if present
@@ -283,6 +287,8 @@ Identify 3-5 red flags if present. Note 2-3 green flags if strong.`;
       } else {
         // Professional/Enterprise tier: Advanced analysis
         analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency.
+
+CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
 CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
 - ALWAYS extract exact name/email from resume text
