@@ -59,6 +59,7 @@ const TIERS = [
     scans: 'Unlimited',
     features: [
       'Unlimited resume scans',
+      'Bulk upload (5+ resumes)',
       'Advanced legitimacy scoring',
       'Detailed analysis breakdown',
       'Red & green flags detection',
