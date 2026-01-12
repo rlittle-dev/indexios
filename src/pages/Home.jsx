@@ -362,7 +362,7 @@ export default function Home() {
   };
 
   const handleLoginRedirect = () => {
-    window.location.href = createPageUrl('Login');
+    base44.auth.redirectToLogin();
   };
 
   const handleDownload = async (candidate) => {
