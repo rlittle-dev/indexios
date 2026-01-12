@@ -19,7 +19,7 @@ const FOLDER_COLORS = [
   { name: 'red', class: 'bg-red-500' }
 ];
 
-export default function AccountManagement() {
+export default function SavedCandidates() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedFolder, setSelectedFolder] = useState(null);
@@ -158,7 +158,7 @@ export default function AccountManagement() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-white mb-2">Account Management</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Saved Candidates</h1>
           <p className="text-white/60">Organize and manage your saved candidates</p>
         </motion.div>
 
@@ -169,7 +169,7 @@ export default function AccountManagement() {
             className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-8 text-center"
           >
             <Lock className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-3">Upgrade to Access Account Management</h2>
+            <h2 className="text-2xl font-bold text-white mb-3">Upgrade to Save Candidates</h2>
             <p className="text-white/70 mb-6 max-w-md mx-auto">
               Save candidates to folders, add notes, and organize your hiring pipeline with a paid plan
             </p>

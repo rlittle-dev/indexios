@@ -93,12 +93,20 @@ export default function Layout({ children }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
-                <Link to={createPageUrl('AccountManagement')}>
+                <Link to={createPageUrl('MyAccount')}>
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    My Account
+                  </DropdownMenuItem>
+                </Link>
+                <Link to={createPageUrl('SavedCandidates')}>
                   <DropdownMenuItem 
                     className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
                   >
                     <Folder className="w-4 h-4 mr-2" />
-                    Account Management
+                    Saved Candidates
                   </DropdownMenuItem>
                 </Link>
                 <Link to={createPageUrl('Team')}>
