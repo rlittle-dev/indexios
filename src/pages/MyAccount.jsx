@@ -302,8 +302,81 @@ export default function MyAccount() {
               </div>
             </div>
           </motion.div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+          {/* Active Devices */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
+          >
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-purple-400" />
+              Active Devices
+            </h2>
+
+            {devices.length === 0 ? (
+              <p className="text-white/60 text-sm">No devices found</p>
+            ) : (
+              <div className="space-y-3">
+                {devices.map((device, index) => {
+                  const isCurrentDevice = device.device_id === currentDeviceId;
+                  return (
+                    <motion.div
+                      key={device.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center justify-between p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="p-2 rounded-lg bg-white/5">
+                          {getDeviceIcon(device.device_type)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-white font-medium text-sm">
+                              {device.device_type}
+                            </p>
+                            {isCurrentDevice && (
+                              <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full">
+                                This Device
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-white/50 text-xs">
+                            {device.user_agent || `${device.device_type} device`}
+                          </p>
+                          <p className="text-white/40 text-xs mt-0.5">
+                            Last active: {formatTime(device.last_active)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveDevice(device.device_id, isCurrentDevice)}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        {isCurrentDevice ? (
+                          <>
+                            <LogOut className="w-4 h-4" />
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+          </div>
+          </div>
+          </div>
+          );
+          }
