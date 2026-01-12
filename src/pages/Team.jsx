@@ -255,13 +255,13 @@ export default function Team() {
                       {activeMembers >= teamCapacity ? (
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
                           <p className="text-yellow-400 text-sm">
-                            You've reached the team capacity of {teamCapacity} members. <a href="mailto:support@indexios.com" className="underline">Contact support</a> to expand your team size.
+                            You've reached the team capacity of {teamCapacity} members. Contact support to expand your team size.
                           </p>
                         </div>
                       ) : (
                         <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4">
                           <p className="text-white/70 text-sm">
-                            Need more team members? <a href="mailto:support@indexios.com" className="text-purple-400 hover:text-purple-300 underline">Contact support</a> to request an expansion.
+                            Need more team members? Contact support to request an expansion.
                           </p>
                         </div>
                       )}
