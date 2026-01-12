@@ -171,26 +171,9 @@ export default function Pricing() {
         >
           {user?.subscription_tier && user.subscription_tier !== 'free' && (
             <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 max-w-2xl mx-auto">
-              <p className="text-white/70 text-sm mb-3">
-                Need to cancel or downgrade? Use the Manage Subscription button in your account.
+              <p className="text-white/70 text-sm">
+                Need to cancel your subscription? Go to My Account to manage your subscription.
               </p>
-              <Button
-                onClick={async () => {
-                  try {
-                    const response = await base44.functions.invoke('createPortalSession');
-                    if (response.data.url) {
-                      window.location.href = response.data.url;
-                    }
-                  } catch (error) {
-                    console.error('Portal error:', error);
-                    alert('Failed to open subscription management');
-                  }
-                }}
-                variant="outline"
-                className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10"
-              >
-                Manage Subscription
-              </Button>
             </div>
           )}
           <p className="text-white/50 text-sm">

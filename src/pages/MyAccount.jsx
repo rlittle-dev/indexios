@@ -168,20 +168,23 @@ export default function MyAccount() {
                   {user?.subscription_tier !== 'free' && (
                     <Button
                       onClick={async () => {
-                        try {
-                          const response = await base44.functions.invoke('createPortalSession');
-                          if (response.data.url) {
-                            window.location.href = response.data.url;
+                        if (confirm('Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.')) {
+                          try {
+                            const response = await base44.functions.invoke('cancelSubscription');
+                            if (response.data.success) {
+                              alert('Subscription cancelled. You will retain access until the end of your billing period.');
+                              window.location.reload();
+                            }
+                          } catch (error) {
+                            console.error('Cancellation error:', error);
+                            alert('Failed to cancel subscription');
                           }
-                        } catch (error) {
-                          console.error('Portal error:', error);
-                          alert('Failed to open subscription management');
                         }
                       }}
                       variant="outline"
-                      className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10"
+                      className="border-red-500/50 bg-transparent text-red-400 hover:text-red-300 hover:bg-red-500/10"
                     >
-                      Manage Subscription
+                      Cancel Subscription
                     </Button>
                   )}
                   <Link to={createPageUrl('Pricing')}>
