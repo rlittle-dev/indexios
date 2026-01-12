@@ -114,9 +114,8 @@ export default function Home() {
         team_id: teamId
       });
     
-    // Determine analysis depth based on tier
-    const userTier = user?.subscription_tier || 'free';
-    const isAdvanced = userTier !== 'free' && userTier !== 'starter';
+      // Determine analysis depth based on tier
+      const isAdvanced = userTier !== 'free' && userTier !== 'starter';
 
     // Analyze with LLM
     const analysisPrompt = isAdvanced 
