@@ -18,6 +18,8 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
+  const [showConcurrentAlert, setShowConcurrentAlert] = useState(false);
+  const [conflictingDeviceType, setConflictingDeviceType] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
