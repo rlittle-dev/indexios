@@ -17,7 +17,7 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors"
+      className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col"
     >
       <button
         onClick={(e) => {

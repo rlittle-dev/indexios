@@ -29,12 +29,17 @@ export default function Layout({ children }) {
     checkAuth();
   }, []);
 
-  const handleLogout = () => {
-    base44.auth.logout();
+  const handleLogout = async () => {
+    try {
+      await base44.auth.logout(createPageUrl('Home'));
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = createPageUrl('Home');
+    }
   };
 
   const handleLoginRedirect = () => {
-    window.location.href = createPageUrl('Login');
+    base44.auth.redirectToLogin(createPageUrl('Home'));
   };
 
   if (loading || isRedirectingToLogin) {
