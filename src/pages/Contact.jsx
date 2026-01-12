@@ -87,7 +87,21 @@ export default function Contact() {
               </div>
             </div>
 
-            {submitted ? (
+            {!user ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8"
+              >
+                <p className="text-white/70 mb-4">Please sign in to send us a message.</p>
+                <Button
+                  onClick={() => base44.auth.redirectToLogin(createPageUrl('Contact'))}
+                  className="bg-white hover:bg-gray-100 text-black font-medium"
+                >
+                  Sign In
+                </Button>
+              </motion.div>
+            ) : submitted ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -101,30 +115,6 @@ export default function Contact() {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-white/80 text-sm mb-2 block">Name</label>
-                  <Input
-                    type="text"
-                    placeholder="Your name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-white/80 text-sm mb-2 block">Email</label>
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
-                </div>
-
                 <div>
                   <label className="text-white/80 text-sm mb-2 block">Subject</label>
                   <Input
