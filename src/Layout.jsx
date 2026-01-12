@@ -130,6 +130,11 @@ export default function Layout({ children }) {
     );
   }
 
+  const handleDismissConcurrentAlert = () => {
+    setShowConcurrentAlert(false);
+    window.location.href = createPageUrl('Home');
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Chat Bot for all users */}
