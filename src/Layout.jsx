@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ChatBot from '@/components/chat/ChatBot';
 import ConcurrentSessionAlert from '@/components/paywall/ConcurrentSessionAlert';
@@ -14,105 +14,108 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const getDeviceType = () => {
-  const ua = navigator.userAgent;
-  if (/mobile|android|iphone|ipad|phone/i.test(ua)) return 'Mobile';
-  if (/tablet|ipad/i.test(ua)) return 'Tablet';
-  return 'Desktop';
-};
-
-const generateDeviceId = () => {
-  let deviceId = localStorage.getItem('deviceId');
-  if (!deviceId) {
-    deviceId = `${getDeviceType()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem('deviceId', deviceId);
-  }
-  return deviceId;
-};
-
-export default function Layout({ children, currentPageName }) {
+export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
   const [showConcurrentAlert, setShowConcurrentAlert] = useState(false);
   const [conflictingDeviceType, setConflictingDeviceType] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const initUser = async () => {
-      try {
+    const checkAuth = async () => {
+    const isAuthenticated = await base44.auth.isAuthenticated();
+    if (isAuthenticated) {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+
+      // For non-enterprise users, enforce single device login
+      if (currentUser?.subscription_tier !== 'enterprise') {
+        const deviceId = localStorage.getItem('deviceId');
+        
+        if (!deviceId) {
+          // First time on this device - register it
+          const newDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('deviceId', newDeviceId);
+          
+          try {
+            await base44.functions.invoke('registerDevice', {
+              deviceId: newDeviceId,
+              deviceType: /mobile|android|iphone/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop'
+            });
+          } catch (e) {
+            console.error('Error registering device:', e);
+          }
+        } else {
+          // Check if this device is still the active one
+          try {
+            const response = await base44.functions.invoke('validateDeviceAccess', {
+              deviceId
+            });
+            
+            if (!response.data.allowed) {
+              // Another device is active
+              setConflictingDeviceType(response.data.otherDeviceType);
+              setShowConcurrentAlert(true);
+              localStorage.removeItem('deviceId');
+              return;
+            }
+          } catch (e) {
+            console.error('Error validating device:', e);
+          }
+        }
+      }
+    }
+    setLoading(false);
+    };
+    checkAuth();
+
+    // Update device activity periodically
+    const activeInterval = setInterval(async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      const currentUser = await base44.auth.me();
+      
+      if (isAuthenticated && currentUser?.subscription_tier !== 'enterprise') {
+        const deviceId = localStorage.getItem('deviceId');
+        if (deviceId) {
+          try {
+            await base44.functions.invoke('updateDeviceActivity', { deviceId });
+          } catch (e) {
+            console.error('Error updating device activity:', e);
+          }
+        }
+      }
+    }, 30000); // Update every 30 seconds
+
+    // Refetch user data when window regains focus to sync profile changes
+    const handleFocus = async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (isAuthenticated) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-
-        if (currentUser && currentUser.email) {
-          // First time device registration or update
-          const deviceId = generateDeviceId();
-          const deviceType = getDeviceType();
-
-          // Register device
-          const response = await base44.functions.invoke('registerDevice', {
-            deviceType,
-            userAgent: navigator.userAgent
-          });
-
-          localStorage.setItem('deviceId', response.data.deviceId);
-        }
-      } catch (error) {
-        console.error('Auth error:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    initUser();
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(activeInterval);
+    };
   }, []);
 
-  // Continuous device validation - check every 5 seconds
-  useEffect(() => {
-    if (!user || !user.email) return;
-
-    const validateInterval = setInterval(async () => {
-      try {
-        const deviceId = localStorage.getItem('deviceId');
-        if (!deviceId) return;
-
-        const response = await base44.functions.invoke('validateDeviceAccess', {
-          deviceId
-        });
-
-        if (!response.data.allowed) {
-          // Device is no longer active
-          if (response.data.reason === 'concurrent_session_detected') {
-            setConflictingDeviceType(response.data.otherDeviceType);
-            setShowConcurrentAlert(true);
-            localStorage.removeItem('deviceId');
-          }
-        } else {
-          // Update activity
-          await base44.functions.invoke('updateDeviceActivity', {
-            deviceId
-          });
-        }
-      } catch (e) {
-        console.error('Device validation error:', e);
-      }
-    }, 5000);
-
-    return () => clearInterval(validateInterval);
-  }, [user]);
-
-  // Handle logout
   const handleLogout = async () => {
-    localStorage.removeItem('deviceId');
-    await base44.auth.logout(createPageUrl('Home'));
+    try {
+      await base44.auth.logout(createPageUrl('Home'));
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = createPageUrl('Home');
+    }
   };
 
-  const handleDismissConcurrentAlert = () => {
-    setShowConcurrentAlert(false);
-    localStorage.removeItem('deviceId');
-    window.location.href = createPageUrl('Home');
+  const handleLoginRedirect = () => {
+    base44.auth.redirectToLogin(createPageUrl('Home'));
   };
 
-  if (loading) {
+  if (loading || isRedirectingToLogin) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4">
         <motion.div
@@ -127,6 +130,11 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
+  const handleDismissConcurrentAlert = () => {
+    setShowConcurrentAlert(false);
+    window.location.href = createPageUrl('Home');
+  };
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Concurrent Session Alert */}
@@ -139,74 +147,104 @@ export default function Layout({ children, currentPageName }) {
         )}
       </AnimatePresence>
 
-      {/* Chat Bot for authenticated users */}
+      {/* Chat Bot for all users */}
       {user && !showConcurrentAlert && (
         <ChatBot user={user} />
       )}
-
-      {/* Header with navigation */}
-      {user && !showConcurrentAlert && (
-        <header className="sticky top-0 z-40 bg-zinc-900/80 backdrop-blur border-b border-zinc-800">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-              <motion.div className="text-2xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent">
+      
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link to={createPageUrl('Home')}>
+              <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-tight cursor-pointer">
                 Indexios
-              </motion.div>
+              </span>
             </Link>
-
-            {/* Navigation Links */}
-            <nav className="hidden md:flex gap-8">
-              <Link to={createPageUrl('Home')} className="text-white/70 hover:text-white transition">
-                Home
+            <div className="hidden md:flex items-center gap-4">
+              <Link to={createPageUrl('Pricing')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  Plans
+                </Button>
               </Link>
-              <Link to={createPageUrl('Pricing')} className="text-white/70 hover:text-white transition">
-                Pricing
+              <Link to={createPageUrl('About')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  About
+                </Button>
               </Link>
-            </nav>
+              <Link to={createPageUrl('Contact')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  Contact
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-            {/* User Menu */}
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center">
-                    <User className="w-5 h-5 text-white" />
+                <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
                   </div>
+                  <span className="hidden sm:inline">{user.full_name || user.email}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border-zinc-800">
-                <DropdownMenuItem disabled className="text-xs text-white/60 py-2">
-                  {user.email}
-                </DropdownMenuItem>
-                <Link to={createPageUrl('Account')}>
-                  <DropdownMenuItem className="text-white cursor-pointer">
+              <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                <Link to={createPageUrl('MyAccount')}>
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
                     <User className="w-4 h-4 mr-2" />
-                    Account Settings
+                    My Account
+                  </DropdownMenuItem>
+                </Link>
+                <Link to={createPageUrl('SavedCandidates')}>
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <Folder className="w-4 h-4 mr-2" />
+                    Saved Candidates
+                  </DropdownMenuItem>
+                </Link>
+                <Link to={createPageUrl('ApiAccess')}>
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <Key className="w-4 h-4 mr-2" />
+                    API Access
                   </DropdownMenuItem>
                 </Link>
                 <Link to={createPageUrl('ManageDevices')}>
-                  <DropdownMenuItem className="text-white cursor-pointer">
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
                     <Smartphone className="w-4 h-4 mr-2" />
                     Manage Devices
                   </DropdownMenuItem>
                 </Link>
-                <Link to={createPageUrl('Billing')}>
-                  <DropdownMenuItem className="text-white cursor-pointer">
-                    <Key className="w-4 h-4 mr-2" />
-                    Billing
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem onClick={handleLogout} className="text-red-400 cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={handleLogout}
+                  className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </header>
-      )}
+          ) : (
+            <Button
+              onClick={handleLoginRedirect}
+              className="bg-white hover:bg-gray-100 text-black font-medium"
+            >
+              Sign In
+            </Button>
+          )}
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <main className={user && !showConcurrentAlert ? '' : ''}>
+      {/* Main content with padding for fixed header */}
+      <main className="pt-16">
         {children}
       </main>
     </div>
