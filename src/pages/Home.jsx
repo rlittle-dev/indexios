@@ -300,8 +300,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         green_flags: analysis.green_flags,
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
-        interview_questions: analysis.interview_questions || [],
-        is_basic: userTier === 'free' || userTier === 'starter'
+        interview_questions: analysis.interview_questions || []
       };
 
       let updatedCandidate;
