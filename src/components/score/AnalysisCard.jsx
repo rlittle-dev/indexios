@@ -20,8 +20,12 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
       className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors"
     >
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full text-left"
+        onClick={(e) => {
+          e.preventDefault();
+          setIsExpanded(!isExpanded);
+        }}
+        className="w-full text-left cursor-pointer hover:bg-white/5 rounded-lg -m-1 p-1 transition-colors"
+        type="button"
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
