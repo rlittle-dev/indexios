@@ -27,6 +27,18 @@ export default function Layout({ children }) {
       setLoading(false);
     };
     checkAuth();
+
+    // Refetch user data when window regains focus to sync profile changes
+    const handleFocus = async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (isAuthenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const handleLogout = async () => {
