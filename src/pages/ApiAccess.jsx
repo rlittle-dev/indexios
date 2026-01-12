@@ -191,22 +191,33 @@ export default function ApiAccess() {
                   "candidate_email": "john@example.com",
                   "legitimacy_score": 78,
                   "consistency_score": 80,
-                  "consistency_details": "...",
+                  "consistency_details": "Timeline is clear with no gaps or overlaps between roles.",
                   "experience_verification": 75,
-                  "experience_details": "...",
+                  "experience_details": "Multiple measurable results with specific metrics.",
                   "education_verification": 82,
-                  "education_details": "...",
+                  "education_details": "Degree from recognized university with aligned career path.",
                   "skills_alignment": 72,
-                  "skills_details": "...",
+                  "skills_details": "Skills align well with role progression throughout career.",
                   "red_flags": [
-                  "Generic achievement descriptions",
-                  "Minor 2-month employment gap"
+                  "Generic achievement descriptions in early roles",
+                  "Minor 2-month employment gap in 2019"
                   ],
                   "green_flags": [
                   "Consistent employment at recognized companies",
-                  "Relevant degree"
+                  "Relevant degree from top 200 university",
+                  "Clear skill progression with specific metrics"
                   ],
-                  "summary": "Generally credible candidate with room for verification"
+                  "summary": "Strong candidate with credible experience and verifiable achievements. Minor gaps fully explained.",
+                  "next_steps": [
+                  "Contact previous employers for reference checks",
+                  "Verify degree with university registrar",
+                  "Request portfolio or work samples"
+                  ],
+                  "interview_questions": [
+                  "Can you walk us through your role in the 2019 project?",
+                  "What was your biggest achievement during your time at Company X?",
+                  "How have your skills evolved throughout your career?"
+                  ]
                   }`}
                     </code>
                   </div>
