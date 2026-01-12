@@ -204,8 +204,7 @@ Provide a detailed analysis with percentage scores for each category and an over
   };
 
   const handleLoginRedirect = () => {
-    setIsRedirectingToLogin(true);
-    base44.auth.redirectToLogin();
+    window.location.href = createPageUrl('Login');
   };
 
   if (authLoading || isRedirectingToLogin) {

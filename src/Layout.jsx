@@ -34,8 +34,7 @@ export default function Layout({ children }) {
   };
 
   const handleLoginRedirect = () => {
-    setIsRedirectingToLogin(true);
-    base44.auth.redirectToLogin();
+    window.location.href = createPageUrl('Login');
   };
 
   if (loading || isRedirectingToLogin) {
