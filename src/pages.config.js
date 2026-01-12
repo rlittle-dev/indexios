@@ -1,25 +1,25 @@
+import About from './pages/About';
 import ApiAccess from './pages/ApiAccess';
+import Contact from './pages/Contact';
 import Home from './pages/Home';
+import MyAccount from './pages/MyAccount';
 import Pricing from './pages/Pricing';
+import SavedCandidates from './pages/SavedCandidates';
 import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import SavedCandidates from './pages/SavedCandidates';
-import MyAccount from './pages/MyAccount';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "About": About,
     "ApiAccess": ApiAccess,
+    "Contact": Contact,
     "Home": Home,
+    "MyAccount": MyAccount,
     "Pricing": Pricing,
+    "SavedCandidates": SavedCandidates,
     "SharedReport": SharedReport,
     "Team": Team,
-    "About": About,
-    "Contact": Contact,
-    "SavedCandidates": SavedCandidates,
-    "MyAccount": MyAccount,
 }
 
 export const pagesConfig = {

@@ -130,12 +130,15 @@ export default function Home() {
         teamId = userTeams[0].team_id;
       }
 
-      // Create candidate record
-      const candidate = await base44.entities.Candidate.create({
-        resume_url: file_url,
-        status: 'pending',
-        team_id: teamId
-      });
+      // Only create candidate record for authenticated users
+      let candidate = null;
+      if (isAuthenticated) {
+        candidate = await base44.entities.Candidate.create({
+          resume_url: file_url,
+          status: 'pending',
+          team_id: teamId
+        });
+      }
     
       // Determine analysis depth based on tier
       const userTier = user?.subscription_tier || 'free';
