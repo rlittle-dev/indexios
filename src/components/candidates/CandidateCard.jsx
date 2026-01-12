@@ -7,8 +7,8 @@ import { format } from 'date-fns';
 export default function CandidateCard({ candidate, onClick, delay = 0 }) {
   const getScoreColor = (score) => {
     if (!score && score !== 0) return 'text-white/40';
-    if (score >= 80) return 'text-white';
-    if (score >= 60) return 'text-amber-400';
+    if (score >= 80) return 'text-emerald-400';
+    if (score >= 60) return 'text-yellow-400';
     if (score >= 40) return 'text-orange-400';
     return 'text-red-400';
   };

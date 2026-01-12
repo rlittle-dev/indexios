@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 
 export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
   const getBarColor = (score) => {
-    if (score >= 80) return 'bg-white';
-    if (score >= 60) return 'bg-amber-400';
-    if (score >= 40) return 'bg-orange-400';
-    return 'bg-red-400';
+    if (score >= 80) return 'bg-gradient-to-r from-emerald-500 to-emerald-400';
+    if (score >= 60) return 'bg-gradient-to-r from-yellow-500 to-yellow-400';
+    if (score >= 40) return 'bg-gradient-to-r from-orange-500 to-orange-400';
+    return 'bg-gradient-to-r from-red-500 to-red-400';
   };
 
   return (
@@ -26,8 +26,8 @@ export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
         </div>
         <span className={cn(
           "text-lg font-bold",
-          score >= 80 ? "text-white" :
-          score >= 60 ? "text-amber-400" :
+          score >= 80 ? "text-emerald-400" :
+          score >= 60 ? "text-yellow-400" :
           score >= 40 ? "text-orange-400" : "text-red-400"
         )}>
           {score}%

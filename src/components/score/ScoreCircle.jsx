@@ -8,10 +8,10 @@ export default function ScoreCircle({ score, size = 180, strokeWidth = 12 }) {
   const offset = circumference - (score / 100) * circumference;
   
   const getScoreColor = (score) => {
-    if (score >= 80) return { stroke: '#ffffff', bg: 'text-white', glow: 'shadow-white/20' };
-    if (score >= 60) return { stroke: '#f59e0b', bg: 'text-amber-400', glow: 'shadow-amber-400/20' };
-    if (score >= 40) return { stroke: '#f97316', bg: 'text-orange-400', glow: 'shadow-orange-400/20' };
-    return { stroke: '#ef4444', bg: 'text-red-400', glow: 'shadow-red-400/20' };
+    if (score >= 80) return { stroke: '#10b981', bg: 'text-emerald-400', glow: 'shadow-emerald-400/30' };
+    if (score >= 60) return { stroke: '#facc15', bg: 'text-yellow-400', glow: 'shadow-yellow-400/30' };
+    if (score >= 40) return { stroke: '#f97316', bg: 'text-orange-400', glow: 'shadow-orange-400/30' };
+    return { stroke: '#ef4444', bg: 'text-red-400', glow: 'shadow-red-400/30' };
   };
   
   const colors = getScoreColor(score);

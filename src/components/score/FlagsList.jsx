@@ -11,14 +11,14 @@ export default function FlagsList({ redFlags = [], greenFlags = [] }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.5 }}
-        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800"
+        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-red-500/30"
       >
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg bg-red-500/10">
+          <div className="p-2 rounded-lg bg-red-500/20">
             <AlertTriangle className="w-4 h-4 text-red-400" />
           </div>
           <h3 className="text-red-400 font-semibold">Red Flags</h3>
-          <span className="ml-auto text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+          <span className="ml-auto text-xs bg-red-500/30 text-red-300 px-2 py-0.5 rounded-full font-medium">
             {redFlags.length}
           </span>
         </div>
@@ -48,14 +48,14 @@ export default function FlagsList({ redFlags = [], greenFlags = [] }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.6 }}
-        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800"
+        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-emerald-500/30"
       >
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-lg bg-white/10">
-            <CheckCircle2 className="w-4 h-4 text-white" />
+          <div className="p-2 rounded-lg bg-emerald-500/20">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <h3 className="text-white font-semibold">Green Flags</h3>
-          <span className="ml-auto text-xs bg-white/20 text-white px-2 py-0.5 rounded-full">
+          <h3 className="text-emerald-400 font-semibold">Green Flags</h3>
+          <span className="ml-auto text-xs bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full font-medium">
             {greenFlags.length}
           </span>
         </div>
@@ -70,7 +70,7 @@ export default function FlagsList({ redFlags = [], greenFlags = [] }) {
                 transition={{ delay: 0.7 + index * 0.1 }}
                 className="flex items-start gap-2 text-sm text-white/70"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-white mt-1.5 flex-shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0" />
                 {flag}
               </motion.li>
             ))}
