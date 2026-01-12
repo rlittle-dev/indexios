@@ -65,6 +65,50 @@ export default function MyAccount() {
     setSaving(false);
   };
 
+  const currentDeviceId = localStorage.getItem('deviceId');
+
+  const handleRemoveDevice = async (deviceId, isCurrentDevice) => {
+    if (confirm('Are you sure you want to logout this device?')) {
+      try {
+        const device = devices.find(d => d.device_id === deviceId);
+        if (device) {
+          await base44.entities.Device.delete(device.id);
+        }
+
+        if (isCurrentDevice) {
+          localStorage.removeItem('deviceId');
+          await base44.auth.logout(createPageUrl('Home'));
+        } else {
+          setDevices(devices.filter((d) => d.device_id !== deviceId));
+        }
+      } catch (error) {
+        console.error('Error removing device:', error);
+        alert('Failed to remove device');
+      }
+    }
+  };
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return 'Unknown';
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return 'Unknown';
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
+    } catch {
+      return 'Unknown';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
