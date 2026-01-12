@@ -81,10 +81,10 @@ export default function ApiAccess() {
            <motion.div
              initial={{ opacity: 0, scale: 0.95 }}
              animate={{ opacity: 1, scale: 1 }}
-             className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-500/30 rounded-xl p-8 text-center"
+             className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-8 text-center"
            >
-             <div className="inline-flex p-4 rounded-full bg-emerald-500/10 mb-4 mx-auto">
-               <Lock className="w-8 h-8 text-emerald-400" />
+             <div className="inline-flex p-4 rounded-full bg-red-500/10 mb-4 mx-auto">
+               <Lock className="w-8 h-8 text-red-400" />
              </div>
               <h3 className="text-white text-2xl font-bold mb-2">API Access Required</h3>
               <p className="text-white/60 mb-6">
@@ -101,7 +101,7 @@ export default function ApiAccess() {
               <Card className="bg-zinc-900/80 border-zinc-800">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
-                    <Key className="w-5 h-5 text-green-400" />
+                    <Key className="w-5 h-5 text-purple-400" />
                     Your API Key
                   </CardTitle>
                   <CardDescription className="text-white/60">

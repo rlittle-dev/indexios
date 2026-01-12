@@ -8,10 +8,10 @@ export default function UpgradePrompt({ scansUsed, scansLimit, onUpgrade, reason
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-500/30 rounded-xl p-8 text-center"
+      className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-8 text-center"
     >
-      <div className="inline-flex p-4 rounded-full bg-emerald-500/10 mb-4">
-        <Lock className="w-10 h-10 text-emerald-400" />
+      <div className="inline-flex p-4 rounded-full bg-red-500/10 mb-4">
+        <Lock className="w-10 h-10 text-red-400" />
       </div>
       
       <h3 className="text-2xl font-bold text-white mb-2">

@@ -172,9 +172,9 @@ export default function SavedCandidates() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-500/30 rounded-xl p-8 text-center"
+            className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-8 text-center"
           >
-            <Lock className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+            <Lock className="w-16 h-16 text-purple-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-3">Unlock Saved Candidates</h2>
             <p className="text-white/70 mb-6 max-w-md mx-auto">
               Save candidates to folders, add notes, and organize your hiring pipeline with Professional or Enterprise
