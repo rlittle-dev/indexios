@@ -4,11 +4,21 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import UploadZone from '@/components/upload/UploadZone';
 import ScoreCircle from '@/components/score/ScoreCircle';
 import AnalysisCard from '@/components/score/AnalysisCard';
 import FlagsList from '@/components/score/FlagsList';
 import CandidateCard from '@/components/candidates/CandidateCard';
+import UpgradePrompt from '@/components/paywall/UpgradePrompt';
+
+const TIER_LIMITS = {
+  free: 3,
+  starter: 50,
+  professional: 200,
+  enterprise: 999999
+};
 
 export default function Home() {
   const [currentView, setCurrentView] = useState('upload'); // 'upload', 'result', 'history'
@@ -16,6 +26,7 @@ export default function Home() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -23,6 +34,10 @@ export default function Home() {
     const checkAuth = async () => {
       const authenticated = await base44.auth.isAuthenticated();
       setIsAuthenticated(authenticated);
+      if (authenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      }
       setAuthLoading(false);
     };
     checkAuth();
@@ -37,14 +52,26 @@ export default function Home() {
   const analyzeResume = async (file) => {
     setIsUploading(true);
     
-    // Upload the file
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    
-    // Create candidate record
-    const candidate = await base44.entities.Candidate.create({
-      resume_url: file_url,
-      status: 'pending'
-    });
+    try {
+      // Check scan limit
+      const userTier = user?.subscription_tier || 'free';
+      const scansUsed = user?.scans_used || 0;
+      const scanLimit = TIER_LIMITS[userTier];
+
+      if (scansUsed >= scanLimit) {
+        setIsUploading(false);
+        setCurrentView('upgrade');
+        return;
+      }
+
+      // Upload the file
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Create candidate record
+      const candidate = await base44.entities.Candidate.create({
+        resume_url: file_url,
+        status: 'pending'
+      });
     
     // Analyze with LLM
     const analysis = await base44.integrations.Core.InvokeLLM({
@@ -95,27 +122,41 @@ Provide a detailed analysis with percentage scores for each category and an over
       }
     });
     
-    // Update candidate with analysis
-    const updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
-      name: analysis.candidate_name || 'Unknown Candidate',
-      email: analysis.candidate_email || '',
-      legitimacy_score: analysis.overall_score,
-      analysis: {
-        consistency_score: analysis.consistency_score,
-        experience_verification: analysis.experience_verification,
-        education_verification: analysis.education_verification,
-        skills_alignment: analysis.skills_alignment,
-        red_flags: analysis.red_flags,
-        green_flags: analysis.green_flags,
-        summary: analysis.summary
-      },
-      status: 'analyzed'
-    });
-    
-    setIsUploading(false);
-    setSelectedCandidate(updatedCandidate);
-    setCurrentView('result');
-    queryClient.invalidateQueries({ queryKey: ['candidates'] });
+      // Update candidate with analysis
+      const updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
+        name: analysis.candidate_name || 'Unknown Candidate',
+        email: analysis.candidate_email || '',
+        legitimacy_score: analysis.overall_score,
+        analysis: {
+          consistency_score: analysis.consistency_score,
+          experience_verification: analysis.experience_verification,
+          education_verification: analysis.education_verification,
+          skills_alignment: analysis.skills_alignment,
+          red_flags: analysis.red_flags,
+          green_flags: analysis.green_flags,
+          summary: analysis.summary
+        },
+        status: 'analyzed'
+      });
+      
+      // Increment scan count
+      await base44.auth.updateMe({
+        scans_used: (user?.scans_used || 0) + 1
+      });
+
+      // Refresh user data
+      const updatedUser = await base44.auth.me();
+      setUser(updatedUser);
+      
+      setIsUploading(false);
+      setSelectedCandidate(updatedCandidate);
+      setCurrentView('result');
+      queryClient.invalidateQueries({ queryKey: ['candidates'] });
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setIsUploading(false);
+      alert('Failed to analyze resume. Please try again.');
+    }
   };
 
   const handleUpload = async (file) => {
@@ -134,6 +175,13 @@ Provide a detailed analysis with percentage scores for each category and an over
   const handleBack = () => {
     setCurrentView('upload');
     setSelectedCandidate(null);
+  };
+
+  const canUpload = () => {
+    const userTier = user?.subscription_tier || 'free';
+    const scansUsed = user?.scans_used || 0;
+    const scanLimit = TIER_LIMITS[userTier];
+    return scansUsed < scanLimit;
   };
 
   if (authLoading) {
@@ -266,32 +314,46 @@ Provide a detailed analysis with percentage scores for each category and an over
         </motion.div>
 
         {/* Navigation */}
-        <div className="flex justify-center gap-3 mb-8">
-          <Button
-            variant={currentView === 'upload' ? 'default' : 'outline'}
-            onClick={handleBack}
-            className={currentView === 'upload' 
-              ? 'bg-white hover:bg-gray-100 text-black font-medium' 
-              : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
-          >
-            <Shield className="w-4 h-4 mr-2" />
-            Scan Resume
-          </Button>
-          <Button
-            variant={currentView === 'history' ? 'default' : 'outline'}
-            onClick={handleViewHistory}
-            className={currentView === 'history' 
-              ? 'bg-white hover:bg-gray-100 text-black font-medium' 
-              : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
-          >
-            <History className="w-4 h-4 mr-2" />
-            History
-            {candidates.length > 0 && (
-              <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs text-white">
-                {candidates.length}
-              </span>
-            )}
-          </Button>
+        <div className="flex flex-col items-center gap-4 mb-8">
+          <div className="flex justify-center gap-3">
+            <Button
+              variant={currentView === 'upload' ? 'default' : 'outline'}
+              onClick={handleBack}
+              className={currentView === 'upload' 
+                ? 'bg-white hover:bg-gray-100 text-black font-medium' 
+                : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Scan Resume
+            </Button>
+            <Button
+              variant={currentView === 'history' ? 'default' : 'outline'}
+              onClick={handleViewHistory}
+              className={currentView === 'history' 
+                ? 'bg-white hover:bg-gray-100 text-black font-medium' 
+                : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
+            >
+              <History className="w-4 h-4 mr-2" />
+              History
+              {candidates.length > 0 && (
+                <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs text-white">
+                  {candidates.length}
+                </span>
+              )}
+            </Button>
+          </div>
+          
+          {/* Usage indicator */}
+          <div className="text-center">
+            <p className="text-white/60 text-sm">
+              Scans used: <span className="font-bold text-white">{user?.scans_used || 0}</span> / {TIER_LIMITS[user?.subscription_tier || 'free']}
+            </p>
+            <Link to={createPageUrl('Pricing')}>
+              <Button variant="link" className="text-white/80 hover:text-white text-xs p-0 h-auto">
+                Upgrade Plan
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -304,7 +366,15 @@ Provide a detailed analysis with percentage scores for each category and an over
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <UploadZone onUpload={handleUpload} isUploading={isUploading} />
+              {canUpload() ? (
+                <UploadZone onUpload={handleUpload} isUploading={isUploading} />
+              ) : (
+                <UpgradePrompt
+                  scansUsed={user?.scans_used || 0}
+                  scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']}
+                  onUpgrade={() => window.location.href = createPageUrl('Pricing')}
+                />
+              )}
               
               {/* Recent scans preview */}
               {candidates.length > 0 && (
@@ -417,6 +487,32 @@ Provide a detailed analysis with percentage scores for each category and an over
                   />
                 </>
               )}
+            </motion.div>
+          )}
+
+          {/* Upgrade View */}
+          {currentView === 'upgrade' && (
+            <motion.div
+              key="upgrade"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="mb-6 text-white hover:text-white hover:bg-white/10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              
+              <UpgradePrompt
+                scansUsed={user?.scans_used || 0}
+                scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']}
+                onUpgrade={() => window.location.href = createPageUrl('Pricing')}
+              />
             </motion.div>
           )}
 
