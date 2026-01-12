@@ -155,17 +155,24 @@ export default function ApiAccess() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h3 className="text-white font-semibold mb-2">Endpoint</h3>
+                    <h3 className="text-white font-semibold mb-2">Base URL</h3>
                     <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-emerald-400">
-                      POST https://api.indexios.com/verify
+                      https://api.indexios.com/v1
                     </code>
                   </div>
-                  
+
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">Analyze Resume</h3>
+                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-emerald-400">
+                      POST /analyze
+                    </code>
+                  </div>
+
                   <div>
                     <h3 className="text-white font-semibold mb-2">Headers</h3>
                     <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
-{`Authorization: Bearer YOUR_API_KEY
-Content-Type: multipart/form-data`}
+                  {`Authorization: Bearer YOUR_API_KEY
+                  Content-Type: multipart/form-data`}
                     </code>
                   </div>
 
@@ -177,21 +184,49 @@ Content-Type: multipart/form-data`}
                   </div>
 
                   <div>
-                    <h3 className="text-white font-semibold mb-2">Response</h3>
+                    <h3 className="text-white font-semibold mb-2">Response Example</h3>
                     <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
-{`{
-  "candidate_name": "John Doe",
-  "legitimacy_score": 85,
-  "analysis": {
-    "consistency_score": 90,
-    "experience_verification": 85,
-    "education_verification": 80,
-    "skills_alignment": 85,
-    "red_flags": [...],
-    "green_flags": [...],
-    "summary": "..."
-  }
-}`}
+                  {`{
+                  "candidate_name": "John Doe",
+                  "candidate_email": "john@example.com",
+                  "legitimacy_score": 78,
+                  "consistency_score": 80,
+                  "consistency_details": "...",
+                  "experience_verification": 75,
+                  "experience_details": "...",
+                  "education_verification": 82,
+                  "education_details": "...",
+                  "skills_alignment": 72,
+                  "skills_details": "...",
+                  "red_flags": [
+                  "Generic achievement descriptions",
+                  "Minor 2-month employment gap"
+                  ],
+                  "green_flags": [
+                  "Consistent employment at recognized companies",
+                  "Relevant degree"
+                  ],
+                  "summary": "Generally credible candidate with room for verification"
+                  }`}
+                    </code>
+                  </div>
+
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">Rate Limits</h3>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white/80 space-y-1">
+                      <p>• <strong>Professional:</strong> 200 scans/month</p>
+                      <p>• <strong>Enterprise:</strong> Unlimited scans</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">Error Handling</h3>
+                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
+                  {`401 Unauthorized - Invalid or missing API key
+                  403 Forbidden - Insufficient permissions
+                  400 Bad Request - Invalid file format or size
+                  429 Too Many Requests - Rate limit exceeded
+                  500 Server Error - Try again later`}
                     </code>
                   </div>
                 </CardContent>

@@ -8,75 +8,75 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 const TIERS = [
-  {
-    tier: 'free',
-    name: 'Free',
-    price: 0,
-    scans: 3,
-    features: [
-      '3 resume scans per month',
-      'Basic legitimacy scoring',
-      'Red & green flags detection'
-    ]
-  },
-  {
-    tier: 'starter',
-    name: 'Starter',
-    price: 29,
-    scans: 50,
-    popular: true,
-    features: [
-      '50 resume scans per month',
-      'Advanced legitimacy scoring',
-      'Detailed analysis breakdown',
-      'Red & green flags detection',
-      'Scan history',
-      'Share & download scans',
-      'Priority support'
-    ]
-  },
-  {
-    tier: 'professional',
-    name: 'Professional',
-    price: 99,
-    scans: 200,
-    features: [
-      '200 resume scans per month',
-      'Advanced legitimacy scoring',
-      'Detailed analysis breakdown',
-      'Red & green flags detection',
-      'Next steps recommendations',
-      'AI-generated interview questions',
-      'Unlimited scan history',
-      'Share & download scans',
-      'API access',
-      'Priority support',
-      'Custom integrations'
-    ]
-  },
-  {
-    tier: 'enterprise',
-    name: 'Enterprise',
-    price: 299,
-    scans: 'Unlimited',
-    features: [
-      'Unlimited resume scans',
-      'Bulk upload (5+ resumes)',
-      'Advanced legitimacy scoring',
-      'Detailed analysis breakdown',
-      'Red & green flags detection',
-      'Next steps recommendations',
-      'AI-generated interview questions',
-      'Unlimited scan history',
-      'Share & download scans',
-      'API access',
-      'Dedicated support',
-      'Custom integrations',
-      'Team collaboration',
-      'Custom AI training'
-    ]
-  }
-];
+        {
+          tier: 'free',
+          name: 'Free',
+          price: 0,
+          scans: 3,
+          features: [
+            '3 resume scans per month',
+            'Basic legitimacy scoring',
+            'Red & green flags detection'
+          ]
+        },
+        {
+          tier: 'starter',
+          name: 'Starter',
+          price: 29,
+          scans: 50,
+          popular: true,
+          features: [
+            '50 resume scans per month',
+            'Advanced legitimacy scoring',
+            'Detailed analysis breakdown',
+            'Red & green flags detection',
+            'Scan history',
+            'Share & download scans',
+            'Priority support'
+          ]
+        },
+        {
+          tier: 'professional',
+          name: 'Professional',
+          price: 99,
+          scans: 200,
+          features: [
+            '200 resume scans per month',
+            'Advanced legitimacy scoring',
+            'Detailed analysis breakdown',
+            'Red & green flags detection',
+            'Next steps recommendations',
+            'AI-generated interview questions',
+            'Unlimited scan history',
+            'Share & download scans',
+            'API access',
+            'Priority support',
+            'Single device login'
+          ]
+        },
+        {
+          tier: 'enterprise',
+          name: 'Enterprise',
+          price: 299,
+          scans: 'Unlimited',
+          features: [
+            'Unlimited resume scans',
+            'Bulk upload (5+ resumes)',
+            'Advanced legitimacy scoring',
+            'Detailed analysis breakdown',
+            'Red & green flags detection',
+            'Next steps recommendations',
+            'AI-generated interview questions',
+            'Unlimited scan history',
+            'Share & download scans',
+            'API access',
+            'Concurrent device login',
+            'Dedicated support',
+            'Custom integrations',
+            'Custom AI training'
+          ]
+        }
+      ];
 
 export default function Pricing() {
   const [user, setUser] = useState(null);
@@ -167,10 +167,107 @@ export default function Pricing() {
           ))}
         </div>
 
+        {/* Feature Comparison Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-16 max-w-6xl mx-auto"
+        >
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Plan Comparison</h2>
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-700 bg-zinc-900">
+                    <th className="text-left px-6 py-3 text-white font-semibold">Feature</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Free</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Starter</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Professional</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Enterprise</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Monthly Scans</td>
+                    <td className="text-center px-6 py-3 text-white">3</td>
+                    <td className="text-center px-6 py-3 text-white">50</td>
+                    <td className="text-center px-6 py-3 text-white">200</td>
+                    <td className="text-center px-6 py-3 text-emerald-400 font-semibold">Unlimited</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Legitimacy Scoring</td>
+                    <td className="text-center px-6 py-3 text-white">Basic</td>
+                    <td className="text-center px-6 py-3 text-white">Advanced</td>
+                    <td className="text-center px-6 py-3 text-white">Advanced</td>
+                    <td className="text-center px-6 py-3 text-white">Advanced</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Analysis Breakdown</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Next Steps & Questions</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Scan History</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">Unlimited</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">Unlimited</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Share & Download</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Bulk Upload</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">API Access</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Device Login</td>
+                    <td className="text-center px-6 py-3 text-white/50">Single</td>
+                    <td className="text-center px-6 py-3 text-white/50">Single</td>
+                    <td className="text-center px-6 py-3 text-white/50">Single</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">Concurrent</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Support</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white">Priority</td>
+                    <td className="text-center px-6 py-3 text-white">Priority</td>
+                    <td className="text-center px-6 py-3 text-emerald-400">Dedicated</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
           className="mt-12 text-center space-y-4"
         >
           {user?.subscription_tier && user.subscription_tier !== 'free' && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Key, Users, Folder } from 'lucide-react';
+import { LogOut, User, Key, Folder } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -112,14 +112,6 @@ export default function Layout({ children }) {
                   >
                     <Folder className="w-4 h-4 mr-2" />
                     Saved Candidates
-                  </DropdownMenuItem>
-                </Link>
-                <Link to={createPageUrl('Team')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Team
                   </DropdownMenuItem>
                 </Link>
                 <Link to={createPageUrl('ApiAccess')}>
