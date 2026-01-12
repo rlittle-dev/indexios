@@ -120,40 +120,59 @@ export default function Home() {
       
       if (userTier === 'free') {
         // Free tier: Very limited screening only
-        analysisPrompt = `You are an initial resume screening assistant. Provide a VERY BASIC preliminary assessment of this resume.
+        analysisPrompt = `You are an initial resume screening assistant. Analyze this resume and extract information CONSISTENTLY.
 
-        Provide ONLY:
-        1. A simple overall legitimacy score (0-100)
-        2. Brief scores for: consistency, experience, education, skills (all around 50-70 range unless something is obviously wrong)
-        3. Identify 1-2 MAJOR red flags only (if any critical issues exist)
-        4. Note 1-2 obvious green flags (if any clear positives exist)
+      CRITICAL INSTRUCTIONS:
+      - ALWAYS extract the candidate's name from the resume (look at the top, header, or contact section)
+      - ALWAYS extract the email address if present anywhere in the resume (check header, contact info, signature)
+      - Be CONSISTENT in your scoring methodology - same resume should get same scores
+      - Use the EXACT TEXT from the resume when extracting name and email
 
-        Keep ALL details EXTREMELY brief (1 short sentence each). This is a FREE tier scan with limited analysis.
-        Summary should mention: "Limited free scan completed. Upgrade to Professional or Enterprise for comprehensive fraud detection, deep background checks, and detailed verification."`;
+      Provide:
+      1. A simple overall legitimacy score (0-100) based on obvious issues
+      2. Brief scores for: consistency, experience, education, skills (50-70 range unless obviously wrong)
+      3. Identify 1-2 MAJOR red flags only (if critical issues exist)
+      4. Note 1-2 obvious green flags (if clear positives exist)
+
+      Keep details EXTREMELY brief (1 short sentence each). This is a FREE tier scan with limited analysis.
+      Summary should mention: "Limited free scan completed. Upgrade to Professional or Enterprise for comprehensive fraud detection, deep background checks, and detailed verification."`;
       } else if (userTier === 'starter') {
         // Starter tier: Basic analysis
-        analysisPrompt = `You are an HR screening assistant. Provide a BASIC analysis of this resume for initial screening purposes.
+        analysisPrompt = `You are an HR screening assistant. Analyze this resume CONSISTENTLY and thoroughly.
 
-        Evaluate these key aspects:
-        1. **Overall Impression**: General legitimacy assessment
-        2. **Basic Consistency**: Check for obvious timeline issues
-        3. **Experience Overview**: High-level view of work history
-        4. **Education Check**: Basic verification of educational background
+      CRITICAL INSTRUCTIONS:
+      - ALWAYS extract the candidate's full name from the resume (check header, top section, contact area)
+      - ALWAYS extract the email address if it appears anywhere in the resume
+      - Apply consistent scoring criteria - same resume = same scores
+      - Use EXACT TEXT from resume for name and email
 
-        Identify obvious RED FLAGS such as:
-        - Major timeline inconsistencies
-        - Clearly unrealistic claims
-        - Missing essential information
+      Evaluate these key aspects:
+      1. **Overall Impression**: General legitimacy assessment (50-95 range)
+      2. **Basic Consistency**: Check for obvious timeline issues
+      3. **Experience Overview**: High-level view of work history
+      4. **Education Check**: Basic verification of educational background
 
-        Note positive GREEN FLAGS such as:
-        - Clear career history
-        - Recognized institutions
-        - Measurable achievements
+      Identify obvious RED FLAGS such as:
+      - Major timeline inconsistencies
+      - Clearly unrealistic claims
+      - Missing essential information
 
-        Provide a basic overview analysis with moderate detail.`;
+      Note positive GREEN FLAGS such as:
+      - Clear career history
+      - Recognized institutions
+      - Measurable achievements
+
+      Provide a basic overview analysis with moderate detail.`;
       } else {
         // Professional/Enterprise tier: Advanced analysis
         analysisPrompt = `You are an expert HR analyst and background verification specialist. Perform a COMPREHENSIVE and DETAILED analysis of this resume for legitimacy and authenticity.
+
+        CRITICAL INSTRUCTIONS FOR CONSISTENCY:
+        - ALWAYS extract the candidate's full name exactly as it appears on the resume (check header, top, contact section)
+        - ALWAYS extract the email address if present anywhere in the resume (header, contact info, footer, signature)
+        - Apply CONSISTENT scoring methodology - the same resume should receive the same scores every time
+        - Use EXACT TEXT from the resume when extracting name and email (no variations or interpretations)
+        - Base scores on objective criteria that would yield the same result on repeat analysis
 
         Evaluate the following aspects with DEEP ANALYSIS:
         1. **Consistency Score**: Thoroughly check for timeline gaps, overlapping dates, logical career progression, employment duration patterns
@@ -212,8 +231,14 @@ export default function Home() {
       response_json_schema: {
         type: "object",
         properties: {
-          candidate_name: { type: "string" },
-          candidate_email: { type: "string" },
+          candidate_name: { 
+            type: "string",
+            description: "Extract the candidate's full name EXACTLY as written on the resume. Look in header, top section, or contact area. ALWAYS provide this field."
+          },
+          candidate_email: { 
+            type: "string",
+            description: "Extract the email address EXACTLY as written if it appears anywhere on the resume (header, contact, footer, signature). If no email found, return empty string."
+          },
           overall_score: { type: "number", description: "Overall legitimacy percentage 0-100" },
           consistency_score: { type: "number" },
           consistency_details: { type: "string", description: "Detailed explanation of the consistency score" },
