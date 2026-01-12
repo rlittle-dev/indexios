@@ -342,10 +342,10 @@ export default function SavedCandidates() {
                       {selectedFolder.name}
                     </h2>
                     <Link to={createPageUrl('Home')}>
-                      <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                        Add Candidates
-                      </Button>
-                    </Link>
+                       <Button variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                         Add Candidates
+                       </Button>
+                     </Link>
                   </div>
 
                   {savedCandidates.length > 0 ? (
