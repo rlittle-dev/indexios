@@ -15,21 +15,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Bulk upload is only available for Enterprise plan' }, { status: 403 });
     }
 
-    const formData = await req.formData();
-    const files = formData.getAll('files');
+    const { fileUrls } = await req.json();
 
-    if (files.length < 5) {
+    if (!fileUrls || fileUrls.length < 5) {
       return Response.json({ error: 'Bulk upload requires at least 5 files' }, { status: 400 });
     }
 
     const analyses = [];
 
     // Process each resume
-    for (const file of files) {
+    for (const file_url of fileUrls) {
       try {
-        // Upload file
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
         // Analyze with advanced AI
         const analysis = await base44.integrations.Core.InvokeLLM({
           prompt: `You are an expert HR analyst and background verification specialist. Perform a COMPREHENSIVE and DETAILED analysis of this resume for legitimacy and authenticity.
