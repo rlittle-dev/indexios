@@ -235,55 +235,55 @@ NEXT STEPS: 3-5 verification actions (reference checks, credential verification,
 INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressive claims`;
       } else if (userTier === 'starter') {
         // Starter tier: Basic analysis
-        analysisPrompt = `You are an HR screening specialist. Score this resume with STRICT, CONSISTENT methodology.
+        analysisPrompt = `You are an HR screening specialist. Score this resume with STRICT, CONSISTENT methodology. BE RIGOROUS - ONLY STRONG CANDIDATES DESERVE HIGH SCORES.
 
-CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
+      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
-CRITICAL CONSISTENCY RULES:
-- ALWAYS extract exact name from resume
-- ALWAYS extract email if present
-- Apply identical scoring approach to every resume
-- Use explicit rubric below
-- Identical resume = identical scores every time
+      CRITICAL CONSISTENCY RULES:
+      - ALWAYS extract exact name from resume
+      - ALWAYS extract email if present
+      - Apply identical scoring approach to every resume
+      - Use explicit rubric below
+      - Identical resume = identical scores every time
 
-DETAILED SCORING RUBRIC:
-OVERALL SCORE (0-100):
-- 85-100: Strong candidate, no major red flags, clear progression
-- 70-84: Good candidate, minor inconsistencies/gaps acceptable
-- 55-69: Acceptable but concerns present, needs clarification
-- 40-54: Significant concerns, multiple issues present
-- 0-39: Critical issues, likely fraudulent or severely problematic
+      DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE RESUMES):
+      OVERALL SCORE (0-100):
+      - 85-100: Exceptional. Multiple specific achievements with metrics, clear progression, elite institutions. Clearly qualified.
+      - 70-84: Strong. Specific achievements, measurable results, recognized companies, minor gaps. Genuinely impressive.
+      - 55-69: Acceptable. Some specifics, mostly logical, identifiable companies, minor issues present.
+      - 40-54: Concerning. Generic descriptions, vague claims, multiple gaps/inconsistencies, weak evidence.
+      - 0-39: Critical. Sparse resume, inflated claims, major inconsistencies, unverifiable information.
 
-CATEGORY SCORES (0-100 each):
-Consistency Score:
-- 80+: Perfect timeline, clear career progression, all dates align
-- 60-79: Minor gaps <3 months or slight role overlaps, logical flow
-- 40-59: Unexplained gaps 3-6 months, questionable transitions
-- 20-39: Major gaps >6 months, unrealistic progression
-- <20: Severe inconsistencies, overlapping employment
+      CATEGORY SCORES (0-100 each):
+      Consistency Score:
+      - 80+: Perfect timeline, no gaps/overlaps, clear transitions, education aligns
+      - 60-79: Minor gaps <2 months explained, mostly logical
+      - 40-59: Gaps 2-6 months, role overlaps, narrative issues
+      - 20-39: Major gaps >6 months, significant overlaps
+      - <20: Impossible timeline, fabrication indicators
 
-Experience Verification:
-- 80+: Specific metrics, measurable results, realistic scope
-- 60-79: Clear job descriptions, some specifics, appropriate seniority
-- 40-59: Generic descriptions, limited metrics, vague responsibilities
-- 20-39: Highly vague, questionable achievements, role mismatch
-- <20: Fabricated or unrealistic claims
+      Experience Verification:
+      - 80+: Rich specific metrics (grew X by %, managed budgets, led teams), clear impact
+      - 60-79: Multiple measurable results, specific accomplishments
+      - 40-59: Some achievements, minimal metrics, vague impact
+      - 20-39: Mostly generic language, inflated for role level
+      - <20: Zero demonstrable impact or fabricated claims
 
-Education Verification:
-- 80+: Recognizable institutions, clear dates, aligned with experience
-- 60-79: Known schools, realistic dates, mostly verifiable
-- 40-59: Less known institutions, dates unclear, some misalignment
-- 20-39: Unverifiable institutions, degree/date issues
-- <20: Likely fabricated education
+      Education Verification:
+      - 80+: Top university, dates align perfectly, relevant degree
+      - 60-79: Well-known institution, clear dates, relevant
+      - 40-59: Recognized school, some ambiguity, weak alignment
+      - 20-39: Lesser-known school, credential issues
+      - <20: Unverifiable or fabricated education
 
-Skills Alignment:
-- 80+: Skills perfectly match experience, progression clear
-- 60-79: Skills mostly align, reasonable development shown
-- 40-59: Some skill gaps, limited evidence of claimed proficiency
-- 20-39: Major skill mismatches, claimed expertise unsupported
-- <20: Skills contradictory to experience
+      Skills Alignment:
+      - 80+: Clear progression through roles, demonstrated depth/expertise
+      - 60-79: Skills align with roles, some progression shown
+      - 40-59: Basic alignment, limited evidence
+      - 20-39: Major mismatches, unexplained claims
+      - <20: Contradictory to experience
 
-Identify 3-5 red flags if present. Note 2-3 green flags if strong.`;
+      Flag sparse/vague resumes heavily. Generic descriptions should lower all scores. Identify 3-5 red flags. Note green flags only if truly impressive.`;
       } else {
         // Professional/Enterprise tier: Advanced analysis
         analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency.
