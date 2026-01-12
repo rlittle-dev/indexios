@@ -1,8 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-react';
 
-export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
+export default function AnalysisCard({ title, score, details, icon: Icon, delay = 0 }) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const getBarColor = (score) => {
     if (score >= 80) return 'bg-gradient-to-r from-emerald-500 to-emerald-400';
     if (score >= 60) return 'bg-gradient-to-r from-yellow-500 to-yellow-400';
@@ -17,31 +19,60 @@ export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
       transition={{ duration: 0.4, delay }}
       className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors"
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-white/5">
-            <Icon className="w-4 h-4 text-white/60" />
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full text-left"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5">
+              <Icon className="w-4 h-4 text-white/60" />
+            </div>
+            <span className="text-white font-medium text-sm">{title}</span>
           </div>
-          <span className="text-white font-medium text-sm">{title}</span>
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-lg font-bold",
+              score >= 80 ? "text-emerald-400" :
+              score >= 60 ? "text-yellow-400" :
+              score >= 40 ? "text-orange-400" : "text-red-400"
+            )}>
+              {score}%
+            </span>
+            {details && (
+              <ChevronDown className={cn(
+                "w-4 h-4 text-white/60 transition-transform",
+                isExpanded && "rotate-180"
+              )} />
+            )}
+          </div>
         </div>
-        <span className={cn(
-          "text-lg font-bold",
-          score >= 80 ? "text-emerald-400" :
-          score >= 60 ? "text-yellow-400" :
-          score >= 40 ? "text-orange-400" : "text-red-400"
-        )}>
-          {score}%
-        </span>
-      </div>
-      
-      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
-          transition={{ duration: 0.8, delay: delay + 0.2, ease: "easeOut" }}
-          className={cn("h-full rounded-full", getBarColor(score))}
-        />
-      </div>
+        
+        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${score}%` }}
+            transition={{ duration: 0.8, delay: delay + 0.2, ease: "easeOut" }}
+            className={cn("h-full rounded-full", getBarColor(score))}
+          />
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isExpanded && details && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <p className="text-white/70 text-sm mt-4 leading-relaxed">
+              {details}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

@@ -111,9 +111,13 @@ Provide a detailed analysis with percentage scores for each category and an over
           candidate_email: { type: "string" },
           overall_score: { type: "number", description: "Overall legitimacy percentage 0-100" },
           consistency_score: { type: "number" },
+          consistency_details: { type: "string", description: "Detailed explanation of the consistency score" },
           experience_verification: { type: "number" },
+          experience_details: { type: "string", description: "Detailed explanation of the experience verification" },
           education_verification: { type: "number" },
+          education_details: { type: "string", description: "Detailed explanation of the education verification" },
           skills_alignment: { type: "number" },
+          skills_details: { type: "string", description: "Detailed explanation of the skills alignment" },
           red_flags: { type: "array", items: { type: "string" } },
           green_flags: { type: "array", items: { type: "string" } },
           summary: { type: "string", description: "Brief summary of the analysis" }
@@ -129,9 +133,13 @@ Provide a detailed analysis with percentage scores for each category and an over
         legitimacy_score: analysis.overall_score,
         analysis: {
           consistency_score: analysis.consistency_score,
+          consistency_details: analysis.consistency_details,
           experience_verification: analysis.experience_verification,
+          experience_details: analysis.experience_details,
           education_verification: analysis.education_verification,
+          education_details: analysis.education_details,
           skills_alignment: analysis.skills_alignment,
+          skills_details: analysis.skills_details,
           red_flags: analysis.red_flags,
           green_flags: analysis.green_flags,
           summary: analysis.summary
@@ -458,24 +466,28 @@ Provide a detailed analysis with percentage scores for each category and an over
                     <AnalysisCard
                       title="Consistency"
                       score={selectedCandidate.analysis.consistency_score || 0}
+                      details={selectedCandidate.analysis.consistency_details}
                       icon={User}
                       delay={0}
                     />
                     <AnalysisCard
                       title="Experience"
                       score={selectedCandidate.analysis.experience_verification || 0}
+                      details={selectedCandidate.analysis.experience_details}
                       icon={Briefcase}
                       delay={0.1}
                     />
                     <AnalysisCard
                       title="Education"
                       score={selectedCandidate.analysis.education_verification || 0}
+                      details={selectedCandidate.analysis.education_details}
                       icon={GraduationCap}
                       delay={0.2}
                     />
                     <AnalysisCard
                       title="Skills Alignment"
                       score={selectedCandidate.analysis.skills_alignment || 0}
+                      details={selectedCandidate.analysis.skills_details}
                       icon={Sparkles}
                       delay={0.3}
                     />
