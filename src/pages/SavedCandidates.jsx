@@ -16,7 +16,13 @@ const FOLDER_COLORS = [
   { name: 'emerald', class: 'bg-emerald-500' },
   { name: 'orange', class: 'bg-orange-500' },
   { name: 'pink', class: 'bg-pink-500' },
-  { name: 'red', class: 'bg-red-500' }
+  { name: 'red', class: 'bg-red-500' },
+  { name: 'cyan', class: 'bg-cyan-500' },
+  { name: 'amber', class: 'bg-amber-500' },
+  { name: 'lime', class: 'bg-lime-500' },
+  { name: 'rose', class: 'bg-rose-500' },
+  { name: 'indigo', class: 'bg-indigo-500' },
+  { name: 'teal', class: 'bg-teal-500' }
 ];
 
 export default function SavedCandidates() {
@@ -212,14 +218,15 @@ export default function SavedCandidates() {
                         onChange={(e) => setNewFolderName(e.target.value)}
                         className="bg-zinc-800 border-zinc-700 text-white"
                       />
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-3">
                         {FOLDER_COLORS.map((color) => (
                           <button
                             key={color.name}
                             onClick={() => setNewFolderColor(color.name)}
-                            className={`w-6 h-6 rounded-full ${color.class} ${
-                              newFolderColor === color.name ? 'ring-2 ring-white' : ''
+                            className={`w-8 h-8 rounded-full ${color.class} transition-all ${
+                              newFolderColor === color.name ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-800' : 'hover:scale-110'
                             }`}
+                            title={color.name}
                           />
                         ))}
                       </div>
@@ -232,13 +239,13 @@ export default function SavedCandidates() {
                           Create
                         </Button>
                         <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setShowNewFolder(false)}
-                          className="border-zinc-700 text-white hover:bg-zinc-800"
-                        >
-                          Cancel
-                        </Button>
+                           size="sm"
+                           variant="outline"
+                           onClick={() => setShowNewFolder(false)}
+                           className="border-zinc-700 bg-transparent text-white hover:bg-zinc-800 hover:text-white"
+                         >
+                           Cancel
+                         </Button>
                       </div>
                     </motion.div>
                   )}
