@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UploadZone from '@/components/upload/UploadZone';
 import ScoreCircle from '@/components/score/ScoreCircle';
@@ -14,12 +14,24 @@ export default function Home() {
   const [currentView, setCurrentView] = useState('upload'); // 'upload', 'result', 'history'
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authenticated = await base44.auth.isAuthenticated();
+      setIsAuthenticated(authenticated);
+      setAuthLoading(false);
+    };
+    checkAuth();
+  }, []);
   
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
     queryKey: ['candidates'],
     queryFn: () => base44.entities.Candidate.list('-created_date', 50),
+    enabled: isAuthenticated,
   });
 
   const analyzeResume = async (file) => {
@@ -124,6 +136,114 @@ Provide a detailed analysis with percentage scores for each category and an over
     setSelectedCandidate(null);
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Landing page for non-authenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-zinc-950">
+        <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/10 via-transparent to-transparent pointer-events-none" />
+        
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-2xl"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mb-8"
+            >
+              <span className="text-6xl md:text-7xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent tracking-tight">
+                Indexios
+              </span>
+            </motion.div>
+            
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-3xl md:text-4xl font-bold text-white mb-4"
+            >
+              Resume Verification Platform
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-lg text-zinc-400 mb-8 leading-relaxed"
+            >
+              AI-powered verification to detect inconsistencies, validate credentials, 
+              and score candidate legitimacy in seconds.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <Button
+                onClick={() => base44.auth.redirectToLogin()}
+                size="lg"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg font-semibold rounded-xl"
+              >
+                Get Started
+              </Button>
+              <Button
+                onClick={() => base44.auth.redirectToLogin()}
+                size="lg"
+                variant="outline"
+                className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 px-8 py-6 text-lg rounded-xl"
+              >
+                Sign In
+              </Button>
+            </motion.div>
+
+            {/* Features */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="mt-16 grid sm:grid-cols-3 gap-6"
+            >
+              {[
+                { icon: Shield, title: 'Fraud Detection', desc: 'Identify red flags and inconsistencies' },
+                { icon: Sparkles, title: 'AI Analysis', desc: 'Powered by advanced language models' },
+                { icon: Lock, title: 'Secure', desc: 'Your data stays private and protected' },
+              ].map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 + index * 0.1 }}
+                  className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 text-center"
+                >
+                  <div className="inline-flex p-3 rounded-xl bg-emerald-500/10 mb-3">
+                    <feature.icon className="w-6 h-6 text-emerald-500" />
+                  </div>
+                  <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
+                  <p className="text-zinc-500 text-sm">{feature.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Subtle gradient background */}
@@ -137,16 +257,11 @@ Provide a detailed analysis with percentage scores for each category and an over
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <div className="inline-flex items-center justify-center mb-4">
-            <span className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent tracking-tight">
-              Indexios
-            </span>
-          </div>
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-2">
             Resume Verification Platform
           </h2>
           <p className="text-zinc-400 max-w-md mx-auto">
-            AI-powered verification to detect inconsistencies and validate candidate credentials
+            Upload a resume to scan for legitimacy
           </p>
         </motion.div>
 
