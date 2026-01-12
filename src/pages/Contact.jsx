@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Instagram, MessageCircle, ArrowLeft, Send, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,18 +8,36 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({ subject: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (isAuthenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      }
+    };
+    checkAuth();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!user) {
+      base44.auth.redirectToLogin(createPageUrl('Contact'));
+      return;
+    }
+
     setLoading(true);
 
     try {
       await base44.functions.invoke('sendSupportEmail', formData);
       setSubmitted(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({ subject: '', message: '' });
       setTimeout(() => setSubmitted(false), 5000);
     } catch (error) {
       console.error('Error sending email:', error);
