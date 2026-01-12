@@ -5,6 +5,7 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import AccountManagement from './pages/AccountManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Team": Team,
     "About": About,
     "Contact": Contact,
+    "AccountManagement": AccountManagement,
 }
 
 export const pagesConfig = {
