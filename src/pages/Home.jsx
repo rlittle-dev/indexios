@@ -27,6 +27,7 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -192,10 +193,22 @@ Provide a detailed analysis with percentage scores for each category and an over
     return scansUsed < scanLimit;
   };
 
-  if (authLoading) {
+  const handleLoginRedirect = () => {
+    setIsRedirectingToLogin(true);
+    base44.auth.redirectToLogin();
+  };
+
+  if (authLoading || isRedirectingToLogin) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent"
+        >
+          Indexios
+        </motion.div>
+        <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -251,14 +264,14 @@ Provide a detailed analysis with percentage scores for each category and an over
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Button
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={handleLoginRedirect}
                 size="lg"
                 className="bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg font-semibold rounded-xl shadow-lg"
               >
                 Get Started
               </Button>
               <Button
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={handleLoginRedirect}
                 size="lg"
                 variant="outline"
                 className="border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40 px-8 py-6 text-lg rounded-xl"

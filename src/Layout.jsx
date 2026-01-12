@@ -12,6 +12,7 @@ import {
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,10 +30,22 @@ export default function Layout({ children }) {
     base44.auth.logout();
   };
 
-  if (loading) {
+  const handleLoginRedirect = () => {
+    setIsRedirectingToLogin(true);
+    base44.auth.redirectToLogin();
+  };
+
+  if (loading || isRedirectingToLogin) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent"
+        >
+          Indexios
+        </motion.div>
+        <div className="w-8 h-8 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -70,7 +83,7 @@ export default function Layout({ children }) {
             </DropdownMenu>
           ) : (
             <Button
-              onClick={() => base44.auth.redirectToLogin()}
+              onClick={handleLoginRedirect}
               className="bg-white hover:bg-gray-100 text-black font-medium"
             >
               Sign In
