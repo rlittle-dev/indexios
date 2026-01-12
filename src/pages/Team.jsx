@@ -69,15 +69,19 @@ export default function Team() {
 
   const inviteMemberMutation = useMutation({
     mutationFn: async (email) => {
-      // Invite user to the app
-      await base44.users.inviteUser(email, 'user');
-      
-      // Add them to the team
+      // Add them to the team first
       await base44.entities.TeamMember.create({
         team_id: teams[0].id,
         user_email: email,
         role: 'member',
         status: 'pending'
+      });
+
+      // Send invite email with join link
+      await base44.functions.invoke('sendTeamInvite', {
+        email,
+        teamId: teams[0].id,
+        teamName: teams[0].name
       });
     },
     onSuccess: () => {
