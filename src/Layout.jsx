@@ -135,6 +135,16 @@ export default function Layout({ children }) {
                     Saved Candidates
                   </DropdownMenuItem>
                 </Link>
+                {user?.subscription_tier === 'enterprise' && (
+                  <Link to={createPageUrl('Team')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Team
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <Link to={createPageUrl('ApiAccess')}>
                   <DropdownMenuItem 
                     className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
