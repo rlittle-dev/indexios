@@ -81,8 +81,8 @@ export default function Home() {
       // Get personal scans created by this user
       const personalScans = await base44.entities.Candidate.filter({ created_by: user.email }, '-created_date', 50);
       
-      // If enterprise user with team, get team scans too
-      if (user?.subscription_tier === 'enterprise' && userTeams.length > 0) {
+      // If professional+ user with team, get team scans too
+      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
         const teamScans = await Promise.all(
           userTeams.map(membership => 
             base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)
@@ -132,9 +132,9 @@ export default function Home() {
       // Upload the file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      // Get team ID if enterprise user has a team
+      // Get team ID if professional+ user has a team
       let teamId = null;
-      if (user?.subscription_tier === 'enterprise' && userTeams.length > 0) {
+      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
         teamId = userTeams[0].team_id;
       }
 
