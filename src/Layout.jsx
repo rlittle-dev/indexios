@@ -151,6 +151,14 @@ export default function Layout({ children }) {
                     API Access
                   </DropdownMenuItem>
                 </Link>
+                <Link to={createPageUrl('Tickets')}>
+                  <DropdownMenuItem 
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Support Tickets
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
