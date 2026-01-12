@@ -58,11 +58,10 @@ const TIERS = [
           features: [
             'All Professional features, plus:',
             'Unlimited resume scans',
-            'Bulk upload (5+ resumes)',
+            'Bulk upload',
             'Concurrent device login',
             'Dedicated support',
-            'Custom integrations',
-            'Custom AI training'
+            'Custom integrations'
           ]
         }
       ];
