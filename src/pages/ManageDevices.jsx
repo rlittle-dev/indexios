@@ -40,20 +40,30 @@ export default function ManageDevices() {
 
   const currentDeviceId = localStorage.getItem('deviceId');
 
-  const handleRemoveDevice = (deviceKey, deviceId) => {
+  const handleRemoveDevice = async (deviceId, isCurrentDevice) => {
     if (
       confirm(
         'Are you sure you want to logout this device? You will need to sign in again.'
       )
     ) {
-      localStorage.removeItem(deviceKey);
+      try {
+        // Deactivate the device
+        const device = devices.find(d => d.device_id === deviceId);
+        if (device) {
+          await base44.entities.Device.update(device.id, { is_active: false });
+        }
 
-      if (deviceId === currentDeviceId) {
-        // Logout current device
-        base44.auth.logout(createPageUrl('Home'));
-      } else {
-        // Just update the list
-        setDevices(devices.filter((d) => d.storageKey !== deviceKey));
+        if (isCurrentDevice) {
+          // Logout current device
+          localStorage.removeItem('deviceId');
+          await base44.auth.logout(createPageUrl('Home'));
+        } else {
+          // Just update the list
+          setDevices(devices.filter((d) => d.device_id !== deviceId));
+        }
+      } catch (error) {
+        console.error('Error removing device:', error);
+        alert('Failed to remove device');
       }
     }
   };
