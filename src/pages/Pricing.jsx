@@ -196,66 +196,66 @@ export default function Pricing() {
                 <tbody>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Monthly Scans</td>
-                    <td className="text-center px-6 py-3 text-white">3</td>
-                    <td className="text-center px-6 py-3 text-white">50</td>
-                    <td className="text-center px-6 py-3 text-white">200</td>
-                    <td className="text-center px-6 py-3 text-emerald-400 font-semibold">Unlimited</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">3</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">50</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">200</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Legitimacy Scoring</td>
                     <td className="text-center px-6 py-3 text-white">Basic</td>
-                    <td className="text-center px-6 py-3 text-white">Advanced</td>
-                    <td className="text-center px-6 py-3 text-white">Advanced</td>
-                    <td className="text-center px-6 py-3 text-white">Advanced</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Analysis Breakdown</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Next Steps & Questions</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Scan History</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">Unlimited</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">Unlimited</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Share & Download</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Bulk Upload</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">API Access</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Device Login</td>
                     <td className="text-center px-6 py-3 text-white/50">Single</td>
                     <td className="text-center px-6 py-3 text-white/50">Single</td>
                     <td className="text-center px-6 py-3 text-white/50">Single</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">Concurrent</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Concurrent</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Support</td>
