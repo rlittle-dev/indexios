@@ -26,10 +26,10 @@ const TIERS = [
           scans: 50,
           popular: true,
           features: [
+            'All Free features, plus:',
             '50 resume scans per month',
             'Advanced legitimacy scoring',
             'Detailed analysis breakdown',
-            'Red & green flags detection',
             'Scan history',
             'Share & download scans',
             'Priority support'
@@ -41,16 +41,12 @@ const TIERS = [
           price: 99,
           scans: 200,
           features: [
+            'All Starter features, plus:',
             '200 resume scans per month',
-            'Advanced legitimacy scoring',
-            'Detailed analysis breakdown',
-            'Red & green flags detection',
             'Next steps recommendations',
-            'AI-generated interview questions',
-            'Unlimited scan history',
-            'Share & download scans',
+            'Interview question generation',
+            'Save candidates to folders',
             'API access',
-            'Priority support',
             'Single device login'
           ]
         },
@@ -60,16 +56,9 @@ const TIERS = [
           price: 299,
           scans: 'Unlimited',
           features: [
+            'All Professional features, plus:',
             'Unlimited resume scans',
             'Bulk upload (5+ resumes)',
-            'Advanced legitimacy scoring',
-            'Detailed analysis breakdown',
-            'Red & green flags detection',
-            'Next steps recommendations',
-            'AI-generated interview questions',
-            'Unlimited scan history',
-            'Share & download scans',
-            'API access',
             'Concurrent device login',
             'Dedicated support',
             'Custom integrations',
@@ -226,6 +215,13 @@ export default function Pricing() {
                     <td className="px-6 py-3 text-white/80">Scan History</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Save Candidates</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-purple-400">✓</td>
                     <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
