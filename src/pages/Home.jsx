@@ -44,10 +44,43 @@ export default function Home() {
     checkAuth();
   }, []);
   
+  const { data: userTeams = [] } = useQuery({
+    queryKey: ['userTeams'],
+    queryFn: async () => {
+      if (!user) return [];
+      const memberships = await base44.entities.TeamMember.filter({ 
+        user_email: user.email,
+        status: 'active'
+      });
+      return memberships;
+    },
+    enabled: isAuthenticated && !!user,
+  });
+
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
-    queryKey: ['candidates'],
-    queryFn: () => base44.entities.Candidate.list('-created_date', 50),
-    enabled: isAuthenticated,
+    queryKey: ['candidates', userTeams],
+    queryFn: async () => {
+      // Get personal scans
+      const personalScans = await base44.entities.Candidate.list('-created_date', 50);
+      
+      // If enterprise user with team, get team scans too
+      if (user?.subscription_tier === 'enterprise' && userTeams.length > 0) {
+        const teamScans = await Promise.all(
+          userTeams.map(membership => 
+            base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)
+          )
+        );
+        const allTeamScans = teamScans.flat();
+        
+        // Combine and deduplicate
+        const allScans = [...personalScans, ...allTeamScans];
+        const uniqueScans = Array.from(new Map(allScans.map(s => [s.id, s])).values());
+        return uniqueScans.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+      }
+      
+      return personalScans;
+    },
+    enabled: isAuthenticated && !!user,
   });
 
   const analyzeResume = async (file) => {
@@ -68,10 +101,17 @@ export default function Home() {
       // Upload the file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
+      // Get team ID if enterprise user has a team
+      let teamId = null;
+      if (user?.subscription_tier === 'enterprise' && userTeams.length > 0) {
+        teamId = userTeams[0].team_id;
+      }
+
       // Create candidate record
       const candidate = await base44.entities.Candidate.create({
         resume_url: file_url,
-        status: 'pending'
+        status: 'pending',
+        team_id: teamId
       });
     
     // Analyze with LLM
