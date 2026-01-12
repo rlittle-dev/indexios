@@ -41,6 +41,11 @@ export default function FlagsList({ redFlags = [], greenFlags = [], isBasic = fa
         ) : (
           <p className="text-white/40 text-sm italic">No red flags detected</p>
         )}
+        {isBasic && (
+          <p className="text-yellow-400/80 text-xs italic mt-3">
+            Limited to basic flags - upgrade for comprehensive fraud detection
+          </p>
+        )}
       </motion.div>
       
       {/* Green Flags */}
@@ -77,6 +82,11 @@ export default function FlagsList({ redFlags = [], greenFlags = [], isBasic = fa
           </ul>
         ) : (
           <p className="text-white/40 text-sm italic">No green flags detected</p>
+        )}
+        {isBasic && (
+          <p className="text-yellow-400/80 text-xs italic mt-3">
+            Upgrade for advanced verification insights
+          </p>
         )}
       </motion.div>
     </div>
