@@ -137,8 +137,18 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      {/* Concurrent Session Alert */}
+      <AnimatePresence>
+        {showConcurrentAlert && (
+          <ConcurrentSessionAlert
+            deviceType={conflictingDeviceType}
+            onDismiss={handleDismissConcurrentAlert}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Chat Bot for all users */}
-      {user && (
+      {user && !showConcurrentAlert && (
         <ChatBot user={user} />
       )}
       
