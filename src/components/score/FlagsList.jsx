@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function FlagsList({ redFlags = [], greenFlags = [] }) {
+export default function FlagsList({ redFlags = [], greenFlags = [], isBasic = false }) {
   return (
     <div className="grid md:grid-cols-2 gap-4">
       {/* Red Flags */}

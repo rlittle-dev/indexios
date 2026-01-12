@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 
-export default function AnalysisCard({ title, score, details, icon: Icon, delay = 0 }) {
+export default function AnalysisCard({ title, score, details, icon: Icon, delay = 0, isBasic = false }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const getBarColor = (score) => {
     if (score >= 80) return 'bg-gradient-to-r from-emerald-500 to-emerald-400';
@@ -74,6 +74,11 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
             <p className="text-white/70 text-sm mt-4 leading-relaxed">
               {details}
             </p>
+            {isBasic && (
+              <p className="text-yellow-400 text-xs mt-2 italic">
+                💎 Upgrade for detailed analysis and insights
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

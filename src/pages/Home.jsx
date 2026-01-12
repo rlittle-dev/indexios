@@ -114,36 +114,81 @@ export default function Home() {
         team_id: teamId
       });
     
+    // Determine analysis depth based on tier
+    const userTier = user?.subscription_tier || 'free';
+    const isAdvanced = userTier !== 'free' && userTier !== 'starter';
+
     // Analyze with LLM
+    const analysisPrompt = isAdvanced 
+      ? `You are an expert HR analyst and background verification specialist. Perform a COMPREHENSIVE and DETAILED analysis of this resume for legitimacy and authenticity.
+
+    Evaluate the following aspects with DEEP ANALYSIS:
+    1. **Consistency Score**: Thoroughly check for timeline gaps, overlapping dates, logical career progression, employment duration patterns
+    2. **Experience Verification**: Deep assessment of job titles, responsibilities, achievements, company sizes, industry alignment, role complexity
+    3. **Education Verification**: Comprehensive check of degrees, institutions reputation, graduation dates, academic achievements, certifications validity
+    4. **Skills Alignment**: Detailed verification of skills matching experience, skill progression over time, technology stack currency, domain expertise
+
+    Conduct ADVANCED CHECKS for:
+    - Career trajectory analysis with industry benchmarks
+    - Salary expectations vs experience level
+    - Leadership progression indicators
+    - Technical skill depth assessment
+    - Cultural fit indicators
+    - Potential overqualification or underqualification
+    - Writing quality and attention to detail
+    - Achievements quantification and believability
+    - Reference quality indicators
+
+    Look for RED FLAGS (comprehensive list):
+    - Unrealistic career progression (e.g., Junior to CEO in 2 years)
+    - Vague company descriptions or roles
+    - Too many jobs in short periods (job hopping patterns)
+    - Exaggerated achievements without specifics or metrics
+    - Generic or buzzword-heavy descriptions
+    - Mismatched skills and experience
+    - Spelling/grammar inconsistencies in professional claims
+    - Unverifiable institutions or certifications
+    - Employment gaps without explanation
+    - Inconsistent formatting or presentation
+    - Outdated skills for claimed seniority
+    - Missing critical information
+
+    Look for GREEN FLAGS (comprehensive list):
+    - Specific, measurable achievements with clear metrics
+    - Consistent and logical career progression
+    - Recognized institutions and reputable companies
+    - Detailed, well-articulated role descriptions
+    - Relevant, current certifications from known providers
+    - Clear, professional contact information
+    - Quantified results and business impact
+    - Awards, publications, or patents
+    - Demonstrated continuous learning
+    - Strong online presence indicators
+    - Recommendations or endorsements mentioned
+
+    Provide an EXTENSIVE analysis with percentage scores, detailed reasoning, and actionable insights for each category.`
+      : `You are an HR screening assistant. Provide a BASIC analysis of this resume for initial screening purposes.
+
+    Evaluate these key aspects:
+    1. **Overall Impression**: General legitimacy assessment
+    2. **Basic Consistency**: Check for obvious timeline issues
+    3. **Experience Overview**: High-level view of work history
+    4. **Education Check**: Basic verification of educational background
+
+    Identify obvious RED FLAGS such as:
+    - Major timeline inconsistencies
+    - Clearly unrealistic claims
+    - Missing essential information
+
+    Note positive GREEN FLAGS such as:
+    - Clear career history
+    - Recognized institutions
+    - Measurable achievements
+
+    Provide a basic overview analysis. Note: This is a basic scan - upgrade to Professional or Enterprise for detailed fraud detection, deep background verification, and comprehensive risk assessment.`;
+
     const analysis = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are an expert HR analyst and background verification specialist. Analyze this resume for legitimacy and authenticity.
-
-Evaluate the following aspects:
-1. **Consistency Score**: Check for timeline gaps, overlapping dates, logical career progression
-2. **Experience Verification**: Assess if job titles, responsibilities, and achievements seem realistic and verifiable
-3. **Education Verification**: Check if degrees, institutions, and graduation dates seem legitimate
-4. **Skills Alignment**: Verify if listed skills match the claimed experience and roles
-
-Look for RED FLAGS such as:
-- Unrealistic career progression (e.g., Junior to CEO in 2 years)
-- Vague company descriptions or roles
-- Too many jobs in short periods
-- Exaggerated achievements without specifics
-- Generic or buzzword-heavy descriptions
-- Mismatched skills and experience
-- Spelling/grammar inconsistencies in professional claims
-- Unverifiable institutions or certifications
-
-Look for GREEN FLAGS such as:
-- Specific, measurable achievements
-- Consistent career progression
-- Recognized institutions and companies
-- Detailed role descriptions
-- Relevant certifications from known providers
-- Clear contact information
-- Quantified results and metrics
-
-Provide a detailed analysis with percentage scores for each category and an overall legitimacy score.`,
+      prompt: analysisPrompt,
       file_urls: [file_url],
       response_json_schema: {
         type: "object",
@@ -183,7 +228,8 @@ Provide a detailed analysis with percentage scores for each category and an over
           skills_details: analysis.skills_details,
           red_flags: analysis.red_flags,
           green_flags: analysis.green_flags,
-          summary: analysis.summary
+          summary: analysis.summary,
+          is_basic: !isAdvanced
         },
         status: 'analyzed'
       });
@@ -493,13 +539,21 @@ Provide a detailed analysis with percentage scores for each category and an over
               <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <ScoreCircle score={selectedCandidate.legitimacy_score || 0} />
-                  
+
                   <div className="flex-1 text-center md:text-left">
                     <h2 className="text-2xl font-bold text-white mb-1">
                       {selectedCandidate.name || 'Unknown Candidate'}
                     </h2>
                     {selectedCandidate.email && (
                       <p className="text-white/60">{selectedCandidate.email}</p>
+                    )}
+                    {selectedCandidate.analysis?.is_basic && (
+                      <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                        <p className="text-yellow-400 text-sm font-medium flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          Basic Analysis - Upgrade for comprehensive fraud detection and deep insights
+                        </p>
+                      </div>
                     )}
                     {selectedCandidate.analysis?.summary && (
                       <p className="text-white/70 mt-3 text-sm leading-relaxed">
@@ -531,6 +585,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                       details={selectedCandidate.analysis.consistency_details}
                       icon={User}
                       delay={0}
+                      isBasic={selectedCandidate.analysis.is_basic}
                     />
                     <AnalysisCard
                       title="Experience"
@@ -538,6 +593,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                       details={selectedCandidate.analysis.experience_details}
                       icon={Briefcase}
                       delay={0.1}
+                      isBasic={selectedCandidate.analysis.is_basic}
                     />
                     <AnalysisCard
                       title="Education"
@@ -545,6 +601,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                       details={selectedCandidate.analysis.education_details}
                       icon={GraduationCap}
                       delay={0.2}
+                      isBasic={selectedCandidate.analysis.is_basic}
                     />
                     <AnalysisCard
                       title="Skills Alignment"
@@ -552,12 +609,33 @@ Provide a detailed analysis with percentage scores for each category and an over
                       details={selectedCandidate.analysis.skills_details}
                       icon={Sparkles}
                       delay={0.3}
+                      isBasic={selectedCandidate.analysis.is_basic}
                     />
                   </div>
+
+                  {selectedCandidate.analysis.is_basic && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-500/30 rounded-xl p-6 text-center"
+                    >
+                      <Lock className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
+                      <h3 className="text-white font-semibold mb-2">Unlock Advanced Analysis</h3>
+                      <p className="text-white/70 text-sm mb-4">
+                        Get comprehensive fraud detection, deep background verification, career trajectory analysis, and risk assessment
+                      </p>
+                      <Link to={createPageUrl('Pricing')}>
+                        <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                          Upgrade Now
+                        </Button>
+                      </Link>
+                    </motion.div>
+                  )}
 
                   <FlagsList
                     redFlags={selectedCandidate.analysis.red_flags || []}
                     greenFlags={selectedCandidate.analysis.green_flags || []}
+                    isBasic={selectedCandidate.analysis.is_basic}
                   />
                 </>
               )}
