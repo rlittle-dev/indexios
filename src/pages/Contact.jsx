@@ -69,40 +69,87 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <motion.a
-                href="https://www.instagram.com/indexios"
-                target="_blank"
-                rel="noopener noreferrer"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center gap-4 p-4 bg-zinc-800/50 hover:bg-zinc-800 rounded-xl border border-zinc-700 hover:border-zinc-600 transition-all group"
-              >
-                <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all">
-                  <Instagram className="w-6 h-6 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold mb-1">Follow us on Instagram</h3>
-                  <p className="text-white/60 text-sm">@indexios</p>
-                </div>
-              </motion.a>
-
+            {submitted ? (
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center gap-4 p-4 bg-zinc-800/50 rounded-xl border border-zinc-700"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-8"
               >
-                <div className="inline-flex p-3 rounded-xl bg-emerald-500/10">
-                  <Mail className="w-6 h-6 text-emerald-400" />
+                <div className="inline-flex p-4 rounded-full bg-emerald-500/10 mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold mb-1">Email Support</h3>
-                  <p className="text-white/60 text-sm">Reach out through Instagram DMs for inquiries</p>
-                </div>
+                <h3 className="text-white font-semibold mb-2">Message sent!</h3>
+                <p className="text-white/60 text-sm">We'll get back to you shortly.</p>
               </motion.div>
-            </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="text-white/80 text-sm mb-2 block">Name</label>
+                  <Input
+                    type="text"
+                    placeholder="Your name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white/80 text-sm mb-2 block">Email</label>
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white/80 text-sm mb-2 block">Subject</label>
+                  <Input
+                    type="text"
+                    placeholder="How can we help?"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    required
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white/80 text-sm mb-2 block">Message</label>
+                  <textarea
+                    placeholder="Tell us more..."
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    required
+                    rows="5"
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 text-sm placeholder-white/40 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-white hover:bg-gray-100 text-black font-medium"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </Button>
+              </form>
+            )}
           </div>
 
           <div className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-2xl p-8 text-center">
