@@ -53,9 +53,10 @@ export default function Layout({ children }) {
             });
             
             if (!response.data.allowed) {
-              // Another device is active, logout this session
+              // Another device is active
+              setConflictingDeviceType(response.data.otherDeviceType);
+              setShowConcurrentAlert(true);
               localStorage.removeItem('deviceId');
-              await base44.auth.logout(createPageUrl('Home'));
               return;
             }
           } catch (e) {
