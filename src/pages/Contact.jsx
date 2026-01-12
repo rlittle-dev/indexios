@@ -57,14 +57,14 @@ export default function Contact() {
           </div>
 
           <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-8 border border-zinc-800">
-            <div className="flex items-start gap-4 mb-6">
+            <div className="flex items-start gap-4 mb-8">
               <div className="inline-flex p-3 rounded-xl bg-purple-500/10">
                 <MessageCircle className="w-6 h-6 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Get in Touch</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">Send us a Message</h2>
                 <p className="text-white/70">
-                  Have questions about Indexios? Want to learn more about our enterprise plans? We're here to help.
+                  Have questions about Indexios? Want to learn more about our enterprise plans? Fill out the form below.
                 </p>
               </div>
             </div>
