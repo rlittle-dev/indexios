@@ -124,10 +124,10 @@ export default function ManageDevices() {
           ) : (
             <div className="space-y-4">
               {devices.map((device, index) => {
-                const isCurrentDevice = device.id === currentDeviceId;
+                const isCurrentDevice = device.device_id === currentDeviceId;
                 return (
                   <motion.div
-                    key={index}
+                    key={device.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -136,26 +136,31 @@ export default function ManageDevices() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-4 flex-1">
                         <div className="p-3 rounded-lg bg-white/5">
-                          {getDeviceIcon(device.type || 'Desktop')}
+                          {getDeviceIcon(device.device_type)}
                         </div>
 
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-white font-semibold">
-                              {device.type || 'Desktop'}
+                              {device.device_type}
                             </h3>
                             {isCurrentDevice && (
                               <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full">
                                 This Device
                               </span>
                             )}
+                            {!device.is_active && (
+                              <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full">
+                                Logged Out
+                              </span>
+                            )}
                           </div>
                           <p className="text-white/60 text-sm mb-2">
-                            {device.userAgent ||
+                            {device.user_agent ||
                               'Browser information not available'}
                           </p>
                           <p className="text-white/40 text-xs">
-                            Last active: {formatTime(device.lastActiveTime)}
+                            Last active: {formatTime(device.last_active)}
                           </p>
                         </div>
                       </div>
@@ -163,9 +168,10 @@ export default function ManageDevices() {
                       <Button
                         variant="ghost"
                         onClick={() =>
-                          handleRemoveDevice(device.storageKey, device.id)
+                          handleRemoveDevice(device.device_id, isCurrentDevice)
                         }
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        disabled={!device.is_active}
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isCurrentDevice ? (
                           <>
