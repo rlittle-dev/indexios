@@ -173,10 +173,20 @@ Provide a detailed analysis with percentage scores for each category and an over
   };
 
   const handleViewHistory = () => {
+    const userTier = user?.subscription_tier || 'free';
+    if (userTier === 'free') {
+      setCurrentView('upgrade');
+      return;
+    }
     setCurrentView('history');
   };
 
   const handleSelectCandidate = (candidate) => {
+    const userTier = user?.subscription_tier || 'free';
+    if (userTier === 'free') {
+      setCurrentView('upgrade');
+      return;
+    }
     setSelectedCandidate(candidate);
     setCurrentView('result');
   };
@@ -397,8 +407,8 @@ Provide a detailed analysis with percentage scores for each category and an over
                 />
               )}
               
-              {/* Recent scans preview */}
-              {candidates.length > 0 && (
+              {/* Recent scans preview - only for paid users */}
+              {candidates.length > 0 && (user?.subscription_tier && user.subscription_tier !== 'free') && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -532,11 +542,12 @@ Provide a detailed analysis with percentage scores for each category and an over
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
-              
+
               <UpgradePrompt
                 scansUsed={user?.scans_used || 0}
                 scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']}
                 onUpgrade={() => window.location.href = createPageUrl('Pricing')}
+                reason={(user?.scans_used || 0) >= TIER_LIMITS[user?.subscription_tier || 'free'] ? 'scan limit' : 'feature access'}
               />
             </motion.div>
           )}

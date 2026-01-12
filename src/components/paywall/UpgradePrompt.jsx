@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Lock, Zap } from 'lucide-react';
 
-export default function UpgradePrompt({ scansUsed, scansLimit, onUpgrade }) {
+export default function UpgradePrompt({ scansUsed, scansLimit, onUpgrade, reason = 'scan limit' }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}

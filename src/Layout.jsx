@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Key } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +75,16 @@ export default function Layout({ children }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                {(user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && (
+                  <Link to={createPageUrl('ApiAccess')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      API Access
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
