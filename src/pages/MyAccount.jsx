@@ -35,7 +35,18 @@ export default function MyAccount() {
           { user_email: currentUser.email },
           '-last_active'
         );
-        setDevices(allDevices);
+        
+        // Deduplicate devices by user_agent, keeping the most recent one
+        const seenUserAgents = new Set();
+        const uniqueDevices = allDevices.filter(device => {
+          if (seenUserAgents.has(device.user_agent)) {
+            return false;
+          }
+          seenUserAgents.add(device.user_agent);
+          return true;
+        });
+        
+        setDevices(uniqueDevices);
       } catch (error) {
         console.error('Error fetching user:', error);
       }
