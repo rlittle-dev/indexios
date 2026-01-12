@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, FolderPlus } from 'lucide-react';
+import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, FolderPlus, CheckCircle2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -13,6 +13,7 @@ import FlagsList from '@/components/score/FlagsList';
 import CandidateCard from '@/components/candidates/CandidateCard';
 import UpgradePrompt from '@/components/paywall/UpgradePrompt';
 import NextSteps from '@/components/score/NextSteps';
+import { toast } from 'sonner';
 
 const TIER_LIMITS = {
   free: 3,
@@ -472,16 +473,35 @@ INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressi
       }
       
       setIsUploading(false);
-      setSelectedCandidate(updatedCandidate);
-      setCurrentView('result');
-      if (isAuthenticated) {
-        queryClient.invalidateQueries({ queryKey: ['candidates'] });
-      }
+       setSelectedCandidate(updatedCandidate);
+       setCurrentView('result');
+       if (isAuthenticated) {
+         queryClient.invalidateQueries({ queryKey: ['candidates'] });
+
+         // Send email notification
+         try {
+           await base44.integrations.Core.SendEmail({
+             to: user.email,
+             subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
+             body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.`
+           });
+         } catch (error) {
+           console.error('Error sending email:', error);
+         }
+       }
+
+       // Show toast notification
+       toast.success('Analysis complete!', {
+         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`,
+         icon: <CheckCircle2 className="w-4 h-4" />
+       });
     } catch (error) {
-      console.error('Analysis error:', error);
-      setIsUploading(false);
-      alert('Failed to analyze resume. Please try again.');
-    }
+       console.error('Analysis error:', error);
+       setIsUploading(false);
+       toast.error('Analysis failed', {
+         description: 'Please check your resume and try again'
+       });
+     }
   };
 
   const handleUpload = async (file) => {
