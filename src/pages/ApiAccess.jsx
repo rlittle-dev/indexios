@@ -118,17 +118,17 @@ export default function ApiAccess() {
                         <Button
                           onClick={copyToClipboard}
                           variant="outline"
-                          className="border-zinc-700 text-white hover:text-white hover:bg-white/10"
+                          className="border-zinc-700 bg-zinc-800 text-white hover:text-white hover:bg-zinc-700"
                         >
                           {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </Button>
-                      </div>
-                      <Button
+                        </div>
+                        <Button
                         onClick={generateApiKey}
                         disabled={generating}
                         variant="outline"
-                        className="border-zinc-700 text-white hover:text-white hover:bg-white/10"
-                      >
+                        className="border-zinc-700 bg-zinc-800 text-white hover:text-white hover:bg-zinc-700"
+                        >
                         <RefreshCw className={`w-4 h-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
                         Regenerate Key
                       </Button>
