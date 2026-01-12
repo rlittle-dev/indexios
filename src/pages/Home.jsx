@@ -148,13 +148,8 @@ export default function Home() {
         });
       }
     
-      // Determine analysis depth based on tier
-      const userTier = user?.subscription_tier || 'free';
-      let analysisPrompt;
-      
-      if (userTier === 'free') {
-        // Free tier: Same rigorous analysis, but frontend will limit detail visibility
-        analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
+      // Use advanced analysis for all users
+      const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
 CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
@@ -208,6 +203,12 @@ SKILLS ALIGNMENT (0-100):
 30-44: Major mismatches, unexplained skill claims
 <30: Contradictory skills/experience, false expertise claims
 
+TENURE & EXPERIENCE RIGOR (IMPORTANT):
+- Short tenure (< 2 years per role): Watch for job hopping patterns, lack of depth. Deduct 5-10 points unless each role shows significant achievement/growth. Factor this into scoring but explain it clearly.
+- New resume (< 2 years total experience): Lack of demonstrated track record naturally limits scores. Keep realistic (50-65 range typically), but don't penalize fresh starts unfairly. Note the early-career status.
+- Relatively new career entrants: Flag in analysis as "early-career" context, but judge on quality of work and clear learning trajectory. Don't artificially lower scores just for being new.
+- Strong tenure (5+ years consistently): Builds credibility if achievements are documented throughout.
+
 METHODOLOGY:
 1. Map employment timeline with exact dates - identify gaps/overlaps (be strict)
 2. Extract specific metrics from achievements - count generic vs quantified claims
@@ -215,6 +216,7 @@ METHODOLOGY:
 4. Track skill introduction - do skills logically appear when claimed?
 5. Assess narrative coherence - does career flow make logical sense?
 6. Look for inflation indicators - claims beyond realistic scope
+7. Factor tenure and career stage realistically - less experience naturally limits ceiling, but quality and trajectory matter
 
 RED FLAGS TO IDENTIFY:
 - Any timeline gaps >3 months unexplained (be strict)
@@ -224,9 +226,10 @@ RED FLAGS TO IDENTIFY:
 - Skills listed without supporting experience in timeline
 - Lesser-known or unverifiable institutions
 - Inflated achievements for job level/tenure
-- Career progression that seems unrealistic
+- Career progression that seems unrealistic for tenure
 - Minimal detail/sparse descriptions across roles
 - Education dates conflicting with employment history
+- Frequent job changes with no clear narrative or growth
 
 GREEN FLAGS TO IDENTIFY (ONLY flag if truly impressive):
 - Specific quantified metrics (X% growth, $Y revenue, Z team members)
@@ -237,155 +240,18 @@ GREEN FLAGS TO IDENTIFY (ONLY flag if truly impressive):
 - Published work, rare certifications, recognized awards
 - Consistent 2+ year tenure showing stability
 - Measurable project outcomes
+- Clear learning trajectory and skill growth (especially valuable for early-career)
 
-CRITICAL: Most resumes should score 50-70 range unless exceptionally detailed.
+CRITICAL ANALYSIS STANDARDS:
+- Most resumes should score 50-70 range unless exceptionally detailed
+- Early-career candidates (< 3 years) naturally score lower - this is expected and normal, explain why
+- Be thorough in explanations - cite specific evidence from the resume for each score
+- Explain what would improve the score and concrete actions to strengthen candidacy
+- Provide constructive feedback
 
-Provide scores for all 4 categories. Thoroughly justify each score with specific evidence.
-NEXT STEPS: 3-5 verification actions (reference checks, credential verification, etc.)
-INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressive claims`;
-      } else if (userTier === 'starter') {
-        // Starter tier: Basic analysis
-        analysisPrompt = `You are an HR screening specialist. Score this resume with STRICT, CONSISTENT methodology. BE RIGOROUS - ONLY STRONG CANDIDATES DESERVE HIGH SCORES.
-
-      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
-
-      CRITICAL CONSISTENCY RULES:
-      - ALWAYS extract exact name from resume
-      - ALWAYS extract email if present
-      - Apply identical scoring approach to every resume
-      - Use explicit rubric below
-      - Identical resume = identical scores every time
-
-      DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE RESUMES):
-      OVERALL SCORE (0-100):
-      - 85-100: Exceptional. Multiple specific achievements with metrics, clear progression, elite institutions. Clearly qualified.
-      - 70-84: Strong. Specific achievements, measurable results, recognized companies, minor gaps. Genuinely impressive.
-      - 55-69: Acceptable. Some specifics, mostly logical, identifiable companies, minor issues present.
-      - 40-54: Concerning. Generic descriptions, vague claims, multiple gaps/inconsistencies, weak evidence.
-      - 0-39: Critical. Sparse resume, inflated claims, major inconsistencies, unverifiable information.
-
-      CATEGORY SCORES (0-100 each):
-      Consistency Score:
-      - 80+: Perfect timeline, no gaps/overlaps, clear transitions, education aligns
-      - 60-79: Minor gaps <2 months explained, mostly logical
-      - 40-59: Gaps 2-6 months, role overlaps, narrative issues
-      - 20-39: Major gaps >6 months, significant overlaps
-      - <20: Impossible timeline, fabrication indicators
-
-      Experience Verification:
-      - 80+: Rich specific metrics (grew X by %, managed budgets, led teams), clear impact
-      - 60-79: Multiple measurable results, specific accomplishments
-      - 40-59: Some achievements, minimal metrics, vague impact
-      - 20-39: Mostly generic language, inflated for role level
-      - <20: Zero demonstrable impact or fabricated claims
-
-      Education Verification:
-      - 80+: Top university, dates align perfectly, relevant degree
-      - 60-79: Well-known institution, clear dates, relevant
-      - 40-59: Recognized school, some ambiguity, weak alignment
-      - 20-39: Lesser-known school, credential issues
-      - <20: Unverifiable or fabricated education
-
-      Skills Alignment:
-      - 80+: Clear progression through roles, demonstrated depth/expertise
-      - 60-79: Skills align with roles, some progression shown
-      - 40-59: Basic alignment, limited evidence
-      - 20-39: Major mismatches, unexplained claims
-      - <20: Contradictory to experience
-
-      Flag sparse/vague resumes heavily. Generic descriptions should lower all scores. Identify 3-5 red flags. Note green flags only if truly impressive.`;
-      } else {
-        // Professional/Enterprise tier: Advanced analysis
-        analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
-
-CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
-
-CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
-- ALWAYS extract exact name/email from resume text
-- Apply IDENTICAL methodology to every resume
-- Score independently before reviewing
-- Use explicit rubric - removes subjectivity
-- Scoring should be 100% reproducible
-- BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
-
-DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE CANDIDATES):
-
-OVERALL LEGITIMACY SCORE (0-100):
-90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies. Demonstrates genuine expertise depth.
-75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions, minor gaps <1 month. Clearly qualified.
-60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions, minor timeline issues. Credible but not exceptional.
-45-59: Concerning. Generic descriptions dominate, vague claims, unverifiable companies, gaps/overlaps, inconsistencies present.
-30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions, major timeline issues, poor narrative.
-<30: Critical. Likely fraud - fabricated credentials, impossible timeline, severe inconsistencies.
-
-CONSISTENCY SCORE (0-100):
-90-100: Perfect alignment - precise dates, no gaps/overlaps, clear logical transitions between all roles. Dates align with education end date.
-75-89: Very good - gaps <1 month clearly explained or contextual, consistent narrative, no role overlaps
-60-74: Acceptable - gaps 1-3 months present, mostly logical transitions
-45-59: Problematic - gaps 3-6 months, role overlaps, narrative jumps
-30-44: Serious - major gaps >6 months, significant overlaps, education/employment conflicts
-<30: Critical - impossible timeline, severe overlaps, fabrication indicators
-
-EXPERIENCE VERIFICATION (0-100):
-90-100: Rich specific metrics (increased X by 30%, managed $5M+ budget, led team of 20+), quantified impact evident, achievements appropriate for tenure and level
-75-89: Multiple measurable results (improved processes, shipped products, led initiatives), impact clear
-60-74: Some specific achievements, limited metrics, basic impact description
-45-59: Mostly generic language (responsible for, involved in), minimal quantification, questionable for tenure
-30-44: Vague achievements, inflated claims relative to role, no evidence of impact
-<30: Fabricated achievements, impossible claims, or zero demonstrable impact
-
-EDUCATION VERIFICATION (0-100):
-90-100: Top 50 university globally, graduation dates align perfectly with work timeline, degree directly relevant to career
-75-89: Well-known university (top 200 globally), dates reasonable, relevant degree
-60-74: Recognized university, dates mostly clear, degree related to career
-45-59: Lesser-known institution, date ambiguity, weak degree/career alignment
-30-44: Difficult to verify, credential issues, major conflicts with work history
-<30: Non-existent institution, fabricated degree, or impossible timeline
-
-SKILLS ALIGNMENT (0-100):
-90-100: Clear skill progression through roles, tools/languages match era/industry, demonstrated depth (projects, certifications), expertise evident
-75-89: Skills align with roles, reasonable progression, some depth shown
-60-74: Basic skill/role alignment, limited evidence of progression
-45-59: Weak skill/role connections, gaps in claimed expertise
-30-44: Major mismatches, unexplained skill claims
-<30: Contradictory skills/experience, false expertise claims
-
-METHODOLOGY:
-1. Map employment timeline with exact dates - identify gaps/overlaps (be strict)
-2. Extract specific metrics from achievements - count generic vs quantified claims
-3. Verify education institutions and dates - cross-reference with employment
-4. Track skill introduction - do skills logically appear when claimed?
-5. Assess narrative coherence - does career flow make logical sense?
-6. Look for inflation indicators - claims beyond realistic scope
-
-RED FLAGS TO IDENTIFY:
-- Any timeline gaps >3 months unexplained (be strict)
-- Employment date overlaps at 2+ companies
-- Generic job descriptions with no quantified impact
-- Vague language dominating the resume
-- Skills listed without supporting experience in timeline
-- Lesser-known or unverifiable institutions
-- Inflated achievements for job level/tenure
-- Career progression that seems unrealistic
-- Minimal detail/sparse descriptions across roles
-- Education dates conflicting with employment history
-
-GREEN FLAGS TO IDENTIFY (ONLY flag if truly impressive):
-- Specific quantified metrics (X% growth, $Y revenue, Z team members)
-- Clear, logical career progression with pattern
-- Elite/recognized institutions verifiable
-- Skills clearly demonstrated through dated roles
-- Rich detail and specificity throughout
-- Published work, rare certifications, recognized awards
-- Consistent 2+ year tenure showing stability
-- Measurable project outcomes
-
-CRITICAL: Most resumes should score 50-70 range unless exceptionally detailed.
-
-Provide scores for all 4 categories. Thoroughly justify each score with specific evidence.
-NEXT STEPS: 3-5 verification actions (reference checks, credential verification, etc.)
-INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressive claims`;
-      }
+Provide detailed scores for all 4 categories with thorough justifications citing specific resume elements.
+NEXT STEPS: 5-7 verification actions and risk mitigation strategies
+INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying impressive claims`;
 
     const analysis = await base44.integrations.Core.InvokeLLM({
       prompt: analysisPrompt,
