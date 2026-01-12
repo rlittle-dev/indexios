@@ -29,6 +29,13 @@ export default function MyAccount() {
         setUser(currentUser);
         setFullName(currentUser.full_name || '');
         setEmailNotifications(currentUser.email_notifications_enabled !== false);
+
+        // Fetch devices
+        const allDevices = await base44.entities.Device.filter(
+          { user_email: currentUser.email },
+          '-last_active'
+        );
+        setDevices(allDevices);
       } catch (error) {
         console.error('Error fetching user:', error);
       }
