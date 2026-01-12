@@ -115,76 +115,91 @@ export default function Home() {
       });
     
       // Determine analysis depth based on tier
-      const isAdvanced = userTier !== 'free' && userTier !== 'starter';
+      let analysisPrompt;
+      
+      if (userTier === 'free') {
+        // Free tier: Very limited screening only
+        analysisPrompt = `You are an initial resume screening assistant. Provide a VERY BASIC preliminary assessment of this resume.
 
-    // Analyze with LLM
-    const analysisPrompt = isAdvanced 
-      ? `You are an expert HR analyst and background verification specialist. Perform a COMPREHENSIVE and DETAILED analysis of this resume for legitimacy and authenticity.
+        Provide ONLY:
+        1. A simple overall legitimacy score (0-100)
+        2. Brief scores for: consistency, experience, education, skills (all around 50-70 range unless something is obviously wrong)
+        3. Identify 1-2 MAJOR red flags only (if any critical issues exist)
+        4. Note 1-2 obvious green flags (if any clear positives exist)
 
-    Evaluate the following aspects with DEEP ANALYSIS:
-    1. **Consistency Score**: Thoroughly check for timeline gaps, overlapping dates, logical career progression, employment duration patterns
-    2. **Experience Verification**: Deep assessment of job titles, responsibilities, achievements, company sizes, industry alignment, role complexity
-    3. **Education Verification**: Comprehensive check of degrees, institutions reputation, graduation dates, academic achievements, certifications validity
-    4. **Skills Alignment**: Detailed verification of skills matching experience, skill progression over time, technology stack currency, domain expertise
+        Keep ALL details EXTREMELY brief (1 short sentence each). This is a FREE tier scan with limited analysis.
+        Summary should mention: "Limited free scan completed. Upgrade to Professional or Enterprise for comprehensive fraud detection, deep background checks, and detailed verification."`;
+      } else if (userTier === 'starter') {
+        // Starter tier: Basic analysis
+        analysisPrompt = `You are an HR screening assistant. Provide a BASIC analysis of this resume for initial screening purposes.
 
-    Conduct ADVANCED CHECKS for:
-    - Career trajectory analysis with industry benchmarks
-    - Salary expectations vs experience level
-    - Leadership progression indicators
-    - Technical skill depth assessment
-    - Cultural fit indicators
-    - Potential overqualification or underqualification
-    - Writing quality and attention to detail
-    - Achievements quantification and believability
-    - Reference quality indicators
+        Evaluate these key aspects:
+        1. **Overall Impression**: General legitimacy assessment
+        2. **Basic Consistency**: Check for obvious timeline issues
+        3. **Experience Overview**: High-level view of work history
+        4. **Education Check**: Basic verification of educational background
 
-    Look for RED FLAGS (comprehensive list):
-    - Unrealistic career progression (e.g., Junior to CEO in 2 years)
-    - Vague company descriptions or roles
-    - Too many jobs in short periods (job hopping patterns)
-    - Exaggerated achievements without specifics or metrics
-    - Generic or buzzword-heavy descriptions
-    - Mismatched skills and experience
-    - Spelling/grammar inconsistencies in professional claims
-    - Unverifiable institutions or certifications
-    - Employment gaps without explanation
-    - Inconsistent formatting or presentation
-    - Outdated skills for claimed seniority
-    - Missing critical information
+        Identify obvious RED FLAGS such as:
+        - Major timeline inconsistencies
+        - Clearly unrealistic claims
+        - Missing essential information
 
-    Look for GREEN FLAGS (comprehensive list):
-    - Specific, measurable achievements with clear metrics
-    - Consistent and logical career progression
-    - Recognized institutions and reputable companies
-    - Detailed, well-articulated role descriptions
-    - Relevant, current certifications from known providers
-    - Clear, professional contact information
-    - Quantified results and business impact
-    - Awards, publications, or patents
-    - Demonstrated continuous learning
-    - Strong online presence indicators
-    - Recommendations or endorsements mentioned
+        Note positive GREEN FLAGS such as:
+        - Clear career history
+        - Recognized institutions
+        - Measurable achievements
 
-    Provide an EXTENSIVE analysis with percentage scores, detailed reasoning, and actionable insights for each category.`
-      : `You are an HR screening assistant. Provide a BASIC analysis of this resume for initial screening purposes.
+        Provide a basic overview analysis with moderate detail.`;
+      } else {
+        // Professional/Enterprise tier: Advanced analysis
+        analysisPrompt = `You are an expert HR analyst and background verification specialist. Perform a COMPREHENSIVE and DETAILED analysis of this resume for legitimacy and authenticity.
 
-    Evaluate these key aspects:
-    1. **Overall Impression**: General legitimacy assessment
-    2. **Basic Consistency**: Check for obvious timeline issues
-    3. **Experience Overview**: High-level view of work history
-    4. **Education Check**: Basic verification of educational background
+        Evaluate the following aspects with DEEP ANALYSIS:
+        1. **Consistency Score**: Thoroughly check for timeline gaps, overlapping dates, logical career progression, employment duration patterns
+        2. **Experience Verification**: Deep assessment of job titles, responsibilities, achievements, company sizes, industry alignment, role complexity
+        3. **Education Verification**: Comprehensive check of degrees, institutions reputation, graduation dates, academic achievements, certifications validity
+        4. **Skills Alignment**: Detailed verification of skills matching experience, skill progression over time, technology stack currency, domain expertise
 
-    Identify obvious RED FLAGS such as:
-    - Major timeline inconsistencies
-    - Clearly unrealistic claims
-    - Missing essential information
+        Conduct ADVANCED CHECKS for:
+        - Career trajectory analysis with industry benchmarks
+        - Salary expectations vs experience level
+        - Leadership progression indicators
+        - Technical skill depth assessment
+        - Cultural fit indicators
+        - Potential overqualification or underqualification
+        - Writing quality and attention to detail
+        - Achievements quantification and believability
+        - Reference quality indicators
 
-    Note positive GREEN FLAGS such as:
-    - Clear career history
-    - Recognized institutions
-    - Measurable achievements
+        Look for RED FLAGS (comprehensive list):
+        - Unrealistic career progression (e.g., Junior to CEO in 2 years)
+        - Vague company descriptions or roles
+        - Too many jobs in short periods (job hopping patterns)
+        - Exaggerated achievements without specifics or metrics
+        - Generic or buzzword-heavy descriptions
+        - Mismatched skills and experience
+        - Spelling/grammar inconsistencies in professional claims
+        - Unverifiable institutions or certifications
+        - Employment gaps without explanation
+        - Inconsistent formatting or presentation
+        - Outdated skills for claimed seniority
+        - Missing critical information
 
-    Provide a basic overview analysis. Note: This is a basic scan - upgrade to Professional or Enterprise for detailed fraud detection, deep background verification, and comprehensive risk assessment.`;
+        Look for GREEN FLAGS (comprehensive list):
+        - Specific, measurable achievements with clear metrics
+        - Consistent and logical career progression
+        - Recognized institutions and reputable companies
+        - Detailed, well-articulated role descriptions
+        - Relevant, current certifications from known providers
+        - Clear, professional contact information
+        - Quantified results and business impact
+        - Awards, publications, or patents
+        - Demonstrated continuous learning
+        - Strong online presence indicators
+        - Recommendations or endorsements mentioned
+
+        Provide an EXTENSIVE analysis with percentage scores, detailed reasoning, and actionable insights for each category.`;
+      }
 
     const analysis = await base44.integrations.Core.InvokeLLM({
       prompt: analysisPrompt,
@@ -228,7 +243,7 @@ export default function Home() {
           red_flags: analysis.red_flags,
           green_flags: analysis.green_flags,
           summary: analysis.summary,
-          is_basic: !isAdvanced
+          is_basic: userTier === 'free' || userTier === 'starter'
         },
         status: 'analyzed'
       });
