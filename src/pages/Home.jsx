@@ -139,7 +139,7 @@ Provide a detailed analysis with percentage scores for each category and an over
   if (authLoading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -182,7 +182,7 @@ Provide a detailed analysis with percentage scores for each category and an over
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-lg text-zinc-400 mb-8 leading-relaxed"
+              className="text-lg text-white/70 mb-8 leading-relaxed"
             >
               AI-powered verification to detect inconsistencies, validate credentials, 
               and score candidate legitimacy in seconds.
@@ -197,7 +197,7 @@ Provide a detailed analysis with percentage scores for each category and an over
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
                 size="lg"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg font-semibold rounded-xl"
+                className="bg-white hover:bg-gray-100 text-black px-8 py-6 text-lg font-semibold rounded-xl shadow-lg"
               >
                 Get Started
               </Button>
@@ -205,7 +205,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                 onClick={() => base44.auth.redirectToLogin()}
                 size="lg"
                 variant="outline"
-                className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 px-8 py-6 text-lg rounded-xl"
+                className="border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40 px-8 py-6 text-lg rounded-xl"
               >
                 Sign In
               </Button>
@@ -228,13 +228,13 @@ Provide a detailed analysis with percentage scores for each category and an over
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 + index * 0.1 }}
-                  className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 text-center"
+                  className="bg-zinc-900/70 border border-zinc-700 rounded-xl p-6 text-center hover:border-zinc-600 transition-colors"
                 >
-                  <div className="inline-flex p-3 rounded-xl bg-emerald-500/10 mb-3">
-                    <feature.icon className="w-6 h-6 text-emerald-500" />
+                  <div className="inline-flex p-3 rounded-xl bg-white/5 mb-3">
+                    <feature.icon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
-                  <p className="text-zinc-500 text-sm">{feature.desc}</p>
+                  <p className="text-zinc-400 text-sm">{feature.desc}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -260,7 +260,7 @@ Provide a detailed analysis with percentage scores for each category and an over
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-2">
             Resume Verification Platform
           </h2>
-          <p className="text-zinc-400 max-w-md mx-auto">
+          <p className="text-white/60 max-w-md mx-auto">
             Upload a resume to scan for legitimacy
           </p>
         </motion.div>
@@ -271,8 +271,8 @@ Provide a detailed analysis with percentage scores for each category and an over
             variant={currentView === 'upload' ? 'default' : 'outline'}
             onClick={handleBack}
             className={currentView === 'upload' 
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-              : 'border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-800'}
+              ? 'bg-white hover:bg-gray-100 text-black font-medium' 
+              : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
           >
             <Shield className="w-4 h-4 mr-2" />
             Scan Resume
@@ -281,13 +281,13 @@ Provide a detailed analysis with percentage scores for each category and an over
             variant={currentView === 'history' ? 'default' : 'outline'}
             onClick={handleViewHistory}
             className={currentView === 'history' 
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-              : 'border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-800'}
+              ? 'bg-white hover:bg-gray-100 text-black font-medium' 
+              : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
           >
             <History className="w-4 h-4 mr-2" />
             History
             {candidates.length > 0 && (
-              <span className="ml-2 bg-zinc-700 px-2 py-0.5 rounded-full text-xs">
+              <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs text-white">
                 {candidates.length}
               </span>
             )}
@@ -314,7 +314,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                   transition={{ delay: 0.3 }}
                   className="mt-8"
                 >
-                  <h3 className="text-zinc-500 text-sm font-medium mb-3">Recent Scans</h3>
+                  <h3 className="text-white/60 text-sm font-medium mb-3">Recent Scans</h3>
                   <div className="grid gap-3">
                     {candidates.slice(0, 3).map((candidate, index) => (
                       <CandidateCard
@@ -343,7 +343,7 @@ Provide a detailed analysis with percentage scores for each category and an over
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                className="text-zinc-400 hover:text-white -ml-2"
+                className="text-white hover:text-white hover:bg-white/10 -ml-2"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
@@ -359,10 +359,10 @@ Provide a detailed analysis with percentage scores for each category and an over
                       {selectedCandidate.name || 'Unknown Candidate'}
                     </h2>
                     {selectedCandidate.email && (
-                      <p className="text-zinc-400">{selectedCandidate.email}</p>
+                      <p className="text-white/60">{selectedCandidate.email}</p>
                     )}
                     {selectedCandidate.analysis?.summary && (
-                      <p className="text-zinc-500 mt-3 text-sm leading-relaxed">
+                      <p className="text-white/70 mt-3 text-sm leading-relaxed">
                         {selectedCandidate.analysis.summary}
                       </p>
                     )}
@@ -371,7 +371,7 @@ Provide a detailed analysis with percentage scores for each category and an over
                         href={selectedCandidate.resume_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 mt-4 text-emerald-500 hover:text-emerald-400 text-sm font-medium transition-colors"
+                        className="inline-flex items-center gap-2 mt-4 text-white hover:text-white/80 text-sm font-medium transition-colors"
                       >
                         <ExternalLink className="w-4 h-4" />
                         View Resume
@@ -431,7 +431,7 @@ Provide a detailed analysis with percentage scores for each category and an over
             >
               {candidatesLoading ? (
                 <div className="flex justify-center py-12">
-                  <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : candidates.length > 0 ? (
                 <div className="grid gap-3">
@@ -447,12 +447,12 @@ Provide a detailed analysis with percentage scores for each category and an over
               ) : (
                 <div className="text-center py-16">
                   <div className="p-4 rounded-2xl bg-zinc-900 inline-block mb-4">
-                    <History className="w-8 h-8 text-zinc-600" />
+                    <History className="w-8 h-8 text-white/40" />
                   </div>
-                  <p className="text-zinc-500">No scanned resumes yet</p>
+                  <p className="text-white/60">No scanned resumes yet</p>
                   <Button
                     onClick={handleBack}
-                    className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+                    className="mt-4 bg-white hover:bg-gray-100 text-black font-medium"
                   >
                     Scan your first resume
                   </Button>

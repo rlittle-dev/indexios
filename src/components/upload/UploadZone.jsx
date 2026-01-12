@@ -60,8 +60,8 @@ export default function UploadZone({ onUpload, isUploading }) {
         className={cn(
           "relative flex flex-col items-center justify-center w-full h-64 rounded-2xl border-2 border-dashed transition-all duration-300 cursor-pointer group",
           isDragging
-            ? "border-emerald-500 bg-emerald-500/5"
-            : "border-zinc-700 hover:border-zinc-500 bg-zinc-900/50 hover:bg-zinc-800/50",
+            ? "border-white bg-white/5"
+            : "border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10",
           isUploading && "pointer-events-none opacity-60"
         )}
       >
@@ -83,8 +83,8 @@ export default function UploadZone({ onUpload, isUploading }) {
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex flex-col items-center"
             >
-              <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
-              <p className="text-zinc-400 text-sm">Analyzing resume...</p>
+              <Loader2 className="w-12 h-12 text-white animate-spin mb-4" />
+              <p className="text-white/70 text-sm">Analyzing resume...</p>
             </motion.div>
           ) : (
             <motion.div
@@ -96,18 +96,18 @@ export default function UploadZone({ onUpload, isUploading }) {
             >
               <div className={cn(
                 "p-4 rounded-2xl mb-4 transition-all duration-300",
-                isDragging ? "bg-emerald-500/20" : "bg-zinc-800 group-hover:bg-zinc-700"
+                isDragging ? "bg-white/20" : "bg-white/5 group-hover:bg-white/10"
               )}>
                 {isDragging ? (
-                  <FileText className="w-10 h-10 text-emerald-500" />
+                  <FileText className="w-10 h-10 text-white" />
                 ) : (
-                  <Upload className="w-10 h-10 text-zinc-400 group-hover:text-zinc-300" />
+                  <Upload className="w-10 h-10 text-white/60 group-hover:text-white/80" />
                 )}
               </div>
-              <p className="text-zinc-300 font-medium mb-1">
+              <p className="text-white font-medium mb-1">
                 {isDragging ? "Drop your resume here" : "Upload Resume PDF"}
               </p>
-              <p className="text-zinc-500 text-sm">
+              <p className="text-white/50 text-sm">
                 Drag & drop or click to browse
               </p>
             </motion.div>
@@ -118,7 +118,7 @@ export default function UploadZone({ onUpload, isUploading }) {
         <div className={cn(
           "absolute inset-0 rounded-2xl transition-opacity duration-300 pointer-events-none",
           isDragging ? "opacity-100" : "opacity-0",
-          "bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"
+          "bg-gradient-to-r from-white/10 via-transparent to-white/10"
         )} />
       </label>
     </motion.div>

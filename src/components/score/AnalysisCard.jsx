@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils';
 
 export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
   const getBarColor = (score) => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-amber-500';
-    if (score >= 40) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (score >= 80) return 'bg-white';
+    if (score >= 60) return 'bg-amber-400';
+    if (score >= 40) return 'bg-orange-400';
+    return 'bg-red-400';
   };
 
   return (
@@ -19,22 +19,22 @@ export default function AnalysisCard({ title, score, icon: Icon, delay = 0 }) {
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-zinc-800">
-            <Icon className="w-4 h-4 text-zinc-400" />
+          <div className="p-2 rounded-lg bg-white/5">
+            <Icon className="w-4 h-4 text-white/60" />
           </div>
-          <span className="text-zinc-300 font-medium text-sm">{title}</span>
+          <span className="text-white font-medium text-sm">{title}</span>
         </div>
         <span className={cn(
           "text-lg font-bold",
-          score >= 80 ? "text-emerald-500" :
-          score >= 60 ? "text-amber-500" :
-          score >= 40 ? "text-orange-500" : "text-red-500"
+          score >= 80 ? "text-white" :
+          score >= 60 ? "text-amber-400" :
+          score >= 40 ? "text-orange-400" : "text-red-400"
         )}>
           {score}%
         </span>
       </div>
       
-      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${score}%` }}

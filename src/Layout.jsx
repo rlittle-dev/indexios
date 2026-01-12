@@ -32,7 +32,7 @@ export default function Layout({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -51,9 +51,9 @@ export default function Layout({ children }) {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-2">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-emerald-500" />
+                <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
                   </div>
                   <span className="hidden sm:inline">{user.full_name || user.email}</span>
                 </Button>
@@ -61,7 +61,7 @@ export default function Layout({ children }) {
               <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
                 <DropdownMenuItem 
                   onClick={handleLogout}
-                  className="text-zinc-400 hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Log out
@@ -71,7 +71,7 @@ export default function Layout({ children }) {
           ) : (
             <Button
               onClick={() => base44.auth.redirectToLogin()}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-white hover:bg-gray-100 text-black font-medium"
             >
               Sign In
             </Button>
