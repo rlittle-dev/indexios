@@ -135,9 +135,9 @@ export default function Team() {
     }
   };
 
-  const hasTeamAccess = user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise';
+  const hasTeamAccess = user?.subscription_tier === 'enterprise';
 
-  const teamCapacity = user?.subscription_tier === 'enterprise' ? 'unlimited' : 5;
+  const teamCapacity = 5;
 
   const activeMembers = teamMembers.filter(m => m.status !== 'removed').length;
 
@@ -178,15 +178,15 @@ export default function Team() {
                 <div className="inline-flex p-4 rounded-full bg-yellow-500/10 mb-4 mx-auto">
                   <Users className="w-8 h-8 text-yellow-400" />
                 </div>
-                <CardTitle className="text-white text-2xl">Professional Feature</CardTitle>
+                <CardTitle className="text-white text-2xl">Enterprise Feature</CardTitle>
                 <CardDescription className="text-white/60">
-                  Team collaboration is available on Professional and Enterprise plans
+                  Team collaboration is available on the Enterprise plan
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
                 <Link to={createPageUrl('Pricing')}>
                   <Button className="bg-white hover:bg-gray-100 text-black font-medium">
-                    Upgrade to Professional
+                    Upgrade to Enterprise
                   </Button>
                 </Link>
               </CardContent>
@@ -247,11 +247,11 @@ export default function Team() {
                     <CardHeader>
                       <CardTitle className="text-white">Invite Team Members</CardTitle>
                       <CardDescription className="text-white/60">
-                        Send invitations to collaborate on resume scans {teamCapacity !== 'unlimited' && `(${activeMembers}/${teamCapacity} members)`}
+                        Send invitations to collaborate on resume scans ({activeMembers}/{teamCapacity} members)
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {teamCapacity !== 'unlimited' && activeMembers >= teamCapacity ? (
+                      {activeMembers >= teamCapacity ? (
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
                           <p className="text-yellow-400 text-sm">
                             You've reached the team capacity of {teamCapacity} members. Contact support to expand your team size.
@@ -265,11 +265,11 @@ export default function Team() {
                           onChange={(e) => setInviteEmail(e.target.value)}
                           placeholder="colleague@company.com"
                           className="bg-zinc-800 border-zinc-700 text-white placeholder:text-white/40"
-                          disabled={teamCapacity !== 'unlimited' && activeMembers >= teamCapacity}
-                        />
-                        <Button
+                          disabled={activeMembers >= teamCapacity}
+                          />
+                          <Button
                           type="submit"
-                          disabled={inviting || !inviteEmail || (teamCapacity !== 'unlimited' && activeMembers >= teamCapacity)}
+                          disabled={inviting || !inviteEmail || activeMembers >= teamCapacity}
                           className="bg-white hover:bg-gray-100 text-black font-medium"
                         >
                           <UserPlus className="w-4 h-4 mr-2" />
