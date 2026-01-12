@@ -1,0 +1,84 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export default function FlagsList({ redFlags = [], greenFlags = [] }) {
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      {/* Red Flags */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.5 }}
+        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 rounded-lg bg-red-500/10">
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+          </div>
+          <h3 className="text-red-500 font-semibold">Red Flags</h3>
+          <span className="ml-auto text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+            {redFlags.length}
+          </span>
+        </div>
+        
+        {redFlags.length > 0 ? (
+          <ul className="space-y-2">
+            {redFlags.map((flag, index) => (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                className="flex items-start gap-2 text-sm text-zinc-400"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                {flag}
+              </motion.li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-zinc-500 text-sm italic">No red flags detected</p>
+        )}
+      </motion.div>
+      
+      {/* Green Flags */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
+        className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <div className="p-2 rounded-lg bg-emerald-500/10">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <h3 className="text-emerald-500 font-semibold">Green Flags</h3>
+          <span className="ml-auto text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+            {greenFlags.length}
+          </span>
+        </div>
+        
+        {greenFlags.length > 0 ? (
+          <ul className="space-y-2">
+            {greenFlags.map((flag, index) => (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.7 + index * 0.1 }}
+                className="flex items-start gap-2 text-sm text-zinc-400"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+                {flag}
+              </motion.li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-zinc-500 text-sm italic">No green flags detected</p>
+        )}
+      </motion.div>
+    </div>
+  );
+}
