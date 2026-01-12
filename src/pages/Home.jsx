@@ -321,7 +321,7 @@ Provide a detailed analysis with percentage scores for each category and an over
               onClick={handleBack}
               className={currentView === 'upload' 
                 ? 'bg-white hover:bg-gray-100 text-black font-medium' 
-                : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
+                : 'border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10 hover:border-white/40 [&_svg]:text-white'}
             >
               <Shield className="w-4 h-4 mr-2" />
               Scan Resume
@@ -331,7 +331,7 @@ Provide a detailed analysis with percentage scores for each category and an over
               onClick={handleViewHistory}
               className={currentView === 'history' 
                 ? 'bg-white hover:bg-gray-100 text-black font-medium' 
-                : 'border-white/20 text-white hover:text-white hover:bg-white/10 hover:border-white/40'}
+                : 'border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10 hover:border-white/40 [&_svg]:text-white'}
             >
               <History className="w-4 h-4 mr-2" />
               History
