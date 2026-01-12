@@ -137,12 +137,14 @@ Provide a detailed analysis with percentage scores for each category and an over
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-emerald-500/10 mb-4">
-            <Shield className="w-8 h-8 text-emerald-500" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <span className="text-4xl md:text-5xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent tracking-tight">
+              Indexios
+            </span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Resume Legitimacy Scanner
-          </h1>
+          <h2 className="text-xl md:text-2xl font-semibold text-white mb-2">
+            Resume Verification Platform
+          </h2>
           <p className="text-zinc-400 max-w-md mx-auto">
             AI-powered verification to detect inconsistencies and validate candidate credentials
           </p>
