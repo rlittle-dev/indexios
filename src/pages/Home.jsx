@@ -142,31 +142,92 @@ export default function Home() {
       let analysisPrompt;
       
       if (userTier === 'free') {
-        // Free tier: Very limited screening only
-        analysisPrompt = `You are an initial resume screening assistant. Score this resume with STRICT CONSISTENCY.
+        // Free tier: Same rigorous analysis, but frontend will limit detail visibility
+        analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency.
 
-CRITICAL CONSISTENCY RULES:
-- ALWAYS extract exact name from resume header/top section
-- ALWAYS extract email if present anywhere
-- Apply the SAME scoring rules to every resume
-- Use explicit rubric below for all scores
-- Same resume analyzed twice = identical scores
+CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
+- ALWAYS extract exact name/email from resume text
+- Apply IDENTICAL methodology to every resume
+- Score independently before reviewing
+- Use explicit rubric - removes subjectivity
+- Scoring should be 100% reproducible
 
-SCORING RUBRIC FOR FREE TIER:
-- 80-100: No red flags, clear info, professional
-- 60-79: Minor issues or sparse info, but legitimate
-- 40-59: Some concerns (gaps, vague claims, consistency issues)
-- 20-39: Major concerns (unrealistic claims, significant gaps)
-- 0-19: Critical issues (fabrication indicators, major inconsistencies)
+DETAILED SCORING RUBRIC:
 
-Evaluate and score:
-1. Consistency (timeline, career logic)
-2. Experience clarity (job descriptions, achievements)
-3. Education verification (realistic institutions/dates)
-4. Skills alignment (match experience level)
+OVERALL LEGITIMACY SCORE (0-100):
+90-100: Exceptional. Clear progression, specific achievements, verified institutions, consistent narrative
+75-89: Strong. Good progression, measurable results, recognized orgs, minor gaps <2 months
+60-74: Acceptable. Decent progression, some vagueness, identifiable institutions, gaps 2-6 months
+45-59: Concerning. Inconsistencies, vague claims, generic descriptions, gaps 6+ months or overlapping dates
+30-44: High Risk. Multiple red flags, unrealistic claims, unverifiable info, poor narrative cohesion
+<30: Critical. Likely fraud indicators, fabricated credentials, severe inconsistencies
 
-Keep analysis brief. Flag only 1-2 critical issues. Note 1-2 strengths if present.
-Summary: "Limited free scan. Upgrade for deep fraud detection & comprehensive verification."`;
+CONSISTENCY SCORE (0-100):
+90-100: Perfect alignment - all dates, companies, roles form logical narrative, no overlaps
+75-89: Very good - minor gaps <1 month, clear transitions, credible narrative
+60-74: Acceptable - gaps 1-3 months, logical but some unexplained transitions
+45-59: Problematic - gaps 3-6 months, role overlaps, some narrative issues
+30-44: Serious - major gaps >6 months, significant overlaps, unclear progressions
+<30: Critical - impossible timeline, severe overlaps, fabrication indicators
+
+EXPERIENCE VERIFICATION (0-100):
+90-100: Specific metrics (20% growth, $5M revenue), quantified impact, realistic scope for tenure
+75-89: Clear measurable results (improved processes, led teams), appropriate complexity
+60-74: Decent descriptions with some metrics, reasonable achievements for level
+45-59: Generic descriptions (responsible for...), limited metrics, questionable impact
+30-44: Vague claims without evidence, inflated for experience level, unclear value-add
+<30: Clearly fabricated achievements, impossible claims, nonsensical responsibilities
+
+EDUCATION VERIFICATION (0-100):
+90-100: Ivy League/Top 100 schools, graduation dates align with experience, relevant degrees
+75-89: Well-known regional schools, dates reasonable, degree/experience aligned
+60-74: Recognized schools, dates mostly clear, some timeline questions
+45-59: Lesser-known institutions, date ambiguity, degree/experience misalignment
+30-44: Difficult to verify schools, likely credential issues, major timeline conflicts
+<30: Likely fabricated degrees, non-existent institutions, impossible timeline
+
+SKILLS ALIGNMENT (0-100):
+90-100: Skills progression evident, tools/languages match role/era, expertise depth shown
+75-89: Skills mostly align with roles, reasonable progression, appropriate for level
+60-74: Skills generally match, some gaps in progression, adequate for experience
+45-59: Skills poorly explained, gaps between claimed expertise and evidence
+30-44: Major mismatches (claims Java expert with no relevant roles), unexplained skills
+<30: Contradictory skills/experience, likely false proficiency claims
+
+METHODOLOGY:
+1. Map employment timeline with exact dates - identify gaps/overlaps
+2. Extract specific metrics from achievements - count generic vs quantified claims
+3. Verify education institutions and dates - cross-reference with employment
+4. Track skill introduction - do skills logically appear when claimed?
+5. Assess narrative coherence - does career flow make logical sense?
+6. Look for inflation indicators - claims beyond realistic scope
+
+RED FLAGS TO IDENTIFY:
+- Timeline gaps >6 months without explanation
+- Employment date overlaps (same dates at 2+ companies)
+- Unrealistic career leaps (junior→CEO in 2 years)
+- Vague descriptions hiding lack of real achievement
+- Skills appearing without relevant experience
+- Unverifiable companies/institutions
+- Inconsistent formatting suggesting edits/fabrication
+- Generic buzzwords replacing specifics
+- Achievements too grand for tenure/role
+- Educational timeline conflicting with employment
+
+GREEN FLAGS TO IDENTIFY:
+- Specific metrics and quantified results
+- Clear career progression with logical transitions
+- Recognizable, verifiable companies/institutions
+- Skills demonstrated through relevant roles
+- Consistent, detailed formatting
+- Publications, certifications, awards
+- Professional development trajectory
+- Realistic tenure at companies (2+ years typical)
+- Detailed project/achievement descriptions
+
+Provide scores for all 4 categories. Thoroughly justify each score with specific evidence.
+NEXT STEPS: 3-5 verification actions (reference checks, credential verification, etc.)
+INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressive claims`;
       } else if (userTier === 'starter') {
         // Starter tier: Basic analysis
         analysisPrompt = `You are an HR screening specialist. Score this resume with STRICT, CONSISTENT methodology.
