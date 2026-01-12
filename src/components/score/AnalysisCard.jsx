@@ -62,9 +62,10 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
         </div>
       </button>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isExpanded && details && (
           <motion.div
+            key={`${title}-expanded`}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
