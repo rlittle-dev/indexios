@@ -6,12 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const getDeviceType = (ua) => {
-  if (/mobile|android|iphone|ipad/i.test(ua)) return 'Mobile';
-  if (/tablet|ipad/i.test(ua)) return 'Tablet';
-  return 'Desktop';
-};
-
 const getDeviceIcon = (type) => {
   if (type === 'Mobile') return <Smartphone className="w-5 h-5" />;
   return <Laptop className="w-5 h-5" />;
@@ -28,32 +22,13 @@ export default function ManageDevices() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        // Get all stored devices from localStorage
-        const storedDevices = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key?.startsWith('device_')) {
-            const deviceData = localStorage.getItem(key);
-            if (deviceData) {
-              try {
-                const parsed = JSON.parse(deviceData);
-                storedDevices.push({
-                  ...parsed,
-                  storageKey: key,
-                });
-              } catch (e) {
-                // Skip invalid JSON
-              }
-            }
-          }
-        }
-
-        // Sort by last active (most recent first)
-        storedDevices.sort(
-          (a, b) => (b.lastActiveTime || 0) - (a.lastActiveTime || 0)
+        // Fetch devices from backend
+        const allDevices = await base44.entities.Device.filter(
+          { user_email: currentUser.email },
+          '-last_active'
         );
 
-        setDevices(storedDevices);
+        setDevices(allDevices);
       } catch (error) {
         console.error('Error fetching devices:', error);
       }
