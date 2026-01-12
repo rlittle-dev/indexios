@@ -31,6 +31,7 @@ const TIERS = [
       'Detailed analysis breakdown',
       'Red & green flags detection',
       'Scan history',
+      'Share & download scans',
       'Priority support'
     ]
   },
@@ -45,6 +46,7 @@ const TIERS = [
       'Detailed analysis breakdown',
       'Red & green flags detection',
       'Unlimited scan history',
+      'Share & download scans',
       'API access',
       'Priority support',
       'Custom integrations'
@@ -61,6 +63,7 @@ const TIERS = [
       'Detailed analysis breakdown',
       'Red & green flags detection',
       'Unlimited scan history',
+      'Share & download scans',
       'API access',
       'Dedicated support',
       'Custom integrations',

@@ -4,7 +4,7 @@ import { FileText, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
-export default function CandidateCard({ candidate, onClick, delay = 0 }) {
+export default function CandidateCard({ candidate, onClick, onDownload, onShare, delay = 0 }) {
   const getScoreColor = (score) => {
     if (!score && score !== 0) return 'text-white/40';
     if (score >= 80) return 'text-emerald-400';
