@@ -138,6 +138,7 @@ export default function Home() {
       });
     
       // Determine analysis depth based on tier
+      const userTier = user?.subscription_tier || 'free';
       let analysisPrompt;
       
       if (userTier === 'free') {
