@@ -226,12 +226,9 @@ export default function Team() {
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="text-white flex items-center gap-2">
-                            <Users className="w-5 h-5 text-emerald-400" />
+                            <Users className="w-5 h-5 text-purple-400" />
                             {teams[0].name}
                           </CardTitle>
-                          <CardDescription className="text-white/60">
-                            {teamMembers.filter(m => m.status === 'active').length} active members
-                          </CardDescription>
                         </div>
                         <Button
                           onClick={handleDeleteTeam}
@@ -258,10 +255,16 @@ export default function Team() {
                       {activeMembers >= teamCapacity ? (
                         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-4">
                           <p className="text-yellow-400 text-sm">
-                            You've reached the team capacity of {teamCapacity} members. Contact support to expand your team size.
+                            You've reached the team capacity of {teamCapacity} members. <a href="mailto:support@indexios.com" className="underline">Contact support</a> to expand your team size.
                           </p>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4">
+                          <p className="text-white/70 text-sm">
+                            Need more team members? <a href="mailto:support@indexios.com" className="text-purple-400 hover:text-purple-300 underline">Contact support</a> to request an expansion.
+                          </p>
+                        </div>
+                      )}
                       <form onSubmit={handleInvite} className="flex gap-2">
                         <Input
                           type="email"
@@ -286,7 +289,7 @@ export default function Team() {
                   {/* Team Members List */}
                   <Card className="bg-zinc-900/80 border-zinc-800">
                     <CardHeader>
-                      <CardTitle className="text-white">Team Members</CardTitle>
+                      <CardTitle className="text-white">Team Members ({activeMembers}/{teamCapacity})</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
