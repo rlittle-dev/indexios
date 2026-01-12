@@ -5,11 +5,11 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
   apiVersion: '2023-10-16',
 });
 
-// Price mapping for tiers (you'll need to create these products in Stripe Dashboard)
+// Price mapping for tiers
 const TIER_PRICES = {
-  starter: 'price_starter', // Replace with your actual Stripe Price ID
-  professional: 'price_professional', // Replace with your actual Stripe Price ID
-  enterprise: 'price_enterprise' // Replace with your actual Stripe Price ID
+  starter: 'price_1SojEhFWVD2zRhT5Q5Ztjdk8',
+  professional: 'price_1SojF0FWVD2zRhT5df8Ekpi9',
+  enterprise: 'price_1SojFRFWVD2zRhT5PHaUhVAW'
 };
 
 Deno.serve(async (req) => {
