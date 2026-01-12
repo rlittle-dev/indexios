@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Smartphone } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ChatBot from '@/components/chat/ChatBot';
+import ConcurrentSessionAlert from '@/components/paywall/ConcurrentSessionAlert';
 import {
   DropdownMenu,
   DropdownMenuContent,
