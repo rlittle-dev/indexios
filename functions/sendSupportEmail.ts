@@ -24,23 +24,13 @@ Deno.serve(async (req) => {
     }
 
     try {
-      // Send email to support inbox
-      console.log('Attempting to send email to support@indexios.me...');
-      await base44.integrations.Core.SendEmail({
-        to: 'support@indexios.me',
-        subject: `Support Request: ${subject}`,
-        from_name: 'Indexios Support',
-        body: `New support request from ${name}\n\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
-      });
-      console.log('Support email sent successfully');
-
       // Send confirmation email to user
-      console.log('Attempting to send confirmation email to user...');
+      console.log('Sending confirmation email to:', user.email);
       await base44.integrations.Core.SendEmail({
-        to: email,
+        to: user.email,
         subject: 'We received your message',
         from_name: 'Indexios Support',
-        body: `Hi ${name},\n\nThank you for reaching out to Indexios support. We've received your message and will get back to you as soon as possible.\n\nBest regards,\nIndexios Team`
+        body: `Hi ${user.full_name},\n\nThank you for reaching out to Indexios support. We've received your message:\n\nSubject: ${subject}\n\nMessage:\n${message}\n\nWe'll get back to you as soon as possible.\n\nBest regards,\nIndexios Team`
       });
       console.log('Confirmation email sent successfully');
 
