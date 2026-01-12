@@ -7,38 +7,52 @@ Deno.serve(async (req) => {
     }
 
     const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Must be logged in' }, { status: 401 });
-    }
-
     const body = await req.json();
-    const { subject, message } = body;
+    const { name, email, subject, message } = body;
 
-    if (!subject || !message) {
+    console.log('Support email request received:', { name, email, subject, messageLength: message?.length });
+
+    if (!name || !email || !subject || !message) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Store support request in database
-    const supportRequest = await base44.entities.SupportRequest.create({
-      subject,
-      message,
-      status: 'new'
-    });
+    // Validate email format
+    if (!email.includes('@')) {
+      return Response.json({ error: 'Invalid email address' }, { status: 400 });
+    }
 
-    // Send confirmation email to user
-    await base44.integrations.Core.SendEmail({
-      to: user.email,
-      subject: 'We received your message',
-      from_name: 'Indexios Support',
-      body: `Hi ${user.full_name},\n\nThank you for reaching out to Indexios support. We've received your message about "${subject}" and will get back to you as soon as possible.\n\nBest regards,\nIndexios Team`
-    });
+    try {
+      // Send email to support inbox
+      console.log('Attempting to send email to support@indexios.me...');
+      await base44.integrations.Core.SendEmail({
+        to: 'support@indexios.me',
+        subject: `Support Request: ${subject}`,
+        from_name: 'Indexios Support',
+        body: `New support request from ${name}\n\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`
+      });
+      console.log('Support email sent successfully');
 
-    return Response.json({ success: true, message: 'Support request submitted' });
+      // Send confirmation email to user
+      console.log('Attempting to send confirmation email to user...');
+      await base44.integrations.Core.SendEmail({
+        to: email,
+        subject: 'We received your message',
+        from_name: 'Indexios Support',
+        body: `Hi ${name},\n\nThank you for reaching out to Indexios support. We've received your message and will get back to you as soon as possible.\n\nBest regards,\nIndexios Team`
+      });
+      console.log('Confirmation email sent successfully');
+
+      return Response.json({ success: true, message: 'Email sent successfully' });
+    } catch (emailError) {
+      console.error('Email integration error:', emailError.message);
+      throw new Error(`Failed to send email: ${emailError.message}`);
+    }
   } catch (error) {
-    console.error('Support request error:', error);
-    return Response.json({ error: error.message || 'Failed to submit request' }, { status: 500 });
+    console.error('Support email function error:', error.message);
+    console.error('Error details:', error);
+    return Response.json({ 
+      error: error.message || 'Failed to process request',
+      details: error.toString()
+    }, { status: 500 });
   }
 });
