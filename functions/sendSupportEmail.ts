@@ -7,18 +7,20 @@ Deno.serve(async (req) => {
     }
 
     const base44 = createClientFromRequest(req);
-    const body = await req.json();
-    const { name, email, subject, message } = body;
-
-    console.log('Support email request received:', { name, email, subject, messageLength: message?.length });
-
-    if (!name || !email || !subject || !message) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    
+    // Check authentication
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Please log in to send support emails' }, { status: 401 });
     }
 
-    // Validate email format
-    if (!email.includes('@')) {
-      return Response.json({ error: 'Invalid email address' }, { status: 400 });
+    const body = await req.json();
+    const { subject, message } = body;
+
+    console.log('Support email request from:', user.email);
+
+    if (!subject || !message) {
+      return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     try {
