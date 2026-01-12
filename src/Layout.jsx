@@ -69,6 +69,11 @@ export default function Layout({ children }) {
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-4">
+              <Link to={createPageUrl('Pricing')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  Plans
+                </Button>
+              </Link>
               <Link to={createPageUrl('About')}>
                 <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
                   About

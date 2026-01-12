@@ -17,9 +17,10 @@ Deno.serve(async (req) => {
     }
 
     // Create a portal session for subscription management
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.split('/').slice(0, 3).join('/');
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripe_customer_id,
-      return_url: `${req.headers.get('origin')}/pages/MyAccount`
+      return_url: `${origin}${origin?.includes('localhost') ? '/' : '/pages/MyAccount'}`
     });
 
     return Response.json({ url: session.url });
