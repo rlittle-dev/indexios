@@ -188,11 +188,11 @@ export default function Pricing() {
                     <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
-                    <td className="px-6 py-3 text-white/80">Legitimacy Scoring</td>
-                    <td className="text-center px-6 py-3 text-white">Basic</td>
-                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
-                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
-                    <td className="text-center px-6 py-3 text-white font-semibold">Advanced</td>
+                    <td className="px-6 py-3 text-white/80">Advanced Analysis</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Analysis Breakdown</td>
