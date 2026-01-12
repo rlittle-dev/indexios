@@ -96,34 +96,40 @@ export default function Pricing() {
   }, []);
 
   const handleSubscribe = async (tier) => {
-    if (tier === 'free') return;
-    
-    // Prevent downgrades
-    const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
-    const currentLevel = tierLevels[user?.subscription_tier || 'free'];
-    const targetLevel = tierLevels[tier];
-    
-    if (targetLevel < currentLevel) {
-      alert('Please use the Manage Subscription option to downgrade your plan.');
-      return;
-    }
-    
-    setProcessingTier(tier);
-    setLoading(true);
+        if (tier === 'free') return;
 
-    try {
-      const response = await base44.functions.invoke('createCheckoutSession', { tier });
-      
-      if (response.data.url) {
-        window.location.href = response.data.url;
-      }
-    } catch (error) {
-      console.error('Subscription error:', error);
-      alert('Failed to start subscription. Please try again.');
-      setLoading(false);
-      setProcessingTier(null);
-    }
-  };
+        // Check if user is logged in
+        if (!user) {
+          base44.auth.redirectToLogin(createPageUrl('Pricing'));
+          return;
+        }
+
+        // Prevent downgrades
+        const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+        const currentLevel = tierLevels[user?.subscription_tier || 'free'];
+        const targetLevel = tierLevels[tier];
+
+        if (targetLevel < currentLevel) {
+          alert('Please use the Manage Subscription option to downgrade your plan.');
+          return;
+        }
+
+        setProcessingTier(tier);
+        setLoading(true);
+
+        try {
+          const response = await base44.functions.invoke('createCheckoutSession', { tier });
+
+          if (response.data.url) {
+            window.location.href = response.data.url;
+          }
+        } catch (error) {
+          console.error('Subscription error:', error);
+          alert('Failed to start subscription. Please try again.');
+          setLoading(false);
+          setProcessingTier(null);
+        }
+      };
 
   return (
     <div className="min-h-screen bg-zinc-950">

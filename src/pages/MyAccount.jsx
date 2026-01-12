@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { User, Mail, CreditCard, Save, Shield } from 'lucide-react';
+import { User, Mail, CreditCard, Save, Shield, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { Switch } from '@/components/ui/switch';
 
 export default function MyAccount() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [emailNotifications, setEmailNotifications] = useState(true);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -20,6 +22,7 @@ export default function MyAccount() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         setFullName(currentUser.full_name || '');
+        setEmailNotifications(currentUser.email_notifications_enabled !== false);
       } catch (error) {
         console.error('Error fetching user:', error);
       }
@@ -33,14 +36,17 @@ export default function MyAccount() {
     setMessage('');
     
     try {
-      await base44.auth.updateMe({ full_name: fullName });
+      await base44.auth.updateMe({ 
+        full_name: fullName,
+        email_notifications_enabled: emailNotifications
+      });
       const updatedUser = await base44.auth.me();
       setUser(updatedUser);
-      setMessage('Profile updated successfully!');
+      setMessage('Settings updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setMessage('Failed to update profile');
+      console.error('Error updating settings:', error);
+      setMessage('Failed to update settings');
     }
     
     setSaving(false);
@@ -105,6 +111,20 @@ export default function MyAccount() {
                 <div className="flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded-md">
                   <Shield className="w-4 h-4 text-white/40" />
                   <span className="text-white/60 text-sm capitalize">{user?.role || 'User'}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-white/70 text-sm mb-2 flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  Email Notifications
+                </label>
+                <div className="flex items-center justify-between p-3 bg-zinc-800/50 border border-zinc-700 rounded-md">
+                  <span className="text-white/60 text-sm">Notify me when analysis is complete</span>
+                  <Switch
+                    checked={emailNotifications}
+                    onCheckedChange={setEmailNotifications}
+                  />
                 </div>
               </div>
 
