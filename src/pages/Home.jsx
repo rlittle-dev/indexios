@@ -402,32 +402,37 @@ INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressi
       }
     });
     
-      // Update candidate with analysis
-      const updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
-        name: analysis.candidate_name || 'Unknown Candidate',
-        email: analysis.candidate_email || '',
-        legitimacy_score: analysis.overall_score,
-        analysis: {
-          consistency_score: analysis.consistency_score,
-          consistency_details: analysis.consistency_details,
-          experience_verification: analysis.experience_verification,
-          experience_details: analysis.experience_details,
-          education_verification: analysis.education_verification,
-          education_details: analysis.education_details,
-          skills_alignment: analysis.skills_alignment,
-          skills_details: analysis.skills_details,
-          red_flags: analysis.red_flags,
-          green_flags: analysis.green_flags,
-          summary: analysis.summary,
-          next_steps: analysis.next_steps || [],
-          interview_questions: analysis.interview_questions || [],
-          is_basic: userTier === 'free' || userTier === 'starter'
-        },
-        status: 'analyzed'
+      // Build the analysis object
+      const analysisData = {
+        consistency_score: analysis.consistency_score,
+        consistency_details: analysis.consistency_details,
+        experience_verification: analysis.experience_verification,
+        experience_details: analysis.experience_details,
+        education_verification: analysis.education_verification,
+        education_details: analysis.education_details,
+        skills_alignment: analysis.skills_alignment,
+        skills_details: analysis.skills_details,
+        red_flags: analysis.red_flags,
+        green_flags: analysis.green_flags,
+        summary: analysis.summary,
+        next_steps: analysis.next_steps || [],
+        interview_questions: analysis.interview_questions || [],
+        is_basic: userTier === 'free' || userTier === 'starter'
+      };
+
+      let updatedCandidate;
+      
+      if (isAuthenticated && candidate) {
+        // Update candidate with analysis for authenticated users
+        updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
+          name: analysis.candidate_name || 'Unknown Candidate',
+          email: analysis.candidate_email || '',
+          legitimacy_score: analysis.overall_score,
+          analysis: analysisData,
+          status: 'analyzed'
         });
 
-        // Increment scan count for authenticated users only
-        if (isAuthenticated) {
+        // Increment scan count for authenticated users
         await base44.auth.updateMe({
           scans_used: (user?.scans_used || 0) + 1
         });
@@ -435,12 +440,26 @@ INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressi
         // Refresh user data
         const updatedUser = await base44.auth.me();
         setUser(updatedUser);
-        }
+      } else {
+        // For anonymous users, create a temporary candidate object (not saved to DB)
+        updatedCandidate = {
+          id: 'temp-' + Date.now(),
+          name: analysis.candidate_name || 'Unknown Candidate',
+          email: analysis.candidate_email || '',
+          legitimacy_score: analysis.overall_score,
+          analysis: analysisData,
+          status: 'analyzed',
+          resume_url: file_url,
+          created_date: new Date().toISOString()
+        };
+      }
       
       setIsUploading(false);
       setSelectedCandidate(updatedCandidate);
       setCurrentView('result');
-      queryClient.invalidateQueries({ queryKey: ['candidates'] });
+      if (isAuthenticated) {
+        queryClient.invalidateQueries({ queryKey: ['candidates'] });
+      }
     } catch (error) {
       console.error('Analysis error:', error);
       setIsUploading(false);
