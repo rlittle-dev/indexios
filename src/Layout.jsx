@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Smartphone } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ChatBot from '@/components/chat/ChatBot';
-import ConcurrentSessionAlert from '@/components/paywall/ConcurrentSessionAlert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,73 +17,17 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
-  const [showConcurrentAlert, setShowConcurrentAlert] = useState(false);
-  const [conflictingDeviceType, setConflictingDeviceType] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-    const isAuthenticated = await base44.auth.isAuthenticated();
-    if (isAuthenticated) {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-
-      // For non-enterprise users, enforce single device login
-      if (currentUser?.subscription_tier !== 'enterprise') {
-        const deviceId = localStorage.getItem('deviceId');
-        
-        if (!deviceId) {
-          // First time on this device - register it
-          const newDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-          localStorage.setItem('deviceId', newDeviceId);
-          
-          try {
-            await base44.functions.invoke('registerDevice', {
-              deviceId: newDeviceId,
-              deviceType: /mobile|android|iphone/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop'
-            });
-          } catch (e) {
-            console.error('Error registering device:', e);
-          }
-        } else {
-          // Check if this device is still the active one
-          try {
-            const response = await base44.functions.invoke('validateDeviceAccess', {
-              deviceId
-            });
-            
-            if (!response.data.allowed) {
-              // Another device is active
-              setConflictingDeviceType(response.data.otherDeviceType);
-              setShowConcurrentAlert(true);
-              localStorage.removeItem('deviceId');
-              return;
-            }
-          } catch (e) {
-            console.error('Error validating device:', e);
-          }
-        }
-      }
-    }
-    setLoading(false);
-    };
-    checkAuth();
-
-    // Update device activity periodically
-    const activeInterval = setInterval(async () => {
       const isAuthenticated = await base44.auth.isAuthenticated();
-      const currentUser = await base44.auth.me();
-      
-      if (isAuthenticated && currentUser?.subscription_tier !== 'enterprise') {
-        const deviceId = localStorage.getItem('deviceId');
-        if (deviceId) {
-          try {
-            await base44.functions.invoke('updateDeviceActivity', { deviceId });
-          } catch (e) {
-            console.error('Error updating device activity:', e);
-          }
-        }
+      if (isAuthenticated) {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
       }
-    }, 30000); // Update every 30 seconds
+      setLoading(false);
+      };
+      checkAuth();
 
     // Refetch user data when window regains focus to sync profile changes
     const handleFocus = async () => {
@@ -98,7 +41,7 @@ export default function Layout({ children }) {
     window.addEventListener('focus', handleFocus);
     return () => {
       window.removeEventListener('focus', handleFocus);
-      clearInterval(activeInterval);
+
     };
   }, []);
 
@@ -130,25 +73,10 @@ export default function Layout({ children }) {
     );
   }
 
-  const handleDismissConcurrentAlert = () => {
-    setShowConcurrentAlert(false);
-    window.location.href = createPageUrl('Home');
-  };
-
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Concurrent Session Alert */}
-      <AnimatePresence>
-        {showConcurrentAlert && (
-          <ConcurrentSessionAlert
-            deviceType={conflictingDeviceType}
-            onDismiss={handleDismissConcurrentAlert}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Chat Bot for all users */}
-      {user && !showConcurrentAlert && (
+      {user && (
         <ChatBot user={user} />
       )}
       
