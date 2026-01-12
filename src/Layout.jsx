@@ -151,14 +151,6 @@ export default function Layout({ children }) {
                     API Access
                   </DropdownMenuItem>
                 </Link>
-                <Link to={createPageUrl('ManageDevices')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    Manage Devices
-                  </DropdownMenuItem>
-                </Link>
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
