@@ -252,35 +252,11 @@ export default function MyAccount() {
                     {user?.scans_used || 0} scans used
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  {user?.subscription_tier !== 'free' && (
-                    <Button
-                      onClick={async () => {
-                        if (confirm('Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.')) {
-                          try {
-                            const response = await base44.functions.invoke('cancelSubscription');
-                            if (response.data.success) {
-                              alert('Subscription cancelled. You will retain access until the end of your billing period.');
-                              window.location.reload();
-                            }
-                          } catch (error) {
-                            console.error('Cancellation error:', error);
-                            alert('Failed to cancel subscription');
-                          }
-                        }
-                      }}
-                      variant="outline"
-                      className="border-red-500/50 bg-transparent text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      Cancel Subscription
-                    </Button>
-                  )}
-                  <Link to={createPageUrl('Pricing')}>
-                    <Button variant="outline" className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10">
-                      {user?.subscription_tier === 'free' ? 'Upgrade' : 'View Plans'}
-                    </Button>
-                  </Link>
-                </div>
+                <Link to={createPageUrl('Pricing')}>
+                  <Button variant="outline" className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10">
+                    {user?.subscription_tier === 'free' ? 'Upgrade' : 'View Plans'}
+                  </Button>
+                </Link>
               </div>
 
               {user?.subscription_tier && user.subscription_tier !== 'free' && (
