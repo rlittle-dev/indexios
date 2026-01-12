@@ -2,15 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, Smartphone, Laptop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 
 export default function ConcurrentSessionAlert({ deviceType, onDismiss }) {
-  const getDeviceIcon = (type) => {
-    if (type === 'Mobile') return <Smartphone className="w-6 h-6" />;
-    return <Laptop className="w-6 h-6" />;
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -31,33 +24,19 @@ export default function ConcurrentSessionAlert({ deviceType, onDismiss }) {
         </div>
 
         <h2 className="text-2xl font-bold text-white text-center mb-2">
-          Concurrent Session Detected
+          Session Ended
         </h2>
 
         <p className="text-white/70 text-center mb-6">
-          You're already logged in on another device ({deviceType}). Your current session has been logged out to protect your account.
+          You've been logged out because you're now accessing your account from a different device ({deviceType}). You can only have one active session at a time.
         </p>
 
-        <div className="bg-zinc-800/50 rounded-xl p-4 mb-6 border border-zinc-700/50">
-          <p className="text-white/60 text-sm text-center">
-            Your plan only allows one device at a time. Upgrade to <span className="font-semibold text-white">Enterprise</span> to access your account from multiple devices simultaneously.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          <Link to={createPageUrl('Pricing')} className="block">
-            <Button className="w-full bg-white hover:bg-gray-100 text-black font-semibold">
-              Upgrade to Enterprise
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={onDismiss}
-            className="w-full border-white/20 text-white hover:bg-white/10"
-          >
-            Go Back
-          </Button>
-        </div>
+        <Button
+          onClick={onDismiss}
+          className="w-full bg-white hover:bg-gray-100 text-black font-semibold"
+        >
+          Go Back to Home
+        </Button>
       </motion.div>
     </motion.div>
   );
