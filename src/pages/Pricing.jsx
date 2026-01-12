@@ -156,7 +156,7 @@ export default function Pricing() {
             Choose Your Plan
           </h1>
           <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Start with 3 free scans, then upgrade for unlimited access to AI-powered resume verification
+            Start with 3 free scans, then upgrade for unlimited access to resume verification and advanced fraud detection
           </p>
         </motion.div>
 
@@ -262,7 +262,7 @@ export default function Pricing() {
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white">Priority</td>
                     <td className="text-center px-6 py-3 text-white">Priority</td>
-                    <td className="text-center px-6 py-3 text-emerald-400">Dedicated</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Dedicated</td>
                   </tr>
                 </tbody>
               </table>

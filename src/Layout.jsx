@@ -5,6 +5,7 @@ import { LogOut, User, Key, Folder } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ChatBot from '@/components/chat/ChatBot';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +72,11 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      {/* Chat Bot for paid users */}
+      {user && user.subscription_tier && user.subscription_tier !== 'free' && (
+        <ChatBot user={user} />
+      )}
+      
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
