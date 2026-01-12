@@ -25,78 +25,62 @@ export default function Layout({ children }) {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      // Check for concurrent device login
-      const deviceId = localStorage.getItem('deviceId');
-      const lastActiveTime = localStorage.getItem('lastActiveTime');
-
-      if (!deviceId) {
-        // First time on this device
-        const newDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-        const deviceInfo = {
-          id: newDeviceId,
-          type: /mobile|android|iphone/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
-          userAgent: navigator.userAgent,
-          createdTime: Date.now(),
-          lastActiveTime: Date.now()
-        };
-        localStorage.setItem('deviceId', newDeviceId);
-        localStorage.setItem(`device_${newDeviceId}`, JSON.stringify(deviceInfo));
-        localStorage.setItem('lastActiveTime', Date.now().toString());
-      } else {
-        // Check if another device is currently active
-        const now = Date.now();
-        const lastActive = parseInt(lastActiveTime) || 0;
-        const fiveMinutesMs = 5 * 60 * 1000;
-
-        if (now - lastActive < fiveMinutesMs) {
-          // Another device is active, logout this session
-          localStorage.removeItem('deviceId');
-          localStorage.removeItem(`device_${deviceId}`);
-          localStorage.removeItem('lastActiveTime');
-          await base44.auth.logout(createPageUrl('Home'));
-          return;
-        }
-        // Update last active time for this device
-        const deviceKey = `device_${deviceId}`;
-        const deviceData = localStorage.getItem(deviceKey);
-        if (deviceData) {
+      // For non-enterprise users, enforce single device login
+      if (currentUser?.subscription_tier !== 'enterprise') {
+        const deviceId = localStorage.getItem('deviceId');
+        
+        if (!deviceId) {
+          // First time on this device - register it
+          const newDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('deviceId', newDeviceId);
+          
           try {
-            const parsed = JSON.parse(deviceData);
-            parsed.lastActiveTime = now;
-            localStorage.setItem(deviceKey, JSON.stringify(parsed));
+            await base44.functions.invoke('registerDevice', {
+              deviceId: newDeviceId,
+              deviceType: /mobile|android|iphone/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop'
+            });
           } catch (e) {
-            // Skip invalid JSON
+            console.error('Error registering device:', e);
+          }
+        } else {
+          // Check if this device is still the active one
+          try {
+            const response = await base44.functions.invoke('validateDeviceAccess', {
+              deviceId
+            });
+            
+            if (!response.data.allowed) {
+              // Another device is active, logout this session
+              localStorage.removeItem('deviceId');
+              await base44.auth.logout(createPageUrl('Home'));
+              return;
+            }
+          } catch (e) {
+            console.error('Error validating device:', e);
           }
         }
-        localStorage.setItem('lastActiveTime', now.toString());
       }
     }
     setLoading(false);
     };
     checkAuth();
 
-    // Update last active time periodically
-    const activeInterval = setInterval(() => {
-      const isAuthenticated = base44.auth.isAuthenticated();
-      if (isAuthenticated && localStorage.getItem('deviceId')) {
+    // Update device activity periodically
+    const activeInterval = setInterval(async () => {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      const currentUser = await base44.auth.me();
+      
+      if (isAuthenticated && currentUser?.subscription_tier !== 'enterprise') {
         const deviceId = localStorage.getItem('deviceId');
-        const now = Date.now();
-        localStorage.setItem('lastActiveTime', now.toString());
-        
-        // Also update device info
-        const deviceKey = `device_${deviceId}`;
-        const deviceData = localStorage.getItem(deviceKey);
-        if (deviceData) {
+        if (deviceId) {
           try {
-            const parsed = JSON.parse(deviceData);
-            parsed.lastActiveTime = now;
-            localStorage.setItem(deviceKey, JSON.stringify(parsed));
+            await base44.functions.invoke('updateDeviceActivity', { deviceId });
           } catch (e) {
-            // Skip invalid JSON
+            console.error('Error updating device activity:', e);
           }
         }
       }
-    }, 60000); // Update every minute
+    }, 30000); // Update every 30 seconds
 
     // Refetch user data when window regains focus to sync profile changes
     const handleFocus = async () => {
