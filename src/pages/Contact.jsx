@@ -152,6 +152,41 @@ export default function Contact() {
             )}
           </div>
 
+          <div className="space-y-4">
+            <motion.a
+              href="https://www.instagram.com/indexios"
+              target="_blank"
+              rel="noopener noreferrer"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-4 p-4 bg-zinc-800/50 hover:bg-zinc-800 rounded-xl border border-zinc-700 hover:border-zinc-600 transition-all group"
+            >
+              <div className="inline-flex p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all">
+                <Instagram className="w-6 h-6 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Follow us on Instagram</h3>
+                <p className="text-white/60 text-sm">@indexios</p>
+              </div>
+            </motion.a>
+
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center gap-4 p-4 bg-zinc-800/50 rounded-xl border border-zinc-700"
+            >
+              <div className="inline-flex p-3 rounded-xl bg-emerald-500/10">
+                <Mail className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold mb-1">Email Support</h3>
+                <p className="text-white/60 text-sm">support@indexios.me</p>
+              </div>
+            </motion.div>
+          </div>
+
           <div className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-2xl p-8 text-center">
             <h2 className="text-2xl font-bold text-white mb-3">Ready to Get Started?</h2>
             <p className="text-white/80 mb-6">
