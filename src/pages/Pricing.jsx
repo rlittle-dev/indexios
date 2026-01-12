@@ -46,8 +46,7 @@ const TIERS = [
             'Next steps recommendations',
             'Interview question generation',
             'Save candidates to folders',
-            'API access',
-            'Teams (up to 5 members)'
+            'API access'
           ]
         },
         {
@@ -59,7 +58,7 @@ const TIERS = [
             'All Professional features, plus:',
             'Unlimited resume scans',
             'Bulk upload',
-            'Large teams (contact us)',
+            'Team collaboration (up to 5 members)',
             'Dedicated support',
             'Custom integrations'
           ]
@@ -246,11 +245,11 @@ export default function Pricing() {
                     <td className="text-center px-6 py-3 text-purple-400">✓</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
-                    <td className="px-6 py-3 text-white/80">Team Support</td>
+                    <td className="px-6 py-3 text-white/80">Team Collaboration</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-purple-400">Up to 5</td>
-                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Custom</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Up to 5 members</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Support</td>
