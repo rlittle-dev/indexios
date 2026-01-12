@@ -8,6 +8,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Switch } from '@/components/ui/switch';
 
+const getDeviceIcon = (type) => {
+  if (type === 'Mobile') return <Smartphone className="w-5 h-5" />;
+  return <Laptop className="w-5 h-5" />;
+};
+
 export default function MyAccount() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,6 +20,7 @@ export default function MyAccount() {
   const [fullName, setFullName] = useState('');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [message, setMessage] = useState('');
+  const [devices, setDevices] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
