@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
     if (!currentDevice) {
       // Device not found or not active
-      return Response.json({ allowed: false });
+      return Response.json({ allowed: false, reason: 'device_not_found' });
     }
 
     // Check if any other device has been active in the last 2 minutes
@@ -42,7 +42,12 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.Device.update(currentDevice.id, {
         is_active: false
       });
-      return Response.json({ allowed: false });
+      return Response.json({ 
+        allowed: false, 
+        reason: 'concurrent_session_detected',
+        otherDeviceType: recentDevices[0].device_type,
+        otherDeviceLastActive: recentDevices[0].last_active
+      });
     }
 
     return Response.json({ allowed: true });
