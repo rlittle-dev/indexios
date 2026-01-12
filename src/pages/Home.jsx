@@ -478,15 +478,17 @@ INTERVIEW QUESTIONS: 5-7 questions targeting any red flags or verifying impressi
        if (isAuthenticated) {
          queryClient.invalidateQueries({ queryKey: ['candidates'] });
 
-         // Send email notification
-         try {
-           await base44.integrations.Core.SendEmail({
-             to: user.email,
-             subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
-             body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.`
-           });
-         } catch (error) {
-           console.error('Error sending email:', error);
+         // Send email notification if enabled
+         if (user?.email_notifications_enabled !== false) {
+           try {
+             await base44.integrations.Core.SendEmail({
+               to: user.email,
+               subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
+               body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.\n\n---\nYou can disable these email notifications anytime in your account settings under "Email Notifications" in My Account.`
+             });
+           } catch (error) {
+             console.error('Error sending email:', error);
+           }
          }
        }
 
