@@ -24,10 +24,41 @@ export default function Layout({ children }) {
       if (isAuthenticated) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+
+        // Check for concurrent device login
+        const deviceId = localStorage.getItem('deviceId');
+        const lastActiveTime = localStorage.getItem('lastActiveTime');
+
+        if (!deviceId) {
+          // First time on this device
+          const newDeviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('deviceId', newDeviceId);
+          localStorage.setItem('lastActiveTime', Date.now().toString());
+        } else {
+          // Check if another device is currently active
+          const now = Date.now();
+          const lastActive = parseInt(lastActiveTime) || 0;
+          const fiveMinutesMs = 5 * 60 * 1000;
+
+          if (now - lastActive < fiveMinutesMs) {
+            // Another device is active, logout this session
+            await base44.auth.logout(createPageUrl('Home'));
+            return;
+          }
+          localStorage.setItem('lastActiveTime', now.toString());
+        }
       }
       setLoading(false);
     };
     checkAuth();
+
+    // Update last active time periodically
+    const activeInterval = setInterval(() => {
+      const isAuthenticated = base44.auth.isAuthenticated();
+      if (isAuthenticated && localStorage.getItem('deviceId')) {
+        localStorage.setItem('lastActiveTime', Date.now().toString());
+      }
+    }, 60000); // Update every minute
 
     // Refetch user data when window regains focus to sync profile changes
     const handleFocus = async () => {
@@ -39,7 +70,10 @@ export default function Layout({ children }) {
     };
 
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(activeInterval);
+    };
   }, []);
 
   const handleLogout = async () => {

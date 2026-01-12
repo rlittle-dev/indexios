@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { Key, Copy, RefreshCw, Lock, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Key, Copy, RefreshCw, Lock, ArrowLeft, CheckCircle2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -78,30 +78,30 @@ export default function ApiAccess() {
           </div>
 
           {!hasApiAccess ? (
-            <Card className="bg-zinc-900/80 border-zinc-800">
-              <CardHeader className="text-center">
-                <div className="inline-flex p-4 rounded-full bg-yellow-500/10 mb-4 mx-auto">
-                  <Lock className="w-8 h-8 text-yellow-400" />
-                </div>
-                <CardTitle className="text-white text-2xl">API Access Required</CardTitle>
-                <CardDescription className="text-white/60">
-                  Upgrade to Professional or Enterprise to access the API
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-white hover:bg-gray-100 text-black font-medium">
-                    View Pricing Plans
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+           <motion.div
+             initial={{ opacity: 0, scale: 0.95 }}
+             animate={{ opacity: 1, scale: 1 }}
+             className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 border border-emerald-500/30 rounded-xl p-8 text-center"
+           >
+             <div className="inline-flex p-4 rounded-full bg-emerald-500/10 mb-4 mx-auto">
+               <Lock className="w-8 h-8 text-emerald-400" />
+             </div>
+              <h3 className="text-white text-2xl font-bold mb-2">API Access Required</h3>
+              <p className="text-white/60 mb-6">
+                Upgrade to Professional or Enterprise to access the API
+              </p>
+              <Link to={createPageUrl('Pricing')}>
+                <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                  View Pricing Plans
+                </Button>
+              </Link>
+            </motion.div>
           ) : (
             <>
               <Card className="bg-zinc-900/80 border-zinc-800">
                 <CardHeader>
                   <CardTitle className="text-white flex items-center gap-2">
-                    <Key className="w-5 h-5 text-emerald-400" />
+                    <Key className="w-5 h-5 text-green-400" />
                     Your API Key
                   </CardTitle>
                   <CardDescription className="text-white/60">
@@ -156,14 +156,14 @@ export default function ApiAccess() {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="text-white font-semibold mb-2">Base URL</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-emerald-400">
+                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-green-400">
                       https://api.indexios.com/v1
                     </code>
                   </div>
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Analyze Resume</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-emerald-400">
+                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-green-400">
                       POST /analyze
                     </code>
                   </div>
