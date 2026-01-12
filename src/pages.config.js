@@ -7,6 +7,7 @@ import Pricing from './pages/Pricing';
 import SavedCandidates from './pages/SavedCandidates';
 import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
+import ManageDevices from './pages/ManageDevices';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "SavedCandidates": SavedCandidates,
     "SharedReport": SharedReport,
     "Team": Team,
+    "ManageDevices": ManageDevices,
 }
 
 export const pagesConfig = {
