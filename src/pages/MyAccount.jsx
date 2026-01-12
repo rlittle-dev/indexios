@@ -164,11 +164,32 @@ export default function MyAccount() {
                     {user?.scans_used || 0} scans used
                   </p>
                 </div>
-                <Link to={createPageUrl('Pricing')}>
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                    {user?.subscription_tier === 'free' ? 'Upgrade' : 'Change Plan'}
-                  </Button>
-                </Link>
+                <div className="flex gap-2">
+                  {user?.subscription_tier !== 'free' && (
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const response = await base44.functions.invoke('createPortalSession');
+                          if (response.data.url) {
+                            window.location.href = response.data.url;
+                          }
+                        } catch (error) {
+                          console.error('Portal error:', error);
+                          alert('Failed to open subscription management');
+                        }
+                      }}
+                      variant="outline"
+                      className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10"
+                    >
+                      Manage Subscription
+                    </Button>
+                  )}
+                  <Link to={createPageUrl('Pricing')}>
+                    <Button variant="outline" className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10">
+                      {user?.subscription_tier === 'free' ? 'Upgrade' : 'View Plans'}
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               {user?.subscription_tier && user.subscription_tier !== 'free' && (

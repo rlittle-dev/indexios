@@ -94,6 +94,16 @@ export default function Pricing() {
   const handleSubscribe = async (tier) => {
     if (tier === 'free') return;
     
+    // Prevent downgrades
+    const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+    const currentLevel = tierLevels[user?.subscription_tier || 'free'];
+    const targetLevel = tierLevels[tier];
+    
+    if (targetLevel < currentLevel) {
+      alert('Please use the Manage Subscription option to downgrade your plan.');
+      return;
+    }
+    
     setProcessingTier(tier);
     setLoading(true);
 
@@ -157,8 +167,32 @@ export default function Pricing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-12 text-center"
+          className="mt-12 text-center space-y-4"
         >
+          {user?.subscription_tier && user.subscription_tier !== 'free' && (
+            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 max-w-2xl mx-auto">
+              <p className="text-white/70 text-sm mb-3">
+                Need to cancel or downgrade? Use the Manage Subscription button in your account.
+              </p>
+              <Button
+                onClick={async () => {
+                  try {
+                    const response = await base44.functions.invoke('createPortalSession');
+                    if (response.data.url) {
+                      window.location.href = response.data.url;
+                    }
+                  } catch (error) {
+                    console.error('Portal error:', error);
+                    alert('Failed to open subscription management');
+                  }
+                }}
+                variant="outline"
+                className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10"
+              >
+                Manage Subscription
+              </Button>
+            </div>
+          )}
           <p className="text-white/50 text-sm">
             All plans include secure data handling and GDPR compliance
           </p>
