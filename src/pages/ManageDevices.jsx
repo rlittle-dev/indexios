@@ -161,8 +161,7 @@ export default function ManageDevices() {
                             )}
                           </div>
                           <p className="text-white/60 text-sm mb-2">
-                            {device.user_agent ||
-                              'Browser information not available'}
+                            {device.user_agent || `${device.device_type} device`}
                           </p>
                           <p className="text-white/40 text-xs">
                             Last active: {formatTime(device.last_active)}
