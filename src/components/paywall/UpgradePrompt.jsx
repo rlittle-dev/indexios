@@ -15,16 +15,24 @@ export default function UpgradePrompt({ scansUsed, scansLimit, onUpgrade, reason
       </div>
       
       <h3 className="text-2xl font-bold text-white mb-2">
-        Scan Limit Reached
+        {reason === 'scan limit' ? 'Scan Limit Reached' : 'Upgrade Required'}
       </h3>
       
-      <p className="text-white/70 mb-1">
-        You've used <span className="font-bold text-white">{scansUsed}</span> of <span className="font-bold text-white">{scansLimit}</span> scans this month
-      </p>
-      
-      <p className="text-white/60 text-sm mb-6">
-        Upgrade to continue scanning resumes with Indexios
-      </p>
+      {reason === 'scan limit' ? (
+        <>
+          <p className="text-white/70 mb-1">
+            You've used <span className="font-bold text-white">{scansUsed}</span> of <span className="font-bold text-white">{scansLimit}</span> scans this month
+          </p>
+          
+          <p className="text-white/60 text-sm mb-6">
+            Upgrade to continue scanning resumes with Indexios
+          </p>
+        </>
+      ) : (
+        <p className="text-white/70 mb-6">
+          History and past scan viewing require a paid plan
+        </p>
+      )}
 
       <Button
         onClick={onUpgrade}

@@ -16,8 +16,7 @@ const TIERS = [
     features: [
       '3 resume scans per month',
       'Basic legitimacy scoring',
-      'Red & green flags detection',
-      'Scan history'
+      'Red & green flags detection'
     ]
   },
   {
