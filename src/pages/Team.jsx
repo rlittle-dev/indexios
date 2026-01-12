@@ -96,6 +96,21 @@ export default function Team() {
     },
   });
 
+  const deleteTeamMutation = useMutation({
+    mutationFn: async (teamId) => {
+      // Delete all team members first
+      const members = await base44.entities.TeamMember.filter({ team_id: teamId });
+      await Promise.all(members.map(m => base44.entities.TeamMember.delete(m.id)));
+      
+      // Delete the team
+      await base44.entities.Team.delete(teamId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+    },
+  });
+
   const handleCreateTeam = async () => {
     const teamName = prompt('Enter team name:');
     if (teamName) {
@@ -109,6 +124,15 @@ export default function Team() {
     
     setInviting(true);
     await inviteMemberMutation.mutateAsync(inviteEmail);
+  };
+
+  const handleDeleteTeam = async () => {
+    if (!teams[0]) return;
+    
+    const confirmed = window.confirm('Are you sure you want to delete this team? This action cannot be undone.');
+    if (confirmed) {
+      await deleteTeamMutation.mutateAsync(teams[0].id);
+    }
   };
 
   const hasTeamAccess = user?.subscription_tier === 'enterprise';
@@ -191,13 +215,26 @@ export default function Team() {
                   {/* Team Info */}
                   <Card className="bg-zinc-900/80 border-zinc-800">
                     <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Users className="w-5 h-5 text-emerald-400" />
-                        {teams[0].name}
-                      </CardTitle>
-                      <CardDescription className="text-white/60">
-                        {teamMembers.filter(m => m.status === 'active').length} active members
-                      </CardDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Users className="w-5 h-5 text-emerald-400" />
+                            {teams[0].name}
+                          </CardTitle>
+                          <CardDescription className="text-white/60">
+                            {teamMembers.filter(m => m.status === 'active').length} active members
+                          </CardDescription>
+                        </div>
+                        <Button
+                          onClick={handleDeleteTeam}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Team
+                        </Button>
+                      </div>
                     </CardHeader>
                   </Card>
 

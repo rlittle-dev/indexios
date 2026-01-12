@@ -57,10 +57,24 @@ export default function Layout({ children }) {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-tight">
-              Indexios
-            </span>
+          <div className="flex items-center gap-6">
+            <Link to={createPageUrl('Home')}>
+              <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-tight cursor-pointer">
+                Indexios
+              </span>
+            </Link>
+            <div className="hidden md:flex items-center gap-4">
+              <Link to={createPageUrl('About')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  About
+                </Button>
+              </Link>
+              <Link to={createPageUrl('Contact')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  Contact
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {user ? (
