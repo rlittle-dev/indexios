@@ -24,17 +24,18 @@ Deno.serve(async (req) => {
     }
 
     try {
-      // Send confirmation email to the user
-      console.log('Sending confirmation email to:', user.email);
-      await base44.integrations.Core.SendEmail({
-        to: user.email,
-        subject: `We received your support request: ${subject}`,
-        from_name: 'Indexios Support',
-        body: `Hi ${user.full_name},\n\nThank you for reaching out. We've received your support request and will get back to you as soon as possible.\n\nSubject: ${subject}\n\nBest regards,\nIndexios Support Team`
+      // Create a support ticket
+      console.log('Creating support ticket for:', user.email);
+      const ticket = await base44.entities.Ticket.create({
+        subject,
+        message,
+        user_email: user.email,
+        status: 'open',
+        priority: 'medium'
       });
-      console.log('Confirmation email sent successfully');
+      console.log('Support ticket created successfully:', ticket.id);
 
-      return Response.json({ success: true, message: 'Thank you! We\'ve received your message.' });
+      return Response.json({ success: true, message: 'Thank you! Your support ticket has been created.', ticketId: ticket.id });
     } catch (emailError) {
       console.error('Email integration error:', emailError.message);
       throw new Error(`Failed to send email: ${emailError.message}`);
