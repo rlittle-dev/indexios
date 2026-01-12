@@ -72,8 +72,8 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Chat Bot for paid users */}
-      {user && user.subscription_tier && user.subscription_tier !== 'free' && (
+      {/* Chat Bot for all users */}
+      {user && (
         <ChatBot user={user} />
       )}
       

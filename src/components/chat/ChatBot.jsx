@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 
 export default function ChatBot({ user }) {
   const [isOpen, setIsOpen] = useState(false);
+  const isPaidUser = user?.subscription_tier && user.subscription_tier !== 'free';
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Hi! I\'m the Indexios support assistant. I can help you with questions about how our platform works and how to contact support. How can I help you today?',
+      text: isPaidUser 
+        ? 'Hi! I\'m the Indexios support assistant. As a valued member, you have access to priority support and can ask detailed questions about your account and scans. How can I help you today?'
+        : 'Hi! I\'m the Indexios support assistant. I can help you with questions about how our platform works and how to contact support. How can I help you today?',
       sender: 'bot'
     }
   ]);
@@ -39,8 +42,30 @@ export default function ChatBot({ user }) {
     setLoading(true);
 
     try {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `You are a helpful support assistant for Indexios, a resume verification platform. You can only answer questions about:
+      const systemPrompt = isPaidUser
+        ? `You are a priority support assistant for Indexios, a resume verification platform. This is a PAID MEMBER with ${user?.subscription_tier} plan.
+
+You can answer questions about:
+- How the platform works (resume scanning, legitimacy scoring, analysis features)
+- Subscription plans and features
+- How to use the platform
+- Detailed troubleshooting for account and scan issues
+- Best practices for resume analysis
+- How to contact dedicated support (support@indexios.com)
+- Account management and billing questions
+
+IMPORTANT RULES:
+- Do NOT provide any information about the database, backend, API details, internal workings, or sensitive information
+- Do NOT make up information - if you don't know something, say so and suggest contacting support
+- Keep responses concise (1-2 sentences)
+- For paid members, you can provide more detailed explanations and advanced guidance
+- Be friendly and professional
+- Mention priority support availability when relevant
+
+User question: ${input}`
+        : `You are a helpful support assistant for Indexios, a resume verification platform. This is a FREE user.
+
+You can only answer questions about:
 - How the platform works (resume scanning, legitimacy scoring, analysis features)
 - Subscription plans and features
 - How to use the platform
@@ -51,8 +76,12 @@ IMPORTANT RULES:
 - Do NOT make up information - if you don't know something, say so and suggest contacting support
 - Keep responses concise (1-2 sentences)
 - Be friendly and professional
+- For complex issues, encourage them to upgrade or contact support
 
-User question: ${input}`
+User question: ${input}`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: systemPrompt
       });
 
       const botMessage = {
@@ -99,9 +128,11 @@ User question: ${input}`
             className="fixed bottom-24 right-6 z-40 w-96 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col h-96"
           >
             {/* Header */}
-            <div className="bg-purple-600 px-6 py-4 rounded-t-2xl">
+            <div className={`${isPaidUser ? 'bg-gradient-to-r from-purple-600 to-purple-700' : 'bg-purple-600'} px-6 py-4 rounded-t-2xl`}>
               <h3 className="text-white font-semibold">Support Assistant</h3>
-              <p className="text-purple-100 text-xs">Available 24/7</p>
+              <p className="text-purple-100 text-xs">
+                {isPaidUser ? '⭐ Priority Support • Available 24/7' : 'Available 24/7'}
+              </p>
             </div>
 
             {/* Messages */}
