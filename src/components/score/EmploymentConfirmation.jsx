@@ -57,6 +57,7 @@ import React, { useState } from 'react';
             <>
               {companies.map((company, index) => {
                 const phoneNumber = companiesMap[company];
+                const debug = phoneDebug[company];
                 return (
                   <motion.div
                     key={index}
@@ -67,6 +68,14 @@ import React, { useState } from 'react';
                   >
                     <div className="flex items-start justify-between mb-2">
                       <span className="text-white font-medium text-sm">{company}</span>
+                      {debug && (
+                        <button
+                          onClick={() => setShowDebug(showDebug === company ? false : company)}
+                          className="text-xs text-white/40 hover:text-white/70 transition-colors"
+                        >
+                          <Bug className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                     {phoneNumber ? (
                       <div className="flex items-center justify-between">
@@ -83,6 +92,18 @@ import React, { useState } from 'react';
                         <AlertCircle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
                         <span className="text-white/60 text-xs">No number found - research manually</span>
                       </div>
+                    )}
+                    {showDebug === company && debug && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-3 pt-3 border-t border-white/10 bg-black/30 rounded p-2"
+                      >
+                        <p className="text-white/80 text-xs font-mono whitespace-pre-wrap break-words max-h-64 overflow-y-auto">
+                          {JSON.stringify(debug, null, 2)}
+                        </p>
+                      </motion.div>
                     )}
                   </motion.div>
                 );
