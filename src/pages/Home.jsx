@@ -225,7 +225,7 @@ export default function Home() {
                 Why Choose Indexios?
               </h2>
               <p className="text-white/60 text-lg">
-                Advanced AI technology meets hiring expertise
+                See beyond the résumé
               </p>
             </div>
 
