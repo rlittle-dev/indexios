@@ -417,7 +417,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
   };
 
   const handleLoginRedirect = () => {
-    base44.auth.redirectToLogin();
+    base44.auth.redirectToLogin(createPageUrl('Home'));
   };
 
   const handleDownload = async (candidate) => {
