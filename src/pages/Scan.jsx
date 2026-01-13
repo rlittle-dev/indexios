@@ -330,12 +330,19 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
               summary: { type: "string", description: "Brief summary of the analysis" },
               next_steps: { type: "array", items: { type: "string" }, description: "Recommended next steps for hiring process" },
               interview_questions: { type: "array", items: { type: "string" }, description: "Suggested interview questions" },
+              company_names: { type: "array", items: { type: "string" }, description: "List of all company names extracted from work experience section" },
               company_phone_numbers: { type: "object", description: "Object mapping company names to their phone numbers (e.g., {\"Company Name\": \"+1-555-123-4567\"})" }
             },
             required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions"]
           }
         });
         
+      // Extract company names from the analysis
+      let companyNames = [];
+      if (analysis.company_names && Array.isArray(analysis.company_names)) {
+        companyNames = analysis.company_names;
+      }
+
       // Build the analysis object
       const analysisData = {
         consistency_score: analysis.consistency_score,
@@ -351,7 +358,8 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
-        company_phone_numbers: analysis.company_phone_numbers || {}
+        company_phone_numbers: analysis.company_phone_numbers || {},
+        company_names: companyNames
       };
 
       let updatedCandidate;
