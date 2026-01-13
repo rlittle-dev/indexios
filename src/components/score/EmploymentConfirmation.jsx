@@ -16,20 +16,29 @@ import React, { useState } from 'react';
     companies = companiesWithPhone;
     // Count companies that have a valid phone (either e164 or display)
     totalCount = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
+  } else if (allCompanies && allCompanies.length > 0) {
+    // Fallback: Use allCompanies array (company names without phone data yet)
+    companies = allCompanies.map(name => ({
+      name,
+      phone: null,
+      phone_debug: phoneDebug?.[name],
+    }));
+    totalCount = 0;
   } else if (phoneNumbers && typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers)) {
     // LEGACY format: map of company -> phone string
     const companiesMap = phoneNumbers;
-    companies = (allCompanies.length > 0 ? allCompanies : Object.keys(companiesMap))
-      .map(name => ({
-        name,
-        phone: companiesMap[name] ? { display: companiesMap[name] } : null,
-        phone_debug: phoneDebug[name],
-      }));
+    companies = Object.keys(companiesMap).map(name => ({
+      name,
+      phone: companiesMap[name] ? { display: companiesMap[name] } : null,
+      phone_debug: phoneDebug[name],
+    }));
     totalCount = Object.keys(companiesMap).length;
   } else {
     companies = [];
     totalCount = 0;
   }
+
+  console.log('EmploymentConfirmation - companies:', companies);
 
   return (
     <motion.div
