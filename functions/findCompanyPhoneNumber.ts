@@ -262,14 +262,17 @@ Deno.serve(async (req) => {
     }
     
     // STEP 2: Fetch + Extract
+    debug.stage = 'fetch';
     const officialCandidates = [];
     
     for (const url of officialUrls) {
       const fetchResult = await fetchPage(url);
+      const bytesLen = fetchResult.body ? fetchResult.body.length : 0;
       debug.fetch_results.push({
         url,
         status: fetchResult.status,
         fetched: fetchResult.fetched,
+        bytes: bytesLen,
         candidates_found: 0,
       });
       
@@ -280,6 +283,9 @@ Deno.serve(async (req) => {
         // Update candidates_found count
         const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
         lastResult.candidates_found = extracted.length;
+        console.log(`✅ FETCH: ${url} (${fetchResult.status}) → ${bytesLen} bytes → ${extracted.length} candidates`);
+      } else {
+        console.log(`❌ FETCH FAILED: ${url} (${fetchResult.status})${fetchResult.error ? ' - ' + fetchResult.error : ''}`);
       }
     }
     
