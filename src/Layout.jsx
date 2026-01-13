@@ -117,6 +117,11 @@ export default function Layout({ children }) {
               </span>
             </Link>
             <div className="hidden md:flex items-center gap-4">
+              <Link to={createPageUrl('Scan')}>
+                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                  Scan Resume
+                </Button>
+              </Link>
               <Link to={createPageUrl('Pricing')}>
                 <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
                   Plans
@@ -228,6 +233,11 @@ export default function Layout({ children }) {
             className={`fixed left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
           >
             <div className="px-4 py-4 space-y-2">
+              <Link to={createPageUrl('Scan')} onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                  Scan Resume
+                </Button>
+              </Link>
               <Link to={createPageUrl('Pricing')} onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
                   Plans
