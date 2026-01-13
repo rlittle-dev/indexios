@@ -64,7 +64,7 @@ export default function Contact() {
       <Helmet>
         <title>Contact Indexios Support - Get Help with Resume Verification</title>
         <meta name="description" content="Contact Indexios for support, questions, or inquiries about our resume verification platform. We're here to help with fraud detection, team collaboration, and API integration." />
-        <link rel="canonical" href="https://www.indexios.me/Contact" />
+        <link rel="canonical" href="https://indexios.me/Contact" />
         <meta property="og:title" content="Contact Indexios Support" />
         <meta property="og:description" content="Get help with resume verification, fraud detection, and platform support." />
         <meta property="og:url" content="https://www.indexios.me/Contact" />

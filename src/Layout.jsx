@@ -86,7 +86,7 @@ export default function Layout({ children }) {
         <meta property="og:title" content="Indexios - Resume Verification Platform" />
         <meta property="og:description" content="Verify resume legitimacy with advanced fraud detection and credential verification tools." />
         <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/797117048_4D82DA9B-3230-4F6C-A706-1F3E8B05E9F0.png" />
-        <link rel="canonical" href="https://www.indexios.me/" />
+        <link rel="canonical" href="https://indexios.me/" />
         <meta name="robots" content="index,follow" />
         <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
       </Helmet>

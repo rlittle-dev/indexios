@@ -123,7 +123,7 @@ export default function Pricing() {
       <Helmet>
         <title>Pricing Plans - Resume Verification Starting at $29/month | Indexios</title>
         <meta name="description" content="Choose the perfect Indexios plan for your hiring needs. Free tier with 3 scans, Starter at $29/mo (50 scans), Professional at $99/mo (200 scans), or Enterprise for unlimited scans and team collaboration." />
-        <link rel="canonical" href="https://www.indexios.me/Pricing" />
+        <link rel="canonical" href="https://indexios.me/Pricing" />
         <meta property="og:title" content="Indexios Pricing Plans - Resume Verification" />
         <meta property="og:description" content="Affordable resume verification plans starting at $29/month. Free tier available with 3 scans." />
         <meta property="og:url" content="https://www.indexios.me/Pricing" />
