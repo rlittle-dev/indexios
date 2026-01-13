@@ -453,9 +453,16 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
          }
        }
 
+       // DEBUG LOGGING (remove later)
+       console.log('✅ FINAL SCAN RESULT:');
+       console.log('Candidate:', updatedCandidate.name);
+       console.log('Companies with phones:', companies.filter(c => c.phone).length);
+       console.log('First company:', companies[0]);
+       console.log('Full analysis.companies:', analysisData.companies);
+
        // Show toast notification
        toast.success('Analysis complete!', {
-         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`,
+         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}% • ${phonesFound} companies found`,
          icon: <CheckCircle2 className="w-4 h-4" />
        });
     } catch (error) {
