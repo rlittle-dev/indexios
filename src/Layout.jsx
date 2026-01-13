@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Key, Folder, Users, MessageCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ChatBot from '@/components/chat/ChatBot';
@@ -17,6 +17,7 @@ export default function Layout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Add Google site verification meta tag
@@ -86,8 +87,18 @@ export default function Layout({ children }) {
         <ChatBot user={user} />
       )}
       
+      {/* Upgrade Banner for Free Users */}
+      {user && user.subscription_tier === 'free' && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2 px-4 text-sm font-medium">
+          <span className="hidden sm:inline">🚀 Upgrade to unlock scan history, advanced analysis, and team collaboration. </span>
+          <Link to={createPageUrl('Pricing')} className="underline font-bold hover:text-white/90">
+            View Plans
+          </Link>
+        </div>
+      )}
+      
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800">
+      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${user && user.subscription_tier === 'free' ? 'top-10' : 'top-0'}`}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to={createPageUrl('Home')}>
@@ -114,79 +125,121 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="hidden sm:inline">{user.full_name || user.email}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
-                <Link to={createPageUrl('MyAccount')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    My Account
-                  </DropdownMenuItem>
-                </Link>
-                <Link to={createPageUrl('SavedCandidates')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Folder className="w-4 h-4 mr-2" />
-                    Saved Candidates
-                  </DropdownMenuItem>
-                </Link>
-                <Link to={createPageUrl('Team')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Team
-                  </DropdownMenuItem>
-                </Link>
-                <Link to={createPageUrl('ApiAccess')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Key className="w-4 h-4 mr-2" />
-                    API Access
-                  </DropdownMenuItem>
-                </Link>
-                <Link to={createPageUrl('Tickets')}>
-                  <DropdownMenuItem 
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
+          <div className="flex items-center gap-2">
+            {/* Mobile Menu Button */}
             <Button
-              onClick={handleLoginRedirect}
-              className="bg-white hover:bg-gray-100 text-black font-medium"
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-white hover:text-white hover:bg-white/10"
             >
-              Sign In
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
-          )}
+
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="hidden sm:inline">{user.full_name || user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                  <Link to={createPageUrl('MyAccount')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      My Account
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to={createPageUrl('SavedCandidates')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Folder className="w-4 h-4 mr-2" />
+                      Saved Candidates
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to={createPageUrl('Team')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Team
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to={createPageUrl('ApiAccess')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Key className="w-4 h-4 mr-2" />
+                      API Access
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link to={createPageUrl('Tickets')}>
+                    <DropdownMenuItem 
+                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
+                    </DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={handleLoginRedirect}
+                className="bg-white hover:bg-gray-100 text-black font-medium"
+              >
+                Sign In
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 md:hidden ${user && user.subscription_tier === 'free' ? 'top-[104px]' : 'top-16'}`}
+          >
+            <div className="px-4 py-4 space-y-2">
+              <Link to={createPageUrl('Pricing')} onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                  Plans
+                </Button>
+              </Link>
+              <Link to={createPageUrl('About')} onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                  About
+                </Button>
+              </Link>
+              <Link to={createPageUrl('Contact')} onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                  Contact
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main content with padding for fixed header */}
-      <main className="pt-16">
+      <main className={user && user.subscription_tier === 'free' ? 'pt-[104px]' : 'pt-16'}>
         {children}
       </main>
     </div>
