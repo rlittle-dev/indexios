@@ -361,6 +361,7 @@ Deno.serve(async (req) => {
     }
     
     // STEP 5: Combine and select best
+    debug.stage = 'end';
     const allCandidates = [...scoredOfficial, ...fallbackCandidates];
     
     // Dedupe by e164
@@ -381,7 +382,11 @@ Deno.serve(async (req) => {
     
     if (best) {
       const sourceLabel = officialCandidates.find(c => c.e164 === best.e164) ? 'official' : 'fallback';
-      debug.final_decision = `Selected ${best.type} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source) from ${best.source}`;
+      debug.final_decision = `✅ RETURNED: ${best.type} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source)`;
+      debug.error = null;
+      
+      console.log(`🎯 PHONE FINDER RESULT (${company_name}): ${debug.final_decision}`);
+      console.log(`   Final debug: ${JSON.stringify(debug, null, 2)}`);
       
       return Response.json({
         company: company_name,
@@ -398,21 +403,27 @@ Deno.serve(async (req) => {
     }
     
     // No candidates found anywhere
-    debug.final_decision = 'No phone numbers found in official contact pages or fallback searches';
+    debug.final_decision = '⚠️ OMITTED: No phone numbers found in official contact pages or fallback searches';
+    debug.error = null;
+    
+    console.log(`🎯 PHONE FINDER RESULT (${company_name}): ${debug.final_decision}`);
+    console.log(`   Final debug: ${JSON.stringify(debug, null, 2)}`);
+    
     return Response.json({
       company: company_name,
       debug,
     });
     
   } catch (error) {
-    console.error('Fatal error:', error.message);
+    console.error(`❌ PHONE FINDER FATAL ERROR (${debug.company || 'unknown'}): ${error.message}`);
+    debug.stage = 'error';
+    debug.error = error.message;
+    debug.final_decision = `💥 FAILED: ${error.message}`;
+    console.log(`   Error debug: ${JSON.stringify(debug, null, 2)}`);
+    
     return Response.json({
-      company: 'unknown',
-      error: error.message,
-      debug: {
-        called: true,
-        final_decision: `Fatal error: ${error.message}`,
-      },
+      company: debug.company || 'unknown',
+      debug,
     }, { status: 500 });
   }
 });
