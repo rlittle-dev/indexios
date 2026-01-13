@@ -151,7 +151,26 @@ export default function Scan() {
       }
     
       // Use advanced analysis for all users
-      const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
+      const analysisPrompt = `You are an expert fraud detection analyst AND a company phone number researcher. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
+
+COMPANY PHONE NUMBER EXTRACTION (CRITICAL):
+For each company mentioned in the work experience:
+1. PRIORITY: Extract HR / People / Talent / Recruiting department phone numbers FIRST
+   - Search for: "Human Resources", "HR", "People Ops", "People Operations", "People & Culture", "Talent", "Talent Acquisition", "Careers", "Recruiting"
+   - These are HIGHEST priority for employment verification
+2. FALLBACK: Main corporate / headquarters / switchboard number ONLY if HR number not found
+3. QUALITY RULES (HARD):
+   - Do NOT invent numbers - if you cannot verify from official sources, OMIT entirely
+   - Do NOT use personal mobile numbers
+   - Do NOT use support/call-center numbers unless explicitly HR-related
+   - If multiple HR numbers exist, choose the most clearly labeled one
+   - Prefer numbers matching the work location's country/region
+   - Only use: official company website (Contact/About/Careers pages), LinkedIn company pages, or verified business directories
+   - If confidence is low, OMIT the number entirely
+4. Format: Normalize to E.164 format and provide human-readable version
+5. Return ONLY ONE best number per company, or omit if not found with confidence
+
+Return company_phone_numbers as an array of strings (e.g., ["+1-303-123-4567", "+44-20-1234-5678"]) or empty array if none found with confidence.
 
       CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 

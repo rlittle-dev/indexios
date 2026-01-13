@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
-  const [nextStepsExpanded, setNextStepsExpanded] = useState(true);
-  const [questionsExpanded, setQuestionsExpanded] = useState(true);
+  const [nextStepsExpanded, setNextStepsExpanded] = useState(false);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
   if (isLocked) {
     return (
