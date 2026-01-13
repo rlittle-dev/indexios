@@ -139,7 +139,7 @@ export default function Layout({ children }) {
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
 
-            {user ? (
+            {user && !user.isAnonymous ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
