@@ -170,18 +170,30 @@ export default function SavedCandidates() {
 
         {!hasAccess ? (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-8 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-2xl p-8 md:p-12 text-center"
           >
-            <Lock className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-3">Unlock Saved Candidates</h2>
-            <p className="text-white/70 mb-6 max-w-md mx-auto">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="inline-flex p-4 rounded-full bg-red-500/20 mb-6"
+            >
+              <Lock className="w-8 h-8 text-red-400" />
+            </motion.div>
+            
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Unlock Saved Candidates
+            </h2>
+            
+            <p className="text-white/80 text-lg mb-6 max-w-md mx-auto">
               Save candidates to folders, add notes, and organize your hiring pipeline with Professional or Enterprise
             </p>
+
             <Link to={createPageUrl('Pricing')}>
               <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
-                View Plans
+                View Plans & Upgrade
               </Button>
             </Link>
           </motion.div>
