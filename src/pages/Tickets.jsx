@@ -116,7 +116,7 @@ export default function Tickets() {
         <Link to={createPageUrl('Home')}>
           <Button variant="ghost" className="mb-6 text-white hover:text-white hover:bg-white/10">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Home
           </Button>
         </Link>
 
