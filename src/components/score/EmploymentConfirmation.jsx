@@ -68,7 +68,7 @@ import React, { useState } from 'react';
         className="overflow-hidden"
       >
         <div className="px-5 pb-5 border-t border-blue-500/20 space-y-3">
-          {totalCount > 0 ? (
+          {companies && companies.length > 0 ? (
             <>
               {companies.map((company, index) => {
                 // Handle both new {name, phone} and legacy string formats
