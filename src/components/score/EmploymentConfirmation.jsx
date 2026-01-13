@@ -72,11 +72,12 @@ import React, { useState } from 'react';
             <>
               {companies.map((company, index) => {
                 // Handle both new {name, phone} and legacy string formats
-                const companyName = typeof company === 'string' ? company : company.name;
+                const companyName = typeof company === 'string' ? company : (company.name || '');
                 const phoneObj = typeof company === 'object' ? company.phone : null;
                 const debug = typeof company === 'object' ? company.phone_debug : phoneDebug[companyName];
                 const phoneDisplay = phoneObj?.display || phoneObj?.e164 || null;
                 const phoneType = phoneObj?.type || 'unknown';
+                const hasPhone = phoneObj && (phoneObj.e164 || phoneObj.display);
 
                 return (
                   <motion.div
