@@ -11,6 +11,13 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
+import NewVerification from './pages/NewVerification';
+import VerificationDetail from './pages/VerificationDetail';
+import VerificationsList from './pages/VerificationsList';
+import ConsentSuccess from './pages/ConsentSuccess';
+import ConsentDenied from './pages/ConsentDenied';
+import EmployerVerified from './pages/EmployerVerified';
+import EmployerResponseRecorded from './pages/EmployerResponseRecorded';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +35,13 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
+    "NewVerification": NewVerification,
+    "VerificationDetail": VerificationDetail,
+    "VerificationsList": VerificationsList,
+    "ConsentSuccess": ConsentSuccess,
+    "ConsentDenied": ConsentDenied,
+    "EmployerVerified": EmployerVerified,
+    "EmployerResponseRecorded": EmployerResponseRecorded,
 }
 
 export const pagesConfig = {
