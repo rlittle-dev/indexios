@@ -82,41 +82,203 @@ function normalizePhone(raw) {
   return { raw: cleaned, e164: null, display: cleaned };
 }
 
-function extractPhonesFromHtml(html, sourceUrl) {
+// Extract tel: links from HTML
+function extractTelLinks(html) {
+  const candidates = [];
+  const telRegex = /href=["']tel:([^"']+)["']/gi;
+  let match;
+  while ((match = telRegex.exec(html)) !== null) {
+    const raw = match[1];
+    const normalized = normalizePhone(raw);
+    if (normalized) {
+      candidates.push({
+        raw: normalized.raw,
+        digits: normalized.raw.replace(/\D/g, ''),
+        source: 'tel',
+        context_snippet: raw.substring(0, 100),
+      });
+    }
+  }
+  return candidates;
+}
+
+// Extract phones from plain text (HTML stripped)
+function extractFromPlainText(html) {
   const candidates = [];
   
-  // Remove script/style
-  const cleanHtml = html
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-    .replace(/<style[^>]*>.*?<\/style>/gi, '');
+  // Strip HTML tags
+  let text = html.replace(/<[^>]*>/g, ' ');
   
-  // Try each pattern
-  for (const pattern of PHONE_PATTERNS) {
-    let match;
-    // Reset regex state
-    pattern.lastIndex = 0;
-    
-    while ((match = pattern.exec(cleanHtml)) !== null) {
-      const raw = match[0];
-      const normalized = normalizePhone(raw);
+  // Decode HTML entities
+  text = text
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (match, code) => String.fromCharCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (match, code) => String.fromCharCode(parseInt(code, 16)));
+  
+  // Collapse whitespace
+  text = text.replace(/\s+/g, ' ').trim();
+  
+  // Extract with phone regex
+  let match;
+  const phoneRegexGlobal = new RegExp(PHONE_REGEX.source, 'g');
+  while ((match = phoneRegexGlobal.exec(text)) !== null) {
+    const raw = match[0];
+    const normalized = normalizePhone(raw);
+    if (normalized) {
+      // Get context (50 chars before/after)
+      const start = Math.max(0, match.index - 50);
+      const end = Math.min(text.length, match.index + raw.length + 50);
+      const snippet = text.substring(start, end);
       
-      if (normalized && !candidates.find(c => c.e164 === normalized.e164 && c.raw === normalized.raw)) {
-        // Extract nearby text for labeling (100 chars before/after)
-        const startIdx = Math.max(0, match.index - 100);
-        const endIdx = Math.min(cleanHtml.length, match.index + raw.length + 100);
-        const nearbyHtml = cleanHtml.substring(startIdx, endIdx);
-        const nearbyText = nearbyHtml.replace(/<[^>]*>/g, ' ').trim();
+      candidates.push({
+        raw: normalized.raw,
+        digits: normalized.raw.replace(/\D/g, ''),
+        source: 'text',
+        context_snippet: snippet.substring(0, 150),
+      });
+    }
+  }
+  return candidates;
+}
+
+// Extract from JSON-LD structured data
+function extractFromJsonLd(html) {
+  const candidates = [];
+  const jsonLdRegex = /<script\s+type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/gi;
+  let match;
+  
+  while ((match = jsonLdRegex.exec(html)) !== null) {
+    try {
+      const json = JSON.parse(match[1]);
+      const phone = json.telephone || json.contactPoint?.telephone;
+      if (phone && typeof phone === 'string') {
+        const normalized = normalizePhone(phone);
+        if (normalized) {
+          candidates.push({
+            raw: normalized.raw,
+            digits: normalized.raw.replace(/\D/g, ''),
+            source: 'jsonld',
+            context_snippet: phone.substring(0, 100),
+          });
+        }
+      }
+    } catch (e) {
+      // Skip invalid JSON
+    }
+  }
+  return candidates;
+}
+
+// Extract from script content (raw scripts, __NEXT_DATA__, etc)
+function extractFromScriptContent(html) {
+  const candidates = [];
+  const scriptRegex = /<script[^>]*>([^<]*)<\/script>/gi;
+  let match;
+  
+  while ((match = scriptRegex.exec(html)) !== null) {
+    const content = match[1];
+    
+    // Extract with phone regex
+    let phoneMatch;
+    const phoneRegexGlobal = new RegExp(PHONE_REGEX.source, 'g');
+    while ((phoneMatch = phoneRegexGlobal.exec(content)) !== null) {
+      const raw = phoneMatch[0];
+      const normalized = normalizePhone(raw);
+      if (normalized) {
+        const start = Math.max(0, phoneMatch.index - 50);
+        const end = Math.min(content.length, phoneMatch.index + raw.length + 50);
+        const snippet = content.substring(start, end);
         
         candidates.push({
-          ...normalized,
-          nearbyText,
-          source: sourceUrl,
+          raw: normalized.raw,
+          digits: normalized.raw.replace(/\D/g, ''),
+          source: 'script',
+          context_snippet: snippet.substring(0, 150),
         });
       }
     }
   }
-  
   return candidates;
+}
+
+// Filter out obvious false positives
+function filterFalsePositives(candidates) {
+  const filtered = [];
+  
+  for (const c of candidates) {
+    const digits = c.digits;
+    
+    // Keep if 10-15 digits after stripping
+    if (digits.length < 10 || digits.length > 15) {
+      continue;
+    }
+    
+    // Reject if looks like a date (YYYY-MM-DD, etc)
+    if (/^\d{4}-\d{2}-\d{2}/.test(c.raw)) {
+      continue;
+    }
+    
+    // Reject if looks like a long ID/code with too many repeating patterns
+    if (/(\d)\1{3,}/.test(digits)) {
+      // 4+ repeating digits = probably not a phone
+      continue;
+    }
+    
+    filtered.push(c);
+  }
+  
+  return filtered;
+}
+
+// Main extraction function - uses all 4 sources
+function extractPhonesFromPage(html, sourceUrl) {
+  const allCandidates = [];
+  const allExtracted = [];
+  
+  // A) Tel links
+  const telLinks = extractTelLinks(html);
+  allExtracted.push(...telLinks);
+  
+  // B) Plain text
+  const plainText = extractFromPlainText(html);
+  allExtracted.push(...plainText);
+  
+  // C) JSON-LD
+  const jsonLd = extractFromJsonLd(html);
+  allExtracted.push(...jsonLd);
+  
+  // D) Script content
+  const scriptContent = extractFromScriptContent(html);
+  allExtracted.push(...scriptContent);
+  
+  // Dedupe by digits + raw
+  const seen = new Set();
+  for (const candidate of allExtracted) {
+    const key = `${candidate.digits}|${candidate.raw}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      
+      // Normalize and attach e164
+      const normalized = normalizePhone(candidate.raw);
+      allCandidates.push({
+        raw: candidate.raw,
+        digits: candidate.digits,
+        source: candidate.source,
+        context_snippet: candidate.context_snippet,
+        e164: normalized ? normalized.e164 : null,
+        display: normalized ? normalized.display : candidate.raw,
+      });
+    }
+  }
+  
+  // Filter false positives
+  const filtered = filterFalsePositives(allCandidates);
+  
+  return { all: allCandidates, filtered, total: allExtracted.length };
 }
 
 async function fetchPage(url, timeout = 8000) {
