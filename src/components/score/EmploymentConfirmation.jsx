@@ -3,18 +3,32 @@ import React, { useState } from 'react';
       import { Phone, ChevronDown, AlertCircle, Bug } from 'lucide-react';
       import { Button } from '@/components/ui/button';
 
-      export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [], phoneDebug = {} }) {
+      export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [], phoneDebug = {}, companies: companiesWithPhone = [] }) {
         const [isExpanded, setIsExpanded] = useState(false);
         const [showDebug, setShowDebug] = useState(false);
 
-  // Normalize to object format
-  const companiesMap = typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers) 
-    ? phoneNumbers 
-    : {};
+  // NEW: Use standardized company objects with phone data
+  let companies = [];
+  let totalCount = 0;
 
-  // Get all companies mentioned in the resume (fallback if not provided)
-  const companies = allCompanies.length > 0 ? allCompanies : Object.keys(companiesMap);
-  const totalCount = companies.length;
+  if (companiesWithPhone && companiesWithPhone.length > 0) {
+    // NEW format: array of {name, phone, phone_debug}
+    companies = companiesWithPhone;
+    totalCount = companies.filter(c => !!c.phone?.e164 || !!c.phone?.display).length;
+  } else if (phoneNumbers && typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers)) {
+    // LEGACY format: map of company -> phone string
+    const companiesMap = phoneNumbers;
+    companies = (allCompanies.length > 0 ? allCompanies : Object.keys(companiesMap))
+      .map(name => ({
+        name,
+        phone: companiesMap[name] ? { display: companiesMap[name] } : null,
+        phone_debug: phoneDebug[name],
+      }));
+    totalCount = Object.keys(companiesMap).length;
+  } else {
+    companies = [];
+    totalCount = 0;
+  }
 
   return (
     <motion.div
