@@ -367,6 +367,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
         company_phone_numbers: companyPhoneNumbers,
+        company_phone_debug: companyPhoneDebug, // Attach debug traces
         company_names: companyNames
       };
 
