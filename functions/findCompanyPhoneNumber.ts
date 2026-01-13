@@ -223,13 +223,18 @@ function extractFromScriptContent(html) {
 // Filter out obvious false positives and script noise
 function filterFalsePositives(candidates) {
   const filtered = [];
-  const scriptNoiseKeywords = ['webpackJsonp', '__NEXT_DATA__', 'JSON.stringify', 'var ', 'function', 'const '];
+  const noiseMarkers = [
+    'themeId', 'shopId', 'webpack', 'webpackJsonp', '__NEXT_DATA__', 'gtm', 'google_tag',
+    'AW-', 'pixel', 'analytics', 'cdn', 'woff', 'woff2', 'ttf', 'eot', 'svg',
+    'reqid', 'cartQuantity', 'font', 'asset', 'JSON.stringify', 'var ', 'function', 'const '
+  ];
   
   for (const c of candidates) {
     const digits = c.digits;
+    const context = (c.context_snippet || '').toLowerCase();
     
-    // Reject if < 10 or > 15 digits
-    if (digits.length < 10 || digits.length > 15) {
+    // STRICT: Reject if not 8-15 digits
+    if (digits.length < 8 || digits.length > 15) {
       c.reject_reason = 'invalid_length';
       continue;
     }
@@ -246,13 +251,18 @@ function filterFalsePositives(candidates) {
       continue;
     }
     
-    // Reject script noise: candidates from <script> containing code keywords and no phone context
-    if (c.source === 'script') {
-      const hasScriptNoise = scriptNoiseKeywords.some(kw => c.context_snippet.includes(kw));
-      const hasPhoneKeywords = /\b(phone|call|contact|hotline|support|hr|human|talent|recruit|careers)\b/i.test(c.context_snippet);
-      
-      if (hasScriptNoise && !hasPhoneKeywords) {
-        c.reject_reason = 'script_noise_no_context';
+    // HARD REJECT: Contains noise markers (themeId, shopId, webpack, etc.) - almost certainly not a real phone
+    const hasNoiseMarker = noiseMarkers.some(marker => context.includes(marker.toLowerCase()));
+    if (hasNoiseMarker) {
+      c.reject_reason = 'script_noise_or_asset_id';
+      continue;
+    }
+    
+    // WEAK CANDIDATE: 12-15 digits without strong phone context = likely an ID
+    if (digits.length >= 12 && digits.length <= 15) {
+      const hasPhoneWords = /\b(phone|call|tel|contact|customer service|support|hotline|help)\b/i.test(context);
+      if (!hasPhoneWords && c.source !== 'tel') {
+        c.reject_reason = 'weak_context_likely_id';
         continue;
       }
     }
