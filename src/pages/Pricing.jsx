@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -118,7 +119,17 @@ export default function Pricing() {
       };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <>
+      <Helmet>
+        <title>Pricing Plans - Resume Verification Starting at $29/month | Indexios</title>
+        <meta name="description" content="Choose the perfect Indexios plan for your hiring needs. Free tier with 3 scans, Starter at $29/mo (50 scans), Professional at $99/mo (200 scans), or Enterprise for unlimited scans and team collaboration." />
+        <link rel="canonical" href="https://www.indexios.me/Pricing" />
+        <meta property="og:title" content="Indexios Pricing Plans - Resume Verification" />
+        <meta property="og:description" content="Affordable resume verification plans starting at $29/month. Free tier available with 3 scans." />
+        <meta property="og:url" content="https://www.indexios.me/Pricing" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-zinc-950">
       <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
       
@@ -282,5 +293,6 @@ export default function Pricing() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

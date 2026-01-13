@@ -7,7 +7,17 @@ import { createPageUrl } from '@/utils';
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <>
+      <Helmet>
+        <title>About Indexios - AI-Powered Resume Verification Technology</title>
+        <meta name="description" content="Learn how Indexios uses advanced AI to detect resume fraud and verify credentials. Our technology helps hiring teams make confident decisions with instant, actionable insights." />
+        <link rel="canonical" href="https://www.indexios.me/About" />
+        <meta property="og:title" content="About Indexios - AI-Powered Resume Verification" />
+        <meta property="og:description" content="Advanced AI technology for resume fraud detection and credential verification." />
+        <meta property="og:url" content="https://www.indexios.me/About" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-zinc-950">
       <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none" />
       
@@ -116,5 +126,6 @@ export default function About() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }

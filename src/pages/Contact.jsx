@@ -60,7 +60,17 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <>
+      <Helmet>
+        <title>Contact Indexios Support - Get Help with Resume Verification</title>
+        <meta name="description" content="Contact Indexios for support, questions, or inquiries about our resume verification platform. We're here to help with fraud detection, team collaboration, and API integration." />
+        <link rel="canonical" href="https://www.indexios.me/Contact" />
+        <meta property="og:title" content="Contact Indexios Support" />
+        <meta property="og:description" content="Get help with resume verification, fraud detection, and platform support." />
+        <meta property="og:url" content="https://www.indexios.me/Contact" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-zinc-950">
       <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none" />
       
@@ -234,5 +244,6 @@ export default function Contact() {
         </motion.div>
       </div>
     </div>
+    </>
   );
 }
