@@ -290,6 +290,7 @@ Deno.serve(async (req) => {
     }
     
     // STEP 3: Score official candidates
+    debug.stage = 'extract';
     const scoredOfficial = officialCandidates.map(c => {
       const scored = scoreCandidate(c.raw, c.nearbyText);
       return {
@@ -307,10 +308,13 @@ Deno.serve(async (req) => {
       raw: c.raw,
       display: c.display,
       type: c.type,
-      score: c.score,
+      score: (c.score * 100).toFixed(0) + '%',
       source: c.source,
       context: c.nearbyText.substring(0, 60),
+      accepted: c.score >= 0.5,
     }));
+    
+    console.log(`📊 EXTRACT: ${officialCandidates.length} raw candidates → ${scoredOfficial.filter(c => c.score >= 0.5).length} accepted (score >= 50%)`);
     
     // STEP 4: Decide - if official found nothing, run fallback
     let fallbackCandidates = [];
