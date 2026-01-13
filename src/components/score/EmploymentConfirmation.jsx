@@ -70,8 +70,13 @@ import React, { useState } from 'react';
           {totalCount > 0 ? (
             <>
               {companies.map((company, index) => {
-                const phoneNumber = companiesMap[company];
-                const debug = phoneDebug[company];
+                // Handle both new {name, phone} and legacy string formats
+                const companyName = typeof company === 'string' ? company : company.name;
+                const phoneObj = typeof company === 'object' ? company.phone : null;
+                const debug = typeof company === 'object' ? company.phone_debug : phoneDebug[companyName];
+                const phoneDisplay = phoneObj?.display || phoneObj?.e164 || null;
+                const phoneType = phoneObj?.type || 'unknown';
+
                 return (
                   <motion.div
                     key={index}
@@ -81,22 +86,29 @@ import React, { useState } from 'react';
                     className="bg-zinc-800/50 rounded-lg p-3"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <span className="text-white font-medium text-sm">{company}</span>
+                      <div>
+                        <span className="text-white font-medium text-sm">{companyName}</span>
+                        {phoneType && phoneType !== 'unknown' && (
+                          <span className="text-xs text-blue-300 ml-2 bg-blue-900/30 px-2 py-0.5 rounded">
+                            {phoneType}
+                          </span>
+                        )}
+                      </div>
                       {debug && (
                         <button
-                          onClick={() => setShowDebug(showDebug === company ? false : company)}
+                          onClick={() => setShowDebug(showDebug === companyName ? false : companyName)}
                           className="text-xs text-white/40 hover:text-white/70 transition-colors"
                         >
                           <Bug className="w-3 h-3" />
                         </button>
                       )}
                     </div>
-                    {phoneNumber ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-blue-400 font-mono text-sm">{phoneNumber}</span>
+                    {phoneDisplay ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-blue-400 font-mono text-sm">{phoneDisplay}</span>
                         <Button
                           disabled
-                          className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed"
+                          className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed whitespace-nowrap"
                         >
                           Verify with AI?
                         </Button>
@@ -107,7 +119,7 @@ import React, { useState } from 'react';
                         <span className="text-white/60 text-xs">No number found - research manually</span>
                       </div>
                     )}
-                    {showDebug === company && debug && (
+                    {showDebug === companyName && debug && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
