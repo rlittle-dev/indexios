@@ -1,36 +1,49 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// HR/People/Talent keywords
-const HR_KEYWORDS = ['hr', 'human resources', 'talent', 'recruiting', 'recruitment', 'people', 'personnel', 'employment', 'careers'];
-const SUPPORT_KEYWORDS = ['support', 'customer service', 'helpdesk', 'help', 'technical', 'tier 1', 'tier 2'];
-const MAIN_KEYWORDS = ['main', 'headquarters', 'hq', 'switchboard', 'general', 'corporate', 'central', 'reception'];
+// Scoring keywords
+const HR_KEYWORDS = ['human resources', 'hr', 'people', 'people ops', 'talent', 'recruit', 'careers', 'hiring', 'employment'];
+const MAIN_KEYWORDS = ['headquarters', 'hq', 'switchboard', 'main', 'corporate', 'office', 'general', 'reception'];
+const SUPPORT_KEYWORDS = ['support', 'customer service', 'technical'];
 
-// Phone patterns - US and international
-const PHONE_PATTERNS = {
-  us: /\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/g,
-  e164: /\+[1-9]\d{1,14}/g,
-  tel: /tel:\+?([0-9\-\s\(\)\.]+)/gi,
-};
+// Comprehensive phone regex patterns
+const PHONE_PATTERNS = [
+  /\+1\s*\(?(\d{3})\)?\s*[-.\s]?(\d{3})\s*[-.\s]?(\d{4})/g, // +1 (555) 123-4567
+  /\(?(\d{3})\)?\s*[-.\s]?(\d{3})\s*[-.\s]?(\d{4})/g,        // (555) 123-4567 or 555-123-4567
+  /\+44\s*[0-9\s\(\)\-\.]+/g,                                  // +44 ...
+  /\+[1-9]\d{1,14}/g,                                           // E.164 international
+  /tel:\+?[0-9\-\s\(\)\.]+/gi,                                 // tel: links
+];
 
-function scoreLabel(text) {
-  if (!text) return { score: 0.5, type: 'unknown' };
-  const lower = text.toLowerCase();
+function scoreCandidate(raw, nearbyText) {
+  if (!raw || !nearbyText) {
+    return { score: 0.5, type: 'unknown' };
+  }
   
-  // HR/People > Main > Support > Unknown
+  const lowerText = nearbyText.toLowerCase();
+  
+  // HR/People/Talent keywords
   for (const kw of HR_KEYWORDS) {
-    if (lower.includes(kw)) return { score: 0.95, type: 'hr' };
+    if (lowerText.includes(kw)) {
+      return { score: 0.9, type: 'hr' };
+    }
   }
   
+  // Support keywords (lower score)
   for (const kw of SUPPORT_KEYWORDS) {
-    if (lower.includes(kw)) return { score: 0.3, type: 'support' };
+    if (lowerText.includes(kw)) {
+      return { score: 0.35, type: 'support' };
+    }
   }
   
+  // Main/HQ keywords
   for (const kw of MAIN_KEYWORDS) {
-    if (lower.includes(kw)) return { score: 0.75, type: 'main' };
+    if (lowerText.includes(kw)) {
+      return { score: 0.8, type: 'main' };
+    }
   }
   
-  // Generic contact/business = main-ish
-  if (lower.includes('contact') || lower.includes('business') || lower.includes('office')) {
+  // Generic "contact" = main
+  if (lowerText.includes('contact') || lowerText.includes('phone') || lowerText.includes('call')) {
     return { score: 0.65, type: 'main' };
   }
   
@@ -38,84 +51,73 @@ function scoreLabel(text) {
 }
 
 function normalizePhone(raw) {
-  if (!raw) return { raw: null, e164: null, display: null };
+  if (!raw) return null;
   
-  const trimmed = raw.trim();
+  const cleaned = raw.trim();
   
-  // Try E.164 first
-  const e164Match = trimmed.match(/\+[1-9]\d{1,14}/);
-  if (e164Match) {
-    return { raw: trimmed, e164: e164Match[0], display: e164Match[0] };
+  // Return raw + best-effort e164/display
+  const digits = cleaned.replace(/\D/g, '');
+  
+  // US: 10 digits
+  if (digits.length === 10 && /^\d{10}$/.test(digits)) {
+    const e164 = `+1${digits}`;
+    const display = `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    return { raw: cleaned, e164, display };
   }
   
-  // Try US (10 digits)
-  const usMatch = trimmed.match(/\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})/);
-  if (usMatch) {
-    const e164 = `+1${usMatch[1]}${usMatch[2]}${usMatch[3]}`;
-    const display = `+1 (${usMatch[1]}) ${usMatch[2]}-${usMatch[3]}`;
-    return { raw: trimmed, e164, display };
+  // US with country: 11 digits starting with 1
+  if (digits.length === 11 && digits.startsWith('1')) {
+    const e164 = `+${digits}`;
+    const display = `+${digits.slice(0, 1)} (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    return { raw: cleaned, e164, display };
   }
   
-  // Try any digit sequence 7+ chars
-  const digits = trimmed.replace(/\D/g, '');
-  if (digits.length >= 7) {
-    // Assume US if 10 digits, otherwise international
-    if (digits.length === 10) {
-      const e164 = `+1${digits}`;
-      const display = `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-      return { raw: trimmed, e164, display };
-    } else if (digits.length >= 11) {
-      // International
-      const e164 = `+${digits}`;
-      return { raw: trimmed, e164, display: trimmed };
-    }
+  // International: >= 11 digits with leading +
+  if (digits.length >= 11) {
+    const e164 = `+${digits}`;
+    return { raw: cleaned, e164, display: cleaned };
   }
   
-  return { raw: trimmed, e164: null, display: null };
+  // Already has +
+  if (cleaned.startsWith('+')) {
+    return { raw: cleaned, e164: cleaned, display: cleaned };
+  }
+  
+  // Fallback: return raw, best effort on formatting
+  return { raw: cleaned, e164: null, display: cleaned };
 }
 
 function extractPhonesFromHtml(html, sourceUrl) {
   const candidates = [];
   
-  // Strategy 1: Extract tel: links
-  let match;
-  while ((match = PHONE_PATTERNS.tel.exec(html)) !== null) {
-    const raw = match[1].trim();
-    const normalized = normalizePhone(raw);
-    if (normalized.raw) {
-      const startIdx = Math.max(0, match.index - 100);
-      const endIdx = Math.min(html.length, match.index + 150);
-      const context = html.substring(startIdx, endIdx).replace(/<[^>]*>/g, ' ').slice(0, 100);
-      candidates.push({ ...normalized, context, source: sourceUrl });
-    }
-  }
+  // Remove script/style
+  const cleanHtml = html
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/<style[^>]*>.*?<\/style>/gi, '');
   
-  // Strategy 2: Extract patterns from text (remove HTML first)
-  const text = html.replace(/<script[^>]*>.*?<\/script>/gi, '')
-                   .replace(/<style[^>]*>.*?<\/style>/gi, '')
-                   .replace(/<[^>]*>/g, ' ')
-                   .replace(/\s+/g, ' ');
-  
-  // Look for phone numbers near HR/contact keywords
-  const sections = text.split(/(?:hr|human resources|talent|recruiting|contact|phone|call|dial)/i);
-  
-  for (const section of sections.slice(0, 10)) { // Limit to reduce noise
-    const phoneMatch = section.match(/(\+?[1-9]\d{0,2}[-.\s]?\(??\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/);
-    if (phoneMatch) {
-      const normalized = normalizePhone(phoneMatch[0]);
-      if (normalized.raw && !candidates.find(c => c.e164 === normalized.e164 && c.raw === normalized.raw)) {
-        const context = section.substring(0, 80);
-        candidates.push({ ...normalized, context, source: sourceUrl });
+  // Try each pattern
+  for (const pattern of PHONE_PATTERNS) {
+    let match;
+    // Reset regex state
+    pattern.lastIndex = 0;
+    
+    while ((match = pattern.exec(cleanHtml)) !== null) {
+      const raw = match[0];
+      const normalized = normalizePhone(raw);
+      
+      if (normalized && !candidates.find(c => c.e164 === normalized.e164 && c.raw === normalized.raw)) {
+        // Extract nearby text for labeling (100 chars before/after)
+        const startIdx = Math.max(0, match.index - 100);
+        const endIdx = Math.min(cleanHtml.length, match.index + raw.length + 100);
+        const nearbyHtml = cleanHtml.substring(startIdx, endIdx);
+        const nearbyText = nearbyHtml.replace(/<[^>]*>/g, ' ').trim();
+        
+        candidates.push({
+          ...normalized,
+          nearbyText,
+          source: sourceUrl,
+        });
       }
-    }
-  }
-  
-  // Strategy 3: JSON-LD schema (if present)
-  const schemaRegex = /"telephone":\s*"([^"]+)"/gi;
-  while ((match = schemaRegex.exec(html)) !== null) {
-    const normalized = normalizePhone(match[1]);
-    if (normalized.raw && !candidates.find(c => c.e164 === normalized.e164 && c.raw === normalized.raw)) {
-      candidates.push({ ...normalized, context: 'JSON-LD schema', source: sourceUrl });
     }
   }
   
@@ -131,69 +133,96 @@ async function fetchPage(url, timeout = 8000) {
       signal: AbortSignal.timeout(timeout),
     });
     
-    if (response.ok && response.status < 400) {
-      return await response.text();
-    }
-    return null;
+    const body = response.ok && response.status < 400 ? await response.text() : null;
+    return {
+      status: response.status,
+      fetched: response.ok && response.status < 400,
+      body,
+    };
   } catch (error) {
-    return null;
+    return {
+      status: 0,
+      fetched: false,
+      body: null,
+      error: error.message,
+    };
   }
 }
 
-async function searchForCompanyUrls(companyName, base44) {
+async function searchForUrls(companyName, base44) {
   const queries = [
-    `${companyName} human resources phone number contact`,
-    `${companyName} talent acquisition phone`,
-    `${companyName} people operations contact phone`,
-    `${companyName} HR phone number`,
-    `${companyName} headquarters phone`,
+    `${companyName} contact us phone number`,
+    `${companyName} customer service contact`,
+    `${companyName} headquarters address phone`,
   ];
   
-  const urls = [];
+  try {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find official contact pages for: ${companyName}. Search queries: ${queries.join(' | ')}. Return top 6–8 URLs from the official company domain only. Include /contact, /about, /careers, /locations, /support. Return as JSON.`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          urls: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Official company URLs',
+          },
+        },
+        required: ['urls'],
+      },
+    });
+    
+    return result.urls ? result.urls.filter(u => typeof u === 'string' && u.includes('http')).slice(0, 8) : [];
+  } catch (error) {
+    console.error('URL search failed:', error.message);
+    return [];
+  }
+}
+
+async function fallbackPhoneSearch(companyName, base44) {
+  const queries = [
+    `${companyName} headquarters phone number`,
+    `${companyName} corporate office phone`,
+    `${companyName} main phone number`,
+    `${companyName} switchboard phone`,
+  ];
+  
+  const results = [];
   
   for (const query of queries) {
     try {
-      const results = await base44.integrations.Core.InvokeLLM({
-        prompt: `Search the web for: "${query}". Return the top 3 most official-looking URLs that might contain HR or main phone numbers. Only return URLs from official company domains. Format: one URL per line, no explanations.`,
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Search for: "${query}". Return any phone numbers found in search results/snippets, along with the source URL. Format as JSON array of {phone, source_url, snippet}.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: 'object',
           properties: {
-            urls: {
+            phones: {
               type: 'array',
-              items: { type: 'string' },
-              description: 'List of official URLs to check',
+              items: {
+                type: 'object',
+                properties: {
+                  phone: { type: 'string' },
+                  source_url: { type: 'string' },
+                  snippet: { type: 'string' },
+                },
+              },
             },
           },
-          required: ['urls'],
+          required: ['phones'],
         },
       });
       
-      if (results.urls && Array.isArray(results.urls)) {
-        urls.push(...results.urls.filter(u => typeof u === 'string' && u.includes('http')));
+      if (result.phones && Array.isArray(result.phones)) {
+        results.push(...result.phones);
       }
     } catch (error) {
-      console.error(`Search error for "${query}":`, error.message);
+      console.error(`Fallback search "${query}" failed:`, error.message);
     }
   }
   
-  return [...new Set(urls)].slice(0, 8); // Dedupe, limit to 8
-}
-
-async function crawlUrls(urls) {
-  const candidates = [];
-  
-  for (const url of urls) {
-    if (!url || !url.includes('http')) continue;
-    
-    const html = await fetchPage(url);
-    if (html) {
-      const extracted = extractPhonesFromHtml(html, url);
-      candidates.push(...extracted);
-    }
-  }
-  
-  return candidates;
+  return results;
 }
 
 Deno.serve(async (req) => {
@@ -207,86 +236,106 @@ Deno.serve(async (req) => {
     
     const debug = {
       called: true,
-      internet_access: 'unknown',
-      search_queries: [],
-      search_results: [],
-      checked_urls: [],
-      extracted_candidates: [],
+      official_urls: [],
+      fetch_results: [],
+      official_candidates: [],
+      fallback_search_used: false,
+      fallback_sources: [],
+      fallback_candidates: [],
       final_decision: '',
     };
     
-    // Step 1: Search for URLs
-    const queries = [
-      `${company_name} human resources phone number contact`,
-      `${company_name} talent acquisition phone`,
-      `${company_name} headquarters phone`,
-      `${company_name} contact phone number`,
-    ];
-    debug.search_queries = queries;
+    // STEP 1: URL Discovery
+    const officialUrls = await searchForUrls(company_name, base44);
+    debug.official_urls = officialUrls;
     
-    let searchUrls = [];
-    let searchSucceeded = false;
+    // STEP 2: Fetch + Extract
+    const officialCandidates = [];
     
-    try {
-      const searchResults = await base44.integrations.Core.InvokeLLM({
-        prompt: `Search the web for company contact information. Queries: ${queries.join(' | ')}. Return the top 5-8 URLs that look official (from the company's own domain, e.g., /contact, /careers, /about, /locations). Include the page title if available. Return as JSON array.`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            urls: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  url: { type: 'string' },
-                  title: { type: 'string' },
-                },
-              },
-            },
-          },
-          required: ['urls'],
-        },
+    for (const url of officialUrls) {
+      const fetchResult = await fetchPage(url);
+      debug.fetch_results.push({
+        url,
+        status: fetchResult.status,
+        fetched: fetchResult.fetched,
+        candidates_found: 0,
       });
       
-      if (searchResults.urls && Array.isArray(searchResults.urls)) {
-        searchUrls = searchResults.urls.map(item => item.url || item).filter(u => u && u.includes('http'));
-        searchSucceeded = true;
-        debug.internet_access = 'ok';
-        debug.search_results = searchResults.urls.slice(0, 8);
+      if (fetchResult.fetched && fetchResult.body) {
+        const extracted = extractPhonesFromHtml(fetchResult.body, url);
+        officialCandidates.push(...extracted);
+        
+        // Update candidates_found count
+        const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
+        lastResult.candidates_found = extracted.length;
       }
-    } catch (error) {
-      console.error('Search failed:', error.message);
-      debug.internet_access = 'blocked';
     }
     
-    // Step 2: Crawl discovered URLs
-    const allCandidates = [];
-    
-    if (searchUrls.length > 0) {
-      debug.checked_urls = searchUrls.slice(0, 8);
-      const crawlCandidates = await crawlUrls(searchUrls);
-      allCandidates.push(...crawlCandidates);
-    }
-    
-    // Step 3: Score and rank candidates
-    const scored = allCandidates.map(candidate => {
-      const labelScore = scoreLabel(candidate.context);
+    // STEP 3: Score official candidates
+    const scoredOfficial = officialCandidates.map(c => {
+      const scored = scoreCandidate(c.raw, c.nearbyText);
       return {
-        raw: candidate.raw,
-        e164: candidate.e164,
-        display: candidate.display,
-        source: candidate.source,
-        context: candidate.context,
-        label: labelScore.type,
-        score: labelScore.score,
+        raw: c.raw,
+        e164: c.e164,
+        display: c.display,
+        source: c.source,
+        nearbyText: c.nearbyText,
+        type: scored.type,
+        score: scored.score,
       };
     });
     
-    // Remove duplicates (same e164)
+    debug.official_candidates = scoredOfficial.map(c => ({
+      raw: c.raw,
+      display: c.display,
+      type: c.type,
+      score: c.score,
+      source: c.source,
+      context: c.nearbyText.substring(0, 60),
+    }));
+    
+    // STEP 4: Decide - if official found nothing, run fallback
+    let fallbackCandidates = [];
+    
+    if (officialCandidates.length === 0) {
+      debug.fallback_search_used = true;
+      const fallbackResults = await fallbackPhoneSearch(company_name, base44);
+      
+      debug.fallback_sources = fallbackResults.map(r => ({
+        url: r.source_url,
+        snippet: r.snippet ? r.snippet.substring(0, 100) : '',
+      }));
+      
+      for (const result of fallbackResults) {
+        const normalized = normalizePhone(result.phone);
+        if (normalized && !fallbackCandidates.find(c => c.e164 === normalized.e164)) {
+          fallbackCandidates.push({
+            raw: normalized.raw,
+            e164: normalized.e164,
+            display: normalized.display,
+            source: result.source_url,
+            type: 'main', // Fallback sources are always main/corporate
+            score: 0.65, // Medium confidence for fallback
+          });
+        }
+      }
+      
+      debug.fallback_candidates = fallbackCandidates.map(c => ({
+        raw: c.raw,
+        display: c.display,
+        type: c.type,
+        score: c.score,
+        source: c.source,
+      }));
+    }
+    
+    // STEP 5: Combine and select best
+    const allCandidates = [...scoredOfficial, ...fallbackCandidates];
+    
+    // Dedupe by e164
     const unique = [];
     const seen = new Set();
-    for (const c of scored) {
+    for (const c of allCandidates) {
       if (!seen.has(c.e164)) {
         unique.push(c);
         seen.add(c.e164);
@@ -296,26 +345,17 @@ Deno.serve(async (req) => {
     // Sort by score desc
     unique.sort((a, b) => b.score - a.score);
     
-    // Build extracted_candidates for debug
-    debug.extracted_candidates = unique.map(c => ({
-      raw: c.raw,
-      context: c.context.substring(0, 80),
-      label: c.label,
-      accepted: c.score >= 0.3, // Threshold for acceptance
-      reject_reason: c.score < 0.3 ? 'Low confidence' : undefined,
-      confidence: c.score,
-      source: c.source,
-    }));
-    
-    // Step 4: Select best
-    const best = unique.find(c => c.score >= 0.3);
+    // Select best (no hard threshold during debug, but filter obvious junk like personal numbers)
+    const best = unique.length > 0 ? unique[0] : null;
     
     if (best) {
-      debug.final_decision = `Selected ${best.label} number (confidence ${(best.score * 100).toFixed(0)}%) from ${best.source}`;
+      const sourceLabel = officialCandidates.find(c => c.e164 === best.e164) ? 'official' : 'fallback';
+      debug.final_decision = `Selected ${best.type} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source) from ${best.source}`;
+      
       return Response.json({
         company: company_name,
         phone: {
-          type: best.label,
+          type: best.type,
           raw: best.raw,
           display: best.display,
           e164: best.e164 || '',
@@ -326,11 +366,8 @@ Deno.serve(async (req) => {
       });
     }
     
-    // No acceptable candidate
-    debug.final_decision = allCandidates.length === 0
-      ? 'No phone numbers found in any checked URLs'
-      : `${allCandidates.length} candidates found but all scored below 0.30 threshold`;
-    
+    // No candidates found anywhere
+    debug.final_decision = 'No phone numbers found in official contact pages or fallback searches';
     return Response.json({
       company: company_name,
       debug,
@@ -343,7 +380,6 @@ Deno.serve(async (req) => {
       error: error.message,
       debug: {
         called: true,
-        internet_access: 'unknown',
         final_decision: `Fatal error: ${error.message}`,
       },
     }, { status: 500 });
