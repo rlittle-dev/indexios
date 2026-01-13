@@ -14,6 +14,7 @@ import FlagsList from '@/components/score/FlagsList';
 import CandidateCard from '@/components/candidates/CandidateCard';
 import UpgradePrompt from '@/components/paywall/UpgradePrompt';
 import NextSteps from '@/components/score/NextSteps';
+import EmploymentConfirmation from '@/components/score/EmploymentConfirmation';
 import { toast } from 'sonner';
 
 const TIER_LIMITS = {
