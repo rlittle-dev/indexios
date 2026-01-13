@@ -90,7 +90,7 @@ export default function Layout({ children }) {
       {/* Upgrade Banner for Free Users */}
       {user && user.subscription_tier === 'free' && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2 px-4 text-sm font-medium">
-          <span className="hidden sm:inline">🚀 Upgrade to unlock scan history, advanced analysis, and team collaboration. </span>
+          <span>🚀 Upgrade to unlock scan history, advanced analysis, and team collaboration. </span>
           <Link to={createPageUrl('Pricing')} className="underline font-bold hover:text-white/90">
             View Plans
           </Link>

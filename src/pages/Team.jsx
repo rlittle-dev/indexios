@@ -177,24 +177,34 @@ export default function Team() {
           </div>
 
           {!hasTeamAccess ? (
-            <Card className="bg-zinc-900/80 border-zinc-800">
-              <CardHeader className="text-center">
-                <div className="inline-flex p-4 rounded-full bg-yellow-500/10 mb-4 mx-auto">
-                  <Users className="w-8 h-8 text-yellow-400" />
-                </div>
-                <CardTitle className="text-white text-2xl">Enterprise Feature</CardTitle>
-                <CardDescription className="text-white/60">
-                  Team collaboration is available on the Enterprise plan
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <Link to={createPageUrl('Pricing')}>
-                  <Button className="bg-white hover:bg-gray-100 text-black font-medium">
-                    Upgrade to Enterprise
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-2xl p-8 md:p-12 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="inline-flex p-4 rounded-full bg-red-500/20 mb-6"
+              >
+                <Users className="w-8 h-8 text-red-400" />
+              </motion.div>
+              
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                Enterprise Feature
+              </h2>
+              
+              <p className="text-white/80 text-lg mb-6 max-w-md mx-auto">
+                Team collaboration is available on the Enterprise plan
+              </p>
+
+              <Link to={createPageUrl('Pricing')}>
+                <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
+                  Upgrade to Enterprise
+                </Button>
+              </Link>
+            </motion.div>
           ) : (
             <>
               {teams.length === 0 ? (
