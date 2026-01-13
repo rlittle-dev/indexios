@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Phone, ChevronDown, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+      import { motion } from 'framer-motion';
+      import { Phone, ChevronDown, AlertCircle, Bug } from 'lucide-react';
+      import { Button } from '@/components/ui/button';
 
-export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [] }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+      export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [], phoneDebug = {} }) {
+        const [isExpanded, setIsExpanded] = useState(false);
+        const [showDebug, setShowDebug] = useState(false);
 
   // Normalize to object format
   const companiesMap = typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers) 
