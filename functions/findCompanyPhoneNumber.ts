@@ -11,38 +11,39 @@ const PHONE_REGEX = /(\+?\d{1,3}[\s\-.()]*)?(\(?\d{2,4}\)?[\s\-.()]*)?\d{3}[\s\-
 
 function scoreCandidate(raw, nearbyText) {
   if (!raw || !nearbyText) {
-    return { score: 0.5, type: 'unknown' };
+    return { score: 0.5, type: 'main' }; // Default to main, not unknown
   }
   
   const lowerText = nearbyText.toLowerCase();
   
-  // HR/People/Talent keywords
+  // HR/People/Talent keywords - high score
   for (const kw of HR_KEYWORDS) {
     if (lowerText.includes(kw)) {
       return { score: 0.9, type: 'hr' };
     }
   }
   
-  // Support keywords (lower score)
+  // Support keywords - lower score but still main
   for (const kw of SUPPORT_KEYWORDS) {
     if (lowerText.includes(kw)) {
-      return { score: 0.35, type: 'support' };
+      return { score: 0.65, type: 'main' };
     }
   }
   
-  // Main/HQ keywords
+  // Main/HQ keywords - main type
   for (const kw of MAIN_KEYWORDS) {
     if (lowerText.includes(kw)) {
       return { score: 0.8, type: 'main' };
     }
   }
   
-  // Generic "contact" = main
+  // Generic "contact", "phone", "call" keywords - main
   if (lowerText.includes('contact') || lowerText.includes('phone') || lowerText.includes('call')) {
     return { score: 0.65, type: 'main' };
   }
   
-  return { score: 0.5, type: 'unknown' };
+  // Default: main (never unknown for final selection)
+  return { score: 0.5, type: 'main' };
 }
 
 function normalizePhone(raw) {
