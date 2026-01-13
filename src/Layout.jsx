@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X } from 'lucide-react';
@@ -78,11 +79,23 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Chat Bot for all users */}
-      {user && (
-        <ChatBot user={user} />
-      )}
+    <HelmetProvider>
+      <Helmet>
+        <title>Indexios - Resume Verification Platform | Detect Fraudulent Resumes</title>
+        <meta name="description" content="Indexios is an advanced resume verification platform that helps hiring teams detect fraudulent resumes, verify credentials, and make confident hiring decisions with legitimacy scoring and detailed candidate analysis." />
+        <meta property="og:title" content="Indexios - Resume Verification Platform" />
+        <meta property="og:description" content="Verify resume legitimacy with advanced fraud detection and credential verification tools." />
+        <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/797117048_4D82DA9B-3230-4F6C-A706-1F3E8B05E9F0.png" />
+        <link rel="canonical" href="https://indexios.me/" />
+        <meta name="robots" content="index,follow" />
+        <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-zinc-950">
+        {/* Chat Bot for all users */}
+        {user && (
+          <ChatBot user={user} />
+        )}
       
       {/* Upgrade Banner for Free/Signed-Out Users */}
       {(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') && (
