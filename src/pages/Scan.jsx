@@ -318,19 +318,38 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         companyNames = analysis.company_names;
       }
 
-      // Look up phone numbers for each company
+      // Look up phone numbers for each company (with debug capture)
       const companyPhoneNumbers = {};
-      for (const company of companyNames) {
+      const companyPhoneDebug = {};
+
+      // Use Promise.all to await ALL phone lookups in parallel
+      const phoneEnrichmentPromises = companyNames.map(async (company) => {
         try {
           const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
-          if (phoneResult.data.phone) {
+
+          // Capture debug
+          if (phoneResult.data && phoneResult.data.debug) {
+            companyPhoneDebug[company] = phoneResult.data.debug;
+          }
+
+          // Capture phone if found
+          if (phoneResult.data && phoneResult.data.phone) {
             companyPhoneNumbers[company] = phoneResult.data.phone.display || phoneResult.data.phone.e164;
           }
         } catch (error) {
-          // Skip on error, will show company without number
           console.error(`Error looking up ${company}:`, error);
+          companyPhoneDebug[company] = {
+            called: true,
+            stage: 'error',
+            error: error.message,
+            final_decision: `Exception during function invoke: ${error.message}`,
+          };
         }
-      }
+      });
+
+      // CRITICAL: Await all phone lookups
+      await Promise.all(phoneEnrichmentPromises);
+      console.log(`📱 Phone enrichment complete for ${companyNames.length} companies`);
 
       // Build the analysis object
       const analysisData = {
