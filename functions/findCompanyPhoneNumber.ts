@@ -291,14 +291,24 @@ async function fetchPage(url, timeout = 8000) {
     });
     
     const body = response.ok && response.status < 400 ? await response.text() : null;
+    const contentType = response.headers.get('content-type') || 'unknown';
+    const rawHtmlLength = body ? body.length : 0;
+    const first500Chars = body ? body.substring(0, 500) : '';
+    
     return {
       status: response.status,
+      content_type: contentType,
+      raw_html_length: rawHtmlLength,
+      first_500_chars: first500Chars,
       fetched: response.ok && response.status < 400,
       body,
     };
   } catch (error) {
     return {
       status: 0,
+      content_type: 'error',
+      raw_html_length: 0,
+      first_500_chars: '',
       fetched: false,
       body: null,
       error: error.message,
