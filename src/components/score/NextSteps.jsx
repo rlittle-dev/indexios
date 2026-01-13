@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, MessageCircle, Lock, ArrowRight } from 'lucide-react';
+import { CheckCircle2, MessageCircle, Lock, ArrowRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
+  const [nextStepsExpanded, setNextStepsExpanded] = useState(true);
+  const [questionsExpanded, setQuestionsExpanded] = useState(true);
+
   if (isLocked) {
     return (
       <motion.div
@@ -48,54 +51,106 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
     >
       {/* Next Steps */}
       {nextSteps?.length > 0 && (
-        <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-emerald-500/10">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-emerald-500/30"
+        >
+          <button
+            onClick={() => setNextStepsExpanded(!nextStepsExpanded)}
+            className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Next Steps</h3>
             </div>
-            <h3 className="text-xl font-bold text-white">Next Steps</h3>
-          </div>
-          <ul className="space-y-3">
-            {nextSteps.map((step, index) => (
-              <motion.li
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + index * 0.1 }}
-                className="flex items-start gap-3 text-white/80"
-              >
-                <ArrowRight className="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" />
-                <span className="text-sm leading-relaxed">{step}</span>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
+            <ChevronDown
+              className={`w-5 h-5 text-emerald-400 transition-transform duration-300 ${
+                nextStepsExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          <motion.div
+            initial={false}
+            animate={{
+              height: nextStepsExpanded ? 'auto' : 0,
+              opacity: nextStepsExpanded ? 1 : 0,
+            }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <ul className="px-5 pb-5 border-t border-emerald-500/20 space-y-3">
+              {nextSteps.map((step, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="flex items-start gap-3 text-white/80"
+                >
+                  <ArrowRight className="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" />
+                  <span className="text-sm leading-relaxed">{step}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Interview Questions */}
       {interviewQuestions?.length > 0 && (
-        <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-indigo-500/10">
-              <MessageCircle className="w-5 h-5 text-indigo-400" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-indigo-500/30"
+        >
+          <button
+            onClick={() => setQuestionsExpanded(!questionsExpanded)}
+            className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-indigo-500/10">
+                <MessageCircle className="w-5 h-5 text-indigo-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Interview Questions</h3>
             </div>
-            <h3 className="text-xl font-bold text-white">Interview Questions</h3>
-          </div>
-          <ul className="space-y-3">
-            {interviewQuestions.map((question, index) => (
-              <motion.li
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + index * 0.1 }}
-                className="flex items-start gap-3 text-white/80"
-              >
-                <span className="text-indigo-400 font-bold flex-shrink-0 mt-0.5">{index + 1}.</span>
-                <span className="text-sm leading-relaxed">{question}</span>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
+            <ChevronDown
+              className={`w-5 h-5 text-indigo-400 transition-transform duration-300 ${
+                questionsExpanded ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          <motion.div
+            initial={false}
+            animate={{
+              height: questionsExpanded ? 'auto' : 0,
+              opacity: questionsExpanded ? 1 : 0,
+            }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <ul className="px-5 pb-5 border-t border-indigo-500/20 space-y-3">
+              {interviewQuestions.map((question, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + index * 0.1 }}
+                  className="flex items-start gap-3 text-white/80"
+                >
+                  <span className="text-indigo-400 font-bold flex-shrink-0 mt-0.5">{index + 1}.</span>
+                  <span className="text-sm leading-relaxed">{question}</span>
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </motion.div>
       )}
     </motion.div>
   );
