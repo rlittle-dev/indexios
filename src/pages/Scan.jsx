@@ -308,7 +308,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
               interview_questions: { type: "array", items: { type: "string" }, description: "Suggested interview questions" },
               company_names: { type: "array", items: { type: "string" }, description: "List of all company names extracted from work experience section" }
             },
-            required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions"]
+            required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
           }
         });
         
