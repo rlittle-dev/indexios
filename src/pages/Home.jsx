@@ -151,17 +151,19 @@ export default function Home() {
       // Use advanced analysis for all users
       const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
+      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
-CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
-- ALWAYS extract exact name/email from resume text
-- Apply IDENTICAL methodology to every resume
-- Score independently before reviewing
-- Use explicit rubric - removes subjectivity
-- Scoring should be 100% reproducible
-- BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
+      CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
+      - ALWAYS extract exact name/email from resume text
+      - Apply IDENTICAL methodology to every resume
+      - Score independently before reviewing
+      - Use explicit rubric - removes subjectivity
+      - Scoring should be 100% reproducible
+      - BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
 
-DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE CANDIDATES):
+      IMPORTANT: Provide COMPREHENSIVE, DETAILED explanations for each category. Each detail field should be 3-5 paragraphs minimum, thoroughly explaining your analysis with specific examples from the resume.
+
+      DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE CANDIDATES):
 
 OVERALL LEGITIMACY SCORE (0-100):
 90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies. Demonstrates genuine expertise depth.
@@ -249,7 +251,15 @@ CRITICAL ANALYSIS STANDARDS:
 - Explain what would improve the score and concrete actions to strengthen candidacy
 - Provide constructive feedback
 
-Provide detailed scores for all 4 categories with thorough justifications citing specific resume elements.
+Provide detailed scores for all 4 categories with EXTENSIVE, COMPREHENSIVE justifications citing specific resume elements.
+
+CRITICAL DETAIL REQUIREMENTS:
+- consistency_details: Write 3-5 paragraphs analyzing timeline consistency, employment gaps, date overlaps, and career progression logic. Include specific dates and periods from the resume.
+- experience_details: Write 3-5 paragraphs evaluating each role's responsibilities, achievements, impact metrics, and appropriateness for the candidate's level. Quote specific accomplishments.
+- education_details: Write 3-5 paragraphs assessing institutions, degree relevance, graduation dates vs. work history, and credential verification potential. Name specific schools and degrees.
+- skills_details: Write 3-5 paragraphs examining skill-role alignment, technology/tool usage across timeline, demonstrated expertise depth, and skill progression. List specific skills mentioned.
+- summary: Write 2-3 comprehensive paragraphs providing an overall assessment, key strengths, major concerns, and hiring recommendation with clear reasoning.
+
 NEXT STEPS: 5-7 verification actions and risk mitigation strategies
 INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying impressive claims`;
 
