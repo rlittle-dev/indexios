@@ -374,7 +374,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
       console.log(`📱 Phone enrichment complete: ${phonesFound}/${companyNames.length} companies with phones found`);
       console.log('🔍 SCAN RESULT COMPANIES:', companies);
 
-      // Build the analysis object
+      // Build the analysis object with standardized company structure
       const analysisData = {
         consistency_score: analysis.consistency_score,
         consistency_details: analysis.consistency_details,
@@ -389,9 +389,14 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
-        company_phone_numbers: companyPhoneNumbers,
-        company_phone_debug: companyPhoneDebug, // Attach debug traces
-        company_names: companyNames
+        // NEW: Store full company objects with phone data
+        companies,
+        // LEGACY: Keep old format for backward compat (extract from companies array)
+        company_names: companyNames,
+        company_phone_numbers: Object.fromEntries(
+          companies.filter(c => c.phone).map(c => [c.name, c.phone.display || c.phone.e164])
+        ),
+        company_phone_debug: companyPhoneDebug,
       };
 
       let updatedCandidate;
