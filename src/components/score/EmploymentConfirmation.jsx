@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 export default function EmploymentConfirmation({ phoneNumbers = [] }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!phoneNumbers || phoneNumbers.length === 0) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -44,27 +42,35 @@ export default function EmploymentConfirmation({ phoneNumbers = [] }) {
         transition={{ duration: 0.3 }}
         className="overflow-hidden"
       >
-        <div className="px-5 pb-5 border-t border-zinc-800/50 space-y-3">
-          {phoneNumbers.map((phone, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3"
-            >
-              <span className="text-white/80 font-mono text-sm">{phone}</span>
-              <Button
-                disabled
-                className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed"
-              >
-                Verify with AI Call Agent?
-              </Button>
-            </motion.div>
-          ))}
-          <p className="text-white/60 text-xs italic pt-2">
-            AI call verification coming soon
-          </p>
+        <div className="px-5 pb-5 border-t border-blue-500/20 space-y-3">
+          {phoneNumbers && phoneNumbers.length > 0 ? (
+            <>
+              {phoneNumbers.map((phone, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3"
+                >
+                  <span className="text-white/80 font-mono text-sm">{phone}</span>
+                  <Button
+                    disabled
+                    className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed"
+                  >
+                    Verify with AI Call Agent?
+                  </Button>
+                </motion.div>
+              ))}
+              <p className="text-white/60 text-xs italic pt-2">
+                AI call verification coming soon
+              </p>
+            </>
+          ) : (
+            <p className="text-white/60 text-sm py-2">
+              No company phone numbers found in resume. Recommendation: Research company HR or main line directly for verification.
+            </p>
+          )}
         </div>
       </motion.div>
     </motion.div>
