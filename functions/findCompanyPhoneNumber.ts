@@ -253,8 +253,13 @@ Deno.serve(async (req) => {
     }
     
     // STEP 1: URL Discovery
+    debug.stage = 'discovery';
     const officialUrls = await searchForUrls(company_name, base44);
     debug.official_urls = officialUrls;
+    console.log(`📍 URL DISCOVERY: found ${officialUrls.length} official URLs`);
+    if (officialUrls.length > 0) {
+      console.log(`   URLs: ${officialUrls.slice(0, 3).join(', ')}`);
+    }
     
     // STEP 2: Fetch + Extract
     const officialCandidates = [];
