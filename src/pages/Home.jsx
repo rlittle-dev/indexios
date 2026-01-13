@@ -241,7 +241,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Fraud Detection</h3>
                 <p className="text-white/70">
-                  Identify inconsistencies, fabricated credentials, and inflated claims with AI-powered analysis
+                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced verification analysis
                 </p>
               </motion.div>
 
