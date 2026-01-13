@@ -431,26 +431,40 @@ Deno.serve(async (req) => {
     // STEP 2: Fetch + Extract
     debug.stage = 'fetch';
     const officialCandidates = [];
+    const allExtractedCandidates = [];
     
     for (const url of officialUrls) {
       const fetchResult = await fetchPage(url);
-      const bytesLen = fetchResult.body ? fetchResult.body.length : 0;
+      
       debug.fetch_results.push({
         url,
         status: fetchResult.status,
-        fetched: fetchResult.fetched,
-        bytes: bytesLen,
-        candidates_found: 0,
+        content_type: fetchResult.content_type,
+        raw_html_length: fetchResult.raw_html_length,
+        first_500_chars: fetchResult.first_500_chars,
+        error: fetchResult.error || null,
       });
       
       if (fetchResult.fetched && fetchResult.body) {
-        const extracted = extractPhonesFromHtml(fetchResult.body, url);
-        officialCandidates.push(...extracted);
+        // Extract from all 4 sources
+        const extraction = extractPhonesFromPage(fetchResult.body, url);
         
-        // Update candidates_found count
+        // Log warning if page seems too small
+        if (fetchResult.raw_html_length < 500) {
+          console.log(`⚠️  WARN: ${url} very small (${fetchResult.raw_html_length} bytes)`);
+        }
+        
+        // Add filtered candidates to official candidates
+        officialCandidates.push(...extraction.filtered);
+        
+        // Track ALL extracted (for debug)
+        allExtractedCandidates.push(...extraction.all);
+        
+        // Update fetch results with candidate count
         const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
-        lastResult.candidates_found = extracted.length;
-        console.log(`✅ FETCH: ${url} (${fetchResult.status}) → ${bytesLen} bytes → ${extracted.length} candidates`);
+        lastResult.candidates_found = extraction.filtered.length;
+        
+        console.log(`✅ FETCH: ${url} (${fetchResult.status}) → ${fetchResult.raw_html_length} bytes → extracted ${extraction.total} total, ${extraction.filtered.length} after filtering`);
       } else {
         console.log(`❌ FETCH FAILED: ${url} (${fetchResult.status})${fetchResult.error ? ' - ' + fetchResult.error : ''}`);
       }
@@ -459,17 +473,28 @@ Deno.serve(async (req) => {
     // STEP 3: Score official candidates
     debug.stage = 'extract';
     const scoredOfficial = officialCandidates.map(c => {
-      const scored = scoreCandidate(c.raw, c.nearbyText);
+      const scored = scoreCandidate(c.raw, c.context_snippet || '');
       return {
         raw: c.raw,
         e164: c.e164,
         display: c.display,
         source: c.source,
-        nearbyText: c.nearbyText,
+        context_snippet: c.context_snippet,
+        extraction_source: c.source,
         type: scored.type,
         score: scored.score,
       };
     });
+    
+    // Build debug.extracted_candidates with all candidates
+    debug.extracted_candidates = allExtractedCandidates.map(c => ({
+      raw: c.raw,
+      digits: c.digits,
+      source: c.source,
+      context_snippet: c.context_snippet.substring(0, 80),
+      accepted: scoredOfficial.some(s => s.raw === c.raw && s.score >= 0.5),
+      reject_reason: scoredOfficial.some(s => s.raw === c.raw && s.score < 0.5) ? 'low_score' : null,
+    }));
     
     debug.official_candidates = scoredOfficial.map(c => ({
       raw: c.raw,
@@ -477,11 +502,12 @@ Deno.serve(async (req) => {
       type: c.type,
       score: (c.score * 100).toFixed(0) + '%',
       source: c.source,
-      context: c.nearbyText.substring(0, 60),
+      extraction_source: c.extraction_source,
+      context: c.context_snippet.substring(0, 60),
       accepted: c.score >= 0.5,
     }));
     
-    console.log(`📊 EXTRACT: ${officialCandidates.length} raw candidates → ${scoredOfficial.filter(c => c.score >= 0.5).length} accepted (score >= 50%)`);
+    console.log(`📊 EXTRACT: ${allExtractedCandidates.length} total extracted → ${officialCandidates.length} after filtering → ${scoredOfficial.filter(c => c.score >= 0.5).length} accepted (score >= 50%)`);
     
     // STEP 4: Decide - if official found nothing, run fallback
     debug.stage = 'fallback';
