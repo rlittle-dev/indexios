@@ -505,28 +505,34 @@ Deno.serve(async (req) => {
       const scored = scoreCandidate(c.raw, c.context_snippet || '');
       return {
         raw: c.raw,
+        digits: c.digits,
         e164: c.e164,
         display: c.display,
         source: c.source,
         context_snippet: c.context_snippet,
         extraction_source: c.source,
-        type: scored.type,
+        type: scored.type, // Never "unknown" - always "hr" or "main"
         score: scored.score,
       };
     });
     
-    // Build debug.extracted_candidates with all candidates
-    debug.extracted_candidates = allExtractedCandidates.map(c => ({
-      raw: c.raw,
-      digits: c.digits,
-      source: c.source,
-      context_snippet: c.context_snippet.substring(0, 80),
-      accepted: scoredOfficial.some(s => s.raw === c.raw && s.score >= 0.5),
-      reject_reason: scoredOfficial.some(s => s.raw === c.raw && s.score < 0.5) ? 'low_score' : null,
-    }));
+    // Build debug.extracted_candidates with all candidates (including rejected ones)
+    debug.extracted_candidates = allExtractedCandidates.map(c => {
+      const scored = scoreCandidate(c.raw, c.context_snippet || '');
+      return {
+        raw: c.raw,
+        digits: c.digits,
+        source: c.source,
+        context_snippet: c.context_snippet.substring(0, 80),
+        type: scored.type,
+        accepted: scored.score >= 0.5,
+        reject_reason: c.reject_reason || (scored.score < 0.5 ? 'low_score' : null),
+      };
+    });
     
     debug.official_candidates = scoredOfficial.map(c => ({
       raw: c.raw,
+      digits: c.digits,
       display: c.display,
       type: c.type,
       score: (c.score * 100).toFixed(0) + '%',
