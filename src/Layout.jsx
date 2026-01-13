@@ -23,7 +23,7 @@ export default function Layout({ children }) {
     // Add Google site verification meta tag
     const metaTag = document.createElement('meta');
     metaTag.name = 'google-site-verification';
-    metaTag.content = 'google1e7857b3c358e30d';
+    metaTag.content = 'e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y';
     document.head.appendChild(metaTag);
 
     const checkAuth = async () => {
