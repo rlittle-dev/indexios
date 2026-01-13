@@ -49,37 +49,51 @@ function normalizePhone(raw) {
   if (!raw) return null;
   
   const cleaned = raw.trim();
-  
-  // Return raw + best-effort e164/display
   const digits = cleaned.replace(/\D/g, '');
   
-  // US: 10 digits
-  if (digits.length === 10 && /^\d{10}$/.test(digits)) {
-    const e164 = `+1${digits}`;
-    const display = `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-    return { raw: cleaned, e164, display };
+  // Validate digit count: keep 10-15 digits
+  if (digits.length < 10 || digits.length > 15) {
+    return null;
   }
   
-  // US with country: 11 digits starting with 1
+  let country = null;
+  let areaCode, midSection, lastSection;
+  
+  // US: 11 digits starting with 1
   if (digits.length === 11 && digits.startsWith('1')) {
+    country = 'US';
+    areaCode = digits.slice(1, 4);
+    midSection = digits.slice(4, 7);
+    lastSection = digits.slice(7, 11);
     const e164 = `+${digits}`;
-    const display = `+${digits.slice(0, 1)} (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
-    return { raw: cleaned, e164, display };
+    const display = `+1 (${areaCode}) ${midSection}-${lastSection}`;
+    return { raw: cleaned, digits, e164, display, country };
   }
   
-  // International: >= 11 digits with leading +
+  // US: 10 digits (assume US when no country prefix)
+  if (digits.length === 10) {
+    country = 'US';
+    areaCode = digits.slice(0, 3);
+    midSection = digits.slice(3, 6);
+    lastSection = digits.slice(6, 10);
+    const e164 = `+1${digits}`;
+    const display = `+1 (${areaCode}) ${midSection}-${lastSection}`;
+    return { raw: cleaned, digits, e164, display, country };
+  }
+  
+  // International: 11-15 digits (no leading 1 or has leading +)
   if (digits.length >= 11) {
     const e164 = `+${digits}`;
-    return { raw: cleaned, e164, display: cleaned };
+    return { raw: cleaned, digits, e164, display: cleaned, country: 'INTL' };
   }
   
-  // Already has +
+  // Already has + prefix (< 10 digits after stripping, likely partial)
   if (cleaned.startsWith('+')) {
-    return { raw: cleaned, e164: cleaned, display: cleaned };
+    return null; // Too short
   }
   
-  // Fallback: return raw, best effort on formatting
-  return { raw: cleaned, e164: null, display: cleaned };
+  // Fallback: too short
+  return null;
 }
 
 // Extract tel: links from HTML
