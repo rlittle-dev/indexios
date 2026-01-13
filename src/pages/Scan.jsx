@@ -154,23 +154,27 @@ export default function Scan() {
       const analysisPrompt = `You are an expert fraud detection analyst AND a company phone number researcher. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
 COMPANY PHONE NUMBER EXTRACTION (CRITICAL):
-For each company mentioned in the work experience:
-1. PRIORITY: Extract HR / People / Talent / Recruiting department phone numbers FIRST
-   - Search for: "Human Resources", "HR", "People Ops", "People Operations", "People & Culture", "Talent", "Talent Acquisition", "Careers", "Recruiting"
-   - These are HIGHEST priority for employment verification
-2. FALLBACK: Main corporate / headquarters / switchboard number ONLY if HR number not found
-3. QUALITY RULES (HARD):
-   - Do NOT invent numbers - if you cannot verify from official sources, OMIT entirely
-   - Do NOT use personal mobile numbers
-   - Do NOT use support/call-center numbers unless explicitly HR-related
-   - If multiple HR numbers exist, choose the most clearly labeled one
-   - Prefer numbers matching the work location's country/region
-   - Only use: official company website (Contact/About/Careers pages), LinkedIn company pages, or verified business directories
-   - If confidence is low, OMIT the number entirely
-4. Format: Normalize to E.164 format and provide human-readable version
-5. Return ONLY ONE best number per company, or omit if not found with confidence
+For EACH company listed in work experience:
+1. Extract company name exactly as written
+2. Search for HR/Talent/Recruiting phone numbers with HIGHEST priority:
+   - Look for: "Human Resources", "HR", "People", "Talent", "Recruiting", "Careers"
+   - These departments have employment verification lines
+3. FALLBACK: Extract main corporate switchboard/headquarters number if HR not found
+4. STRICT QUALITY RULES:
+   - DO NOT fabricate numbers - only use numbers that can be found through web research
+   - DO NOT use support/customer service lines
+   - DO NOT use personal mobile numbers
+   - If multiple candidates exist, pick the most clearly labeled HR number
+   - Prefer country-specific formatting (US: +1-XXX-XXX-XXXX, UK: +44-XX-XXXX-XXXX, etc.)
+5. For EACH company in the resume, provide ONE phone number max
+6. If zero confidence that a number is correct, OMIT it entirely - do not guess
+7. Format output as array of best-effort phone numbers: ["+1-xyz-123-4567", "+44-abc-456-7890"]
 
-Return company_phone_numbers as an array of strings (e.g., ["+1-303-123-4567", "+44-20-1234-5678"]) or empty array if none found with confidence.
+EXAMPLES OF WHAT TO EXTRACT:
+- Apple HR Line: +1-408-974-4897
+- Google Talent: +1-650-253-0000
+- Microsoft Recruiting: +1-425-882-8080
+If none found with confidence, return empty array []
 
       CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
