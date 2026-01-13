@@ -219,27 +219,41 @@ function extractFromScriptContent(html) {
   return candidates;
 }
 
-// Filter out obvious false positives
+// Filter out obvious false positives and script noise
 function filterFalsePositives(candidates) {
   const filtered = [];
+  const scriptNoiseKeywords = ['webpackJsonp', '__NEXT_DATA__', 'JSON.stringify', 'var ', 'function', 'const '];
   
   for (const c of candidates) {
     const digits = c.digits;
     
-    // Keep if 10-15 digits after stripping
+    // Reject if < 10 or > 15 digits
     if (digits.length < 10 || digits.length > 15) {
+      c.reject_reason = 'invalid_length';
       continue;
     }
     
     // Reject if looks like a date (YYYY-MM-DD, etc)
     if (/^\d{4}-\d{2}-\d{2}/.test(c.raw)) {
+      c.reject_reason = 'looks_like_date';
       continue;
     }
     
-    // Reject if looks like a long ID/code with too many repeating patterns
+    // Reject if 4+ repeating digits (e.g., 11111)
     if (/(\d)\1{3,}/.test(digits)) {
-      // 4+ repeating digits = probably not a phone
+      c.reject_reason = 'repeating_digits';
       continue;
+    }
+    
+    // Reject script noise: candidates from <script> containing code keywords and no phone context
+    if (c.source === 'script') {
+      const hasScriptNoise = scriptNoiseKeywords.some(kw => c.context_snippet.includes(kw));
+      const hasPhoneKeywords = /\b(phone|call|contact|hotline|support|hr|human|talent|recruit|careers)\b/i.test(c.context_snippet);
+      
+      if (hasScriptNoise && !hasPhoneKeywords) {
+        c.reject_reason = 'script_noise_no_context';
+        continue;
+      }
     }
     
     filtered.push(c);
