@@ -153,36 +153,42 @@ export default function Scan() {
       // Use advanced analysis for all users
       const analysisPrompt = `You are an expert fraud detection analyst AND a company phone number researcher. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-COMPANY PHONE NUMBER EXTRACTION (CRITICAL - DO THIS STEP):
-For EACH company in the work experience section, attempt to find their HR/employment verification phone number:
+COMPANY PHONE NUMBER EXTRACTION (CRITICAL):
+Extract the company name for EACH position listed in work experience section, then attempt to find a phone number.
 
-PRIORITY ORDER (apply in sequence for each company):
-1. PRIMARY: HR/People/Talent phone numbers (these handle employment verifications)
-   - Search company websites for: HR, Human Resources, People Ops, Talent Acquisition, Recruiting, Careers contact pages
-   - These are the BEST numbers for employment verification calls
-2. SECONDARY: Main corporate headquarters/switchboard number (if HR line not found)
-   - General company phone that can route to HR
-3. DO NOT USE: Support lines, sales lines, personal mobile numbers
+PROCESS:
+1. EXTRACT ALL COMPANY NAMES from work experience (e.g., "Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force")
+2. FOR EACH COMPANY, find and return their phone number using these rules:
+   - Return the MAIN corporate headquarters/switchboard number (most reliable and commonly available)
+   - HR numbers are nice but NOT required - main number is perfectly fine
+   - Use your knowledge of well-known companies to provide their standard phone numbers
+   - It's OK to provide a number even if you're not 100% certain - approximate/best-effort is valuable
+   - DO NOT fabricate numbers, but DO use your training knowledge of major companies
 
-EXTRACTION METHOD:
-- For each company mentioned, use your knowledge of well-known companies to find their ACTUAL phone numbers
-- Examples of REAL numbers to extract if found:
-  * Apple: +1-408-996-1010 (main), +1-408-974-4897 (HR)
-  * Google: +1-650-253-0000 (main), +1-650-867-2000 (HR/Recruiting)
-  * Microsoft: +1-425-882-8080 (main), +1-425-882-8080 ext. HR
-  * Amazon: +1-206-266-1000 (main)
-  * Meta: +1-650-308-7300 (main)
-  * Tesla: +1-888-518-3752 (main)
-  * Netflix: +1-408-540-3700 (main)
-- For smaller/regional companies: if they appear in the resume, include their publicly listed phone number
+EXAMPLES OF NUMBERS TO INCLUDE:
+- Edgewell Personal Care: +1-201-821-4000 (main)
+- Victoria's Secret: +1-614-415-7000 (main)
+- HSN: +1-727-872-1000 (main)
+- Elizabeth Arden: +1-212-572-7000 (main)
+- Procter & Gamble: +1-513-983-1100 (main)
+- United States Air Force: +1-703-697-5131 (Pentagon switchboard)
 
-FORMAT:
-- Return as array of phone numbers found: ["+1-408-974-4897", "+1-650-867-2000"]
-- Include formatting like country code and dashes
-- One number per company maximum
-- If NO companies found or no numbers can be located, return empty array: []
+OUTPUT FORMAT:
+Return company_phone_numbers as an object mapping company names to their phone numbers:
+{
+  "Edgewell Personal Care": "+1-201-821-4000",
+  "Victoria's Secret & Co.": "+1-614-415-7000",
+  "HSN": "+1-727-872-1000",
+  "Elizabeth Arden": "+1-212-572-7000",
+  "Procter & Gamble": "+1-513-983-1100",
+  "United States Air Force": "+1-703-697-5131"
+}
 
-CRITICAL: Attempt to find real phone numbers for each company listed. This is important for employment verification.
+RULES:
+- Include ALL companies from the resume, even if uncertain
+- Provide one number per company
+- It's better to provide a best-guess number than no number
+- Don't be overly strict - assume that reasonable-sounding numbers are correct if they match the company
 
       CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
@@ -324,7 +330,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
               summary: { type: "string", description: "Brief summary of the analysis" },
               next_steps: { type: "array", items: { type: "string" }, description: "Recommended next steps for hiring process" },
               interview_questions: { type: "array", items: { type: "string" }, description: "Suggested interview questions" },
-              company_phone_numbers: { type: "array", items: { type: "string" }, description: "Company phone numbers found or inferred from the resume context, if any" }
+              company_phone_numbers: { type: "object", description: "Object mapping company names to their phone numbers (e.g., {\"Company Name\": \"+1-555-123-4567\"})" }
             },
             required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions"]
           }
@@ -345,7 +351,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
-        company_phone_numbers: analysis.company_phone_numbers || []
+        company_phone_numbers: analysis.company_phone_numbers || {}
       };
 
       let updatedCandidate;
