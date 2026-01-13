@@ -93,15 +93,15 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="inline-flex px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
             >
-              <span className="text-purple-300 text-sm font-medium">AI-Powered Resume Verification</span>
+              <span className="text-purple-300 text-sm font-medium">Advanced Resume Verification</span>
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-purple-400 via-white to-purple-400 bg-clip-text text-transparent mb-6 leading-tight">
-              Detect Resume Fraud<br />Instantly
+              Verify Resume<br />Authenticity
             </h1>
             
             <p className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Make confident hiring decisions with AI-powered resume verification. Get instant legitimacy scores and detailed fraud analysis.
+              Make confident hiring decisions with advanced resume verification. Get instant legitimacy scores and detailed credential analysis.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -119,7 +119,7 @@ export default function Home() {
             </div>
             
             <p className="text-white/50 text-sm mt-6">
-              Start with 3 free scans • No credit card required
+              Start with 3 free scans • No credit card required • No login required
             </p>
           </motion.div>
 
