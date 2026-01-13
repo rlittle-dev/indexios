@@ -38,7 +38,13 @@ import React, { useState } from 'react';
     totalCount = 0;
   }
 
-  console.log('EmploymentConfirmation - companies:', companies);
+  console.log('EmploymentConfirmation props:', { 
+    companiesWithPhone, 
+    allCompanies, 
+    phoneNumbers,
+    companies,
+    companiesLength: companies.length 
+  });
 
   return (
     <motion.div
