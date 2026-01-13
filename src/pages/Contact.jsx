@@ -32,16 +32,28 @@ export default function Contact() {
       return;
     }
 
+    // Admins should not create tickets from contact page
+    if (user.role === 'admin') {
+      alert('As an admin, please use the Support Tickets section to manage tickets.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       await base44.functions.invoke('sendSupportEmail', formData);
       setSubmitted(true);
       setFormData({ subject: '', message: '' });
+      
+      // Alert user about My Tickets tab
+      setTimeout(() => {
+        alert('Support ticket created! You can check the status and see replies in your "My Tickets" section (click your name in the top right).');
+      }, 500);
+      
       setTimeout(() => setSubmitted(false), 5000);
     } catch (error) {
-      console.error('Error sending email:', error);
-      alert('Failed to send message. Please try again.');
+      console.error('Error creating ticket:', error);
+      alert('Failed to create ticket. Please try again.');
     }
 
     setLoading(false);
@@ -101,6 +113,19 @@ export default function Contact() {
                   Sign In
                 </Button>
               </motion.div>
+            ) : user.role === 'admin' ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center py-8"
+              >
+                <p className="text-white/70 mb-4">As an admin, please use the Support Tickets section to manage tickets.</p>
+                <Link to={createPageUrl('Tickets')}>
+                  <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                    Go to Support Tickets
+                  </Button>
+                </Link>
+              </motion.div>
             ) : submitted ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -110,8 +135,8 @@ export default function Contact() {
                 <div className="inline-flex p-4 rounded-full bg-emerald-500/10 mb-4">
                   <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                 </div>
-                <h3 className="text-white font-semibold mb-2">Message sent!</h3>
-                <p className="text-white/60 text-sm">We'll get back to you shortly.</p>
+                <h3 className="text-white font-semibold mb-2">Support ticket created!</h3>
+                <p className="text-white/60 text-sm">Check your "My Tickets" section for updates and replies.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
