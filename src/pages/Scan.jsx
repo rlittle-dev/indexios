@@ -370,9 +370,13 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
 
       // CRITICAL: Await all phone lookups
       await Promise.all(phoneEnrichmentPromises);
-      const phonesFound = companies.filter(c => !!c.phone?.e164 || !!c.phone?.display).length;
+      const phonesFound = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
       console.log(`📱 Phone enrichment complete: ${phonesFound}/${companyNames.length} companies with phones found`);
       console.log('🔍 SCAN RESULT COMPANIES:', companies);
+      console.log('🔍 COMPANIES ARRAY STRUCTURE:');
+      companies.forEach((c, i) => {
+        console.log(`  [${i}] name="${c.name}" phone=${c.phone ? JSON.stringify({e164: c.phone.e164, display: c.phone.display}) : 'null'}`);
+      });
 
       // Build the analysis object with standardized company structure
       const analysisData = {
