@@ -156,7 +156,7 @@ export default function Layout({ children }) {
                     className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
-                    Support Tickets
+                    {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuItem 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send, CheckCircle2, Clock, AlertCircle, Plus } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -12,8 +12,6 @@ import { toast } from 'sonner';
 export default function Tickets() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
-  const [formData, setFormData] = useState({ subject: '', message: '', priority: 'medium' });
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [adminResponse, setAdminResponse] = useState('');
   
@@ -47,19 +45,7 @@ export default function Tickets() {
     enabled: !!user && user.role === 'admin',
   });
 
-  const createTicketMutation = useMutation({
-    mutationFn: (data) => base44.functions.invoke('sendSupportEmail', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userTickets'] });
-      setFormData({ subject: '', message: '', priority: 'medium' });
-      setIsCreatingTicket(false);
-      toast.success('Support ticket created!');
-    },
-    onError: (error) => {
-      toast.error('Failed to create ticket');
-      console.error('Error:', error);
-    },
-  });
+
 
   const respondToTicketMutation = useMutation({
     mutationFn: async ({ ticketId, message }) => {
@@ -90,14 +76,7 @@ export default function Tickets() {
     },
   });
 
-  const handleCreateTicket = async (e) => {
-    e.preventDefault();
-    if (!formData.subject || !formData.message) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-    createTicketMutation.mutate(formData);
-  };
+
 
   const handleRespond = async () => {
     if (!adminResponse.trim()) return;
@@ -139,94 +118,16 @@ export default function Tickets() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-4xl font-black text-white mb-2">
-                {isAdmin ? 'Support Tickets' : 'My Support Tickets'}
-              </h1>
-              <p className="text-white/60">
-                {isAdmin ? 'Manage and respond to support requests' : 'View and track your support requests'}
-              </p>
-            </div>
-            {!isAdmin && (
-              <Button
-                onClick={() => setIsCreatingTicket(!isCreatingTicket)}
-                className="bg-white hover:bg-gray-100 text-black font-medium"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Ticket
-              </Button>
-            )}
+          <div className="mb-8">
+            <h1 className="text-4xl font-black text-white mb-2">
+              {isAdmin ? 'Support Tickets' : 'My Support Tickets'}
+            </h1>
+            <p className="text-white/60">
+              {isAdmin ? 'Manage and respond to support requests' : 'View and track your support requests'}
+            </p>
           </div>
 
-          <AnimatePresence>
-            {/* Create Ticket Form */}
-            {!isAdmin && isCreatingTicket && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-              >
-                <form onSubmit={handleCreateTicket} className="space-y-4">
-                  <div>
-                    <label className="text-white/80 text-sm mb-2 block">Subject</label>
-                    <Input
-                      type="text"
-                      placeholder="Brief description of your issue"
-                      value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      required
-                      className="bg-zinc-800 border-zinc-700 text-white"
-                    />
-                  </div>
 
-                  <div>
-                    <label className="text-white/80 text-sm mb-2 block">Message</label>
-                    <textarea
-                      placeholder="Describe your issue in detail..."
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      required
-                      rows="4"
-                      className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 text-sm placeholder-white/40 focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-white/80 text-sm mb-2 block">Priority</label>
-                    <select
-                      value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                      className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-purple-500"
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                    </select>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      disabled={createTicketMutation.isPending}
-                      className="flex-1 bg-white hover:bg-gray-100 text-black font-medium"
-                    >
-                      {createTicketMutation.isPending ? 'Creating...' : 'Create Ticket'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsCreatingTicket(false)}
-                      className="border-white/20 bg-transparent text-white hover:bg-white/10"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Tickets List */}
           {selectedTicket ? (
