@@ -14,7 +14,8 @@ import React, { useState } from 'react';
   if (companiesWithPhone && companiesWithPhone.length > 0) {
     // NEW format: array of {name, phone, phone_debug}
     companies = companiesWithPhone;
-    totalCount = companies.filter(c => !!c.phone?.e164 || !!c.phone?.display).length;
+    // Count companies that have a valid phone (either e164 or display)
+    totalCount = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
   } else if (phoneNumbers && typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers)) {
     // LEGACY format: map of company -> phone string
     const companiesMap = phoneNumbers;
