@@ -5,14 +5,9 @@ const HR_KEYWORDS = ['human resources', 'hr', 'people', 'people ops', 'talent', 
 const MAIN_KEYWORDS = ['headquarters', 'hq', 'switchboard', 'main', 'corporate', 'office', 'general', 'reception'];
 const SUPPORT_KEYWORDS = ['support', 'customer service', 'technical'];
 
-// Comprehensive phone regex patterns
-const PHONE_PATTERNS = [
-  /\+1\s*\(?(\d{3})\)?\s*[-.\s]?(\d{3})\s*[-.\s]?(\d{4})/g, // +1 (555) 123-4567
-  /\(?(\d{3})\)?\s*[-.\s]?(\d{3})\s*[-.\s]?(\d{4})/g,        // (555) 123-4567 or 555-123-4567
-  /\+44\s*[0-9\s\(\)\-\.]+/g,                                  // +44 ...
-  /\+[1-9]\d{1,14}/g,                                           // E.164 international
-  /tel:\+?[0-9\-\s\(\)\.]+/gi,                                 // tel: links
-];
+// Permissive phone regex - matches most phone number formats
+// Supports: +1 800 555 1212, 1-800-555-1212, (800) 555-1212, 800.555.1212, 800 555 1212
+const PHONE_REGEX = /(\+?\d{1,3}[\s\-.()]*)?(\(?\d{2,4}\)?[\s\-.()]*)?\d{3}[\s\-.()]*\d{4}/g;
 
 function scoreCandidate(raw, nearbyText) {
   if (!raw || !nearbyText) {
