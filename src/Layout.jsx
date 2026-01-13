@@ -49,7 +49,7 @@ export default function Layout({ children }) {
     // Add favicon
     const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
     favicon.rel = 'icon';
-    favicon.href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23a855f7"/><text y="75" font-size="80" font-weight="bold" fill="white" font-family="system-ui">I</text></svg>';
+    favicon.href = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/797117048_4D82DA9B-3230-4F6C-A706-1F3E8B05E9F0.png';
     if (!document.querySelector('link[rel="icon"]')) {
       document.head.appendChild(favicon);
     }
