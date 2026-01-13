@@ -318,8 +318,8 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         companyNames = analysis.company_names;
       }
 
-      // Look up phone numbers for each company (with debug capture)
-      const companyPhoneNumbers = {};
+      // Look up phone numbers for each company (with full phone object capture)
+      const companies = [];
       const companyPhoneDebug = {};
 
       // Use Promise.all to await ALL phone lookups in parallel
@@ -327,15 +327,31 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         try {
           const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
 
+          // Capture full phone object
+          let phone = null;
+          if (phoneResult.data && phoneResult.data.phone) {
+            phone = {
+              type: phoneResult.data.phone.type || 'main',
+              raw: phoneResult.data.phone.raw,
+              digits: phoneResult.data.phone.digits,
+              display: phoneResult.data.phone.display,
+              e164: phoneResult.data.phone.e164,
+              source_url: phoneResult.data.phone.source_url || phoneResult.data.phone.source,
+              extraction_source: phoneResult.data.phone.extraction_source,
+              confidence: phoneResult.data.phone.confidence,
+            };
+          }
+
           // Capture debug
           if (phoneResult.data && phoneResult.data.debug) {
             companyPhoneDebug[company] = phoneResult.data.debug;
           }
 
-          // Capture phone if found
-          if (phoneResult.data && phoneResult.data.phone) {
-            companyPhoneNumbers[company] = phoneResult.data.phone.display || phoneResult.data.phone.e164;
-          }
+          companies.push({
+            name: company,
+            phone, // Full phone object, can be null
+            phone_debug: companyPhoneDebug[company],
+          });
         } catch (error) {
           console.error(`Error looking up ${company}:`, error);
           companyPhoneDebug[company] = {
@@ -344,12 +360,19 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
             error: error.message,
             final_decision: `Exception during function invoke: ${error.message}`,
           };
+          companies.push({
+            name: company,
+            phone: null,
+            phone_debug: companyPhoneDebug[company],
+          });
         }
       });
 
       // CRITICAL: Await all phone lookups
       await Promise.all(phoneEnrichmentPromises);
-      console.log(`📱 Phone enrichment complete for ${companyNames.length} companies`);
+      const phonesFound = companies.filter(c => !!c.phone?.e164 || !!c.phone?.display).length;
+      console.log(`📱 Phone enrichment complete: ${phonesFound}/${companyNames.length} companies with phones found`);
+      console.log('🔍 SCAN RESULT COMPANIES:', companies);
 
       // Build the analysis object
       const analysisData = {
