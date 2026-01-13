@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Users, Mail, UserPlus, Trash2, Crown, ArrowLeft } from 'lucide-react';
+import { Users, Mail, UserPlus, Trash2, Crown, ArrowLeft, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -188,7 +188,7 @@ export default function Team() {
                 transition={{ delay: 0.2, type: "spring" }}
                 className="inline-flex p-4 rounded-full bg-red-500/20 mb-6"
               >
-                <Users className="w-8 h-8 text-red-400" />
+                <Lock className="w-8 h-8 text-red-400" />
               </motion.div>
               
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">

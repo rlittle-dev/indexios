@@ -87,8 +87,8 @@ export default function Layout({ children }) {
         <ChatBot user={user} />
       )}
       
-      {/* Upgrade Banner for Free Users */}
-      {user && user.subscription_tier === 'free' && (
+      {/* Upgrade Banner for Free/Signed-Out Users */}
+      {(!user || user.subscription_tier === 'free') && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2 px-4 text-sm font-medium">
           <span>🚀 Upgrade to unlock scan history, advanced analysis, and team collaboration. </span>
           <Link to={createPageUrl('Pricing')} className="underline font-bold hover:text-white/90">
@@ -98,7 +98,7 @@ export default function Layout({ children }) {
       )}
       
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${user && user.subscription_tier === 'free' ? 'top-10' : 'top-0'}`}>
+      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${(!user || user.subscription_tier === 'free') ? 'top-10' : 'top-0'}`}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to={createPageUrl('Home')}>
@@ -215,7 +215,7 @@ export default function Layout({ children }) {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className={`fixed left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 md:hidden ${user && user.subscription_tier === 'free' ? 'top-[104px]' : 'top-16'}`}
+            className={`fixed left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
           >
             <div className="px-4 py-4 space-y-2">
               <Link to={createPageUrl('Pricing')} onClick={() => setMobileMenuOpen(false)}>
@@ -239,7 +239,7 @@ export default function Layout({ children }) {
       </AnimatePresence>
 
       {/* Main content with padding for fixed header */}
-      <main className={user && user.subscription_tier === 'free' ? 'pt-[104px]' : 'pt-16'}>
+      <main className={(!user || user.subscription_tier === 'free') ? 'pt-[104px]' : 'pt-16'}>
         {children}
       </main>
     </div>
