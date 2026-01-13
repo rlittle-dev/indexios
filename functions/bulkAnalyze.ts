@@ -62,7 +62,30 @@ Be harsh on sparse/vague resumes. Flag generic descriptions.`,
           }
         });
 
+        // Save candidate to database
+        const candidate = await base44.asServiceRole.entities.Candidate.create({
+          name: analysis.candidate_name || 'Unknown',
+          email: analysis.candidate_email || '',
+          resume_url: file_url,
+          legitimacy_score: analysis.overall_score,
+          analysis: {
+            consistency_score: analysis.consistency_score,
+            consistency_details: analysis.consistency_details,
+            experience_verification: analysis.experience_verification,
+            experience_details: analysis.experience_details,
+            education_verification: analysis.education_verification,
+            education_details: analysis.education_details,
+            skills_alignment: analysis.skills_alignment,
+            skills_details: analysis.skills_details,
+            red_flags: analysis.red_flags || [],
+            green_flags: analysis.green_flags || [],
+            summary: analysis.summary
+          },
+          status: 'analyzed'
+        });
+
         analyses.push({
+          id: candidate.id,
           name: analysis.candidate_name || 'Unknown',
           email: analysis.candidate_email || '',
           ...analysis
