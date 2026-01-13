@@ -156,70 +156,77 @@ export default function ApiAccess() {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="text-white font-semibold mb-2">Base URL</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-green-400">
-                      https://api.indexios.com/v1
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
+                      <code className="text-sm text-green-400 whitespace-nowrap">
+                        https://api.indexios.me/v1
+                      </code>
+                    </div>
                   </div>
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Analyze Resume</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-green-400">
-                      POST /analyze
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
+                      <code className="text-sm text-green-400 whitespace-nowrap">
+                        POST /analyze
+                      </code>
+                    </div>
                   </div>
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Headers</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
-                  {`Authorization: Bearer YOUR_API_KEY
-                  Content-Type: multipart/form-data`}
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
+                      <pre className="text-sm text-white">
+{`Authorization: Bearer YOUR_API_KEY
+Content-Type: multipart/form-data`}
+                      </pre>
+                    </div>
                   </div>
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Request Body</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white">
-                      file: (binary) - Resume PDF file
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
+                      <code className="text-sm text-white whitespace-nowrap">
+                        file: (binary) - Resume PDF file
+                      </code>
+                    </div>
                   </div>
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Response Example</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
-                  {`{
-                  "candidate_name": "John Doe",
-                  "candidate_email": "john@example.com",
-                  "legitimacy_score": 78,
-                  "consistency_score": 80,
-                  "consistency_details": "Timeline is clear with no gaps or overlaps between roles.",
-                  "experience_verification": 75,
-                  "experience_details": "Multiple measurable results with specific metrics.",
-                  "education_verification": 82,
-                  "education_details": "Degree from recognized university with aligned career path.",
-                  "skills_alignment": 72,
-                  "skills_details": "Skills align well with role progression throughout career.",
-                  "red_flags": [
-                  "Generic achievement descriptions in early roles",
-                  "Minor 2-month employment gap in 2019"
-                  ],
-                  "green_flags": [
-                  "Consistent employment at recognized companies",
-                  "Relevant degree from top 200 university",
-                  "Clear skill progression with specific metrics"
-                  ],
-                  "summary": "Strong candidate with credible experience and verifiable achievements. Minor gaps fully explained.",
-                  "next_steps": [
-                  "Contact previous employers for reference checks",
-                  "Verify degree with university registrar",
-                  "Request portfolio or work samples"
-                  ],
-                  "interview_questions": [
-                  "Can you walk us through your role in the 2019 project?",
-                  "What was your biggest achievement during your time at Company X?",
-                  "How have your skills evolved throughout your career?"
-                  ]
-                  }`}
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white overflow-x-auto">
+                      <pre className="text-xs leading-relaxed">
+{`{
+  "candidate_name": "John Doe",
+  "candidate_email": "john@example.com",
+  "legitimacy_score": 78,
+  "consistency_score": 80,
+  "consistency_details": "...",
+  "experience_verification": 75,
+  "experience_details": "...",
+  "education_verification": 82,
+  "education_details": "...",
+  "skills_alignment": 72,
+  "skills_details": "...",
+  "red_flags": [
+    "Generic descriptions",
+    "Minor employment gap"
+  ],
+  "green_flags": [
+    "Consistent employment",
+    "Recognized institutions"
+  ],
+  "summary": "Strong candidate...",
+  "next_steps": [
+    "Reference checks",
+    "Verify credentials"
+  ],
+  "interview_questions": [
+    "Walk us through...",
+    "Biggest achievement?"
+  ]
+}`}
+                      </pre>
+                    </div>
                   </div>
 
                   <div>
@@ -232,13 +239,15 @@ export default function ApiAccess() {
 
                   <div>
                     <h3 className="text-white font-semibold mb-2">Error Handling</h3>
-                    <code className="block bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white whitespace-pre">
-                  {`401 Unauthorized - Invalid or missing API key
-                  403 Forbidden - Insufficient permissions
-                  400 Bad Request - Invalid file format or size
-                  429 Too Many Requests - Rate limit exceeded
-                  500 Server Error - Try again later`}
-                    </code>
+                    <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
+                      <pre className="text-sm text-white">
+{`401 Unauthorized - Invalid API key
+403 Forbidden - Insufficient permissions
+400 Bad Request - Invalid file format
+429 Too Many Requests - Rate limit
+500 Server Error - Try again later`}
+                      </pre>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

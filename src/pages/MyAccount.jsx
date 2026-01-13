@@ -64,8 +64,12 @@ export default function MyAccount() {
         full_name: fullName,
         email_notifications_enabled: emailNotifications
       });
+      
+      // Refetch user data to ensure state is synced
       const updatedUser = await base44.auth.me();
       setUser(updatedUser);
+      setFullName(updatedUser.full_name || '');
+      
       setMessage('Settings updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {

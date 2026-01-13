@@ -116,7 +116,7 @@ User question: ${input}`;
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-lg transition-all"
+        className="fixed bottom-6 right-6 z-[70] bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-lg transition-all"
       >
         {isOpen ? (
           <X className="w-6 h-6" />
@@ -132,7 +132,7 @@ User question: ${input}`;
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-40 w-96 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col h-96"
+            className="fixed bottom-24 right-6 z-[70] w-96 max-w-[calc(100vw-2rem)] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col h-96 max-h-[calc(100vh-8rem)]"
           >
             {/* Header */}
             <div className={`${isPaidUser ? 'bg-gradient-to-r from-purple-600 to-purple-700' : 'bg-purple-600'} px-6 py-4 rounded-t-2xl`}>
