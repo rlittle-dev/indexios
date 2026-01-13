@@ -317,16 +317,21 @@ Deno.serve(async (req) => {
     console.log(`📊 EXTRACT: ${officialCandidates.length} raw candidates → ${scoredOfficial.filter(c => c.score >= 0.5).length} accepted (score >= 50%)`);
     
     // STEP 4: Decide - if official found nothing, run fallback
+    debug.stage = 'fallback';
     let fallbackCandidates = [];
     
     if (officialCandidates.length === 0) {
       debug.fallback_search_used = true;
+      console.log(`🔄 FALLBACK: official URLs yielded 0 candidates → running fallback phone search...`);
+      
       const fallbackResults = await fallbackPhoneSearch(company_name, base44);
       
       debug.fallback_sources = fallbackResults.map(r => ({
         url: r.source_url,
         snippet: r.snippet ? r.snippet.substring(0, 100) : '',
       }));
+      
+      console.log(`   fallback search checked 4 queries → ${fallbackResults.length} results found`);
       
       for (const result of fallbackResults) {
         const normalized = normalizePhone(result.phone);
@@ -346,9 +351,13 @@ Deno.serve(async (req) => {
         raw: c.raw,
         display: c.display,
         type: c.type,
-        score: c.score,
+        score: (c.score * 100).toFixed(0) + '%',
         source: c.source,
       }));
+      
+      console.log(`   normalized → ${fallbackCandidates.length} fallback candidates added`);
+    } else {
+      console.log(`✨ OFFICIAL CANDIDATES FOUND: skipping fallback (${officialCandidates.length} official candidates)`);
     }
     
     // STEP 5: Combine and select best
