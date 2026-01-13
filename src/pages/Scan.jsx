@@ -151,44 +151,20 @@ export default function Scan() {
       }
     
       // Use advanced analysis for all users
-      const analysisPrompt = `You are an expert fraud detection analyst AND a company phone number researcher. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
+      const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-COMPANY PHONE NUMBER EXTRACTION (CRITICAL):
-Extract the company name for EACH position listed in work experience section, then attempt to find a phone number.
+      COMPANY EXTRACTION (CRITICAL):
+      Extract the company name for EACH position listed in the work experience section.
 
-PROCESS:
-1. EXTRACT ALL COMPANY NAMES from work experience (e.g., "Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force")
-2. FOR EACH COMPANY, find and return their phone number using these rules:
-   - Return the MAIN corporate headquarters/switchboard number (most reliable and commonly available)
-   - HR numbers are nice but NOT required - main number is perfectly fine
-   - Use your knowledge of well-known companies to provide their standard phone numbers
-   - It's OK to provide a number even if you're not 100% certain - approximate/best-effort is valuable
-   - DO NOT fabricate numbers, but DO use your training knowledge of major companies
+      PROCESS:
+      1. EXTRACT ALL COMPANY NAMES from work experience (e.g., "Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force")
+      2. Return these as an array in company_names field - this is the ONLY phone-related extraction you do in this analysis
 
-EXAMPLES OF NUMBERS TO INCLUDE:
-- Edgewell Personal Care: +1-201-821-4000 (main)
-- Victoria's Secret: +1-614-415-7000 (main)
-- HSN: +1-727-872-1000 (main)
-- Elizabeth Arden: +1-212-572-7000 (main)
-- Procter & Gamble: +1-513-983-1100 (main)
-- United States Air Force: +1-703-697-5131 (Pentagon switchboard)
+      OUTPUT FORMAT:
+      Return company_names as an array:
+      ["Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force"]
 
-OUTPUT FORMAT:
-Return company_phone_numbers as an object mapping company names to their phone numbers:
-{
-  "Edgewell Personal Care": "+1-201-821-4000",
-  "Victoria's Secret & Co.": "+1-614-415-7000",
-  "HSN": "+1-727-872-1000",
-  "Elizabeth Arden": "+1-212-572-7000",
-  "Procter & Gamble": "+1-513-983-1100",
-  "United States Air Force": "+1-703-697-5131"
-}
-
-RULES:
-- Include ALL companies from the resume, even if uncertain
-- Provide one number per company
-- It's better to provide a best-guess number than no number
-- Don't be overly strict - assume that reasonable-sounding numbers are correct if they match the company
+      NOTE: Do NOT attempt to find phone numbers in this analysis. Phone numbers will be looked up separately via external sources.
 
       CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
@@ -330,8 +306,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
               summary: { type: "string", description: "Brief summary of the analysis" },
               next_steps: { type: "array", items: { type: "string" }, description: "Recommended next steps for hiring process" },
               interview_questions: { type: "array", items: { type: "string" }, description: "Suggested interview questions" },
-              company_names: { type: "array", items: { type: "string" }, description: "List of all company names extracted from work experience section" },
-              company_phone_numbers: { type: "object", description: "Object mapping company names to their phone numbers (e.g., {\"Company Name\": \"+1-555-123-4567\"})" }
+              company_names: { type: "array", items: { type: "string" }, description: "List of all company names extracted from work experience section" }
             },
             required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions"]
           }
@@ -341,6 +316,20 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
       let companyNames = [];
       if (analysis.company_names && Array.isArray(analysis.company_names)) {
         companyNames = analysis.company_names;
+      }
+
+      // Look up phone numbers for each company
+      const companyPhoneNumbers = {};
+      for (const company of companyNames) {
+        try {
+          const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
+          if (phoneResult.data.phone) {
+            companyPhoneNumbers[company] = phoneResult.data.phone.display || phoneResult.data.phone.e164;
+          }
+        } catch (error) {
+          // Skip on error, will show company without number
+          console.error(`Error looking up ${company}:`, error);
+        }
       }
 
       // Build the analysis object
@@ -358,7 +347,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
-        company_phone_numbers: analysis.company_phone_numbers || {},
+        company_phone_numbers: companyPhoneNumbers,
         company_names: companyNames
       };
 
