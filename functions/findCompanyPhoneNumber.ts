@@ -598,7 +598,7 @@ Deno.serve(async (req) => {
       console.log(`✨ OFFICIAL CANDIDATES FOUND: skipping fallback (${officialCandidates.length} official candidates)`);
     }
     
-    // STEP 5: Combine and select best
+    // STEP 5: Combine and select best with strict priority
     debug.stage = 'end';
     const allCandidates = [...scoredOfficial, ...fallbackCandidates];
     
@@ -613,35 +613,91 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Sort by score desc, prefer official, prefer hr type
-    unique.sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      if (a.type === 'hr' && b.type !== 'hr') return -1;
-      if (a.type !== 'hr' && b.type === 'hr') return 1;
-      return 0;
-    });
+    // PRIORITY ORDER (STRICT):
+    // 1. type="hr" + extraction_source="tel" with score >= 0.5
+    // 2. type="main" + extraction_source="tel" with score >= 0.5
+    // 3. Any type + extraction_source="tel" with score >= 0.5
+    // 4. type="hr" + phone context words + score >= 0.5
+    // 5. type="main" + phone context words + score >= 0.5
+    // 6. Only if NONE exist: accept other sources but still require score >= 0.5
     
-    // Select best with score >= 0.5 (accepted)
-    const best = unique.find(c => c.score >= 0.5) || unique[0] || null;
+    const hasPhoneWords = (candidate) => {
+      return /\b(phone|call|tel|contact|customer service|support|hotline|help)\b/i.test(
+        candidate.context_snippet || ''
+      );
+    };
     
-    // Test logging example
-    if (company_name === 'Victoria\'s Secret & Co.' || company_name.includes('Victoria')) {
-      console.log(`🧪 TEST CASE: Victoria's Secret`);
-      console.log(`   Found ${unique.length} unique candidates, best: ${best ? best.raw : 'none'}`);
+    let best = null;
+    
+    // Priority 1: HR + tel
+    best = unique.find(c => c.score >= 0.5 && c.type === 'hr' && c.extraction_source === 'tel');
+    if (best) {
+      debug.selection_reason = 'priority_1_hr_tel';
+    }
+    
+    // Priority 2: Main + tel
+    if (!best) {
+      best = unique.find(c => c.score >= 0.5 && c.type === 'main' && c.extraction_source === 'tel');
       if (best) {
-        console.log(`   raw=${best.raw} → digits=${best.digits}, e164=${best.e164}, display=${best.display}`);
+        debug.selection_reason = 'priority_2_main_tel';
+      }
+    }
+    
+    // Priority 3: Any + tel
+    if (!best) {
+      best = unique.find(c => c.score >= 0.5 && c.extraction_source === 'tel');
+      if (best) {
+        debug.selection_reason = 'priority_3_any_tel';
+      }
+    }
+    
+    // Priority 4: HR + phone words
+    if (!best) {
+      best = unique.find(c => c.score >= 0.5 && c.type === 'hr' && hasPhoneWords(c));
+      if (best) {
+        debug.selection_reason = 'priority_4_hr_phone_words';
+      }
+    }
+    
+    // Priority 5: Main + phone words
+    if (!best) {
+      best = unique.find(c => c.score >= 0.5 && c.type === 'main' && hasPhoneWords(c));
+      if (best) {
+        debug.selection_reason = 'priority_5_main_phone_words';
+      }
+    }
+    
+    // Priority 6: Fallback - any accepted candidate
+    if (!best) {
+      best = unique.find(c => c.score >= 0.5);
+      if (best) {
+        debug.selection_reason = 'priority_6_fallback_accepted';
+      }
+    }
+    
+    // Test logging example for Elizabeth Arden case
+    if (company_name.includes('Elizabeth') || company_name.includes('Arden')) {
+      console.log(`🧪 TEST CASE: Elizabeth Arden`);
+      console.log(`   Found ${unique.length} unique candidates`);
+      console.log(`   Tel candidates: ${unique.filter(c => c.extraction_source === 'tel').length}`);
+      console.log(`   Accepted (score >= 0.5): ${unique.filter(c => c.score >= 0.5).length}`);
+      if (best) {
+        console.log(`   Selected: ${best.raw} (${best.digits}) - ${debug.selection_reason}`);
+        console.log(`   e164=${best.e164}, display=${best.display}, type=${best.type}`);
+      } else {
+        console.log(`   No candidate met strict criteria`);
       }
     }
     
     if (best) {
       // Ensure type is never "unknown" - fallback to "main"
       const finalType = best.type === 'unknown' ? 'main' : best.type;
-      const sourceLabel = officialCandidates.find(c => c.raw === best.raw) ? 'official' : 'fallback';
-      debug.final_decision = `✅ RETURNED: ${finalType} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source)`;
+      const sourceLabel = best.extraction_source || 'unknown';
+      debug.final_decision = `✅ RETURNED: ${finalType} (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source) - ${debug.selection_reason}`;
       debug.error = null;
       
       console.log(`🎯 PHONE FINDER RESULT (${company_name}): ${debug.final_decision}`);
-      console.log(`   raw=${best.raw}, e164=${best.e164}, display=${best.display}`);
+      console.log(`   raw=${best.raw}, digits=${best.digits}, e164=${best.e164}, display=${best.display}`);
       
       return Response.json({
         company: company_name,
