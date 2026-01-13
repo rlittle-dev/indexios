@@ -19,6 +19,12 @@ export default function Layout({ children }) {
   const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
 
   useEffect(() => {
+    // Add Google site verification meta tag
+    const metaTag = document.createElement('meta');
+    metaTag.name = 'google-site-verification';
+    metaTag.content = 'e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y';
+    document.head.appendChild(metaTag);
+
     const checkAuth = async () => {
       const isAuthenticated = await base44.auth.isAuthenticated();
       if (isAuthenticated) {
