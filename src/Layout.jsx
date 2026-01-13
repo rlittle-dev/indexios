@@ -91,9 +91,9 @@ export default function Layout({ children }) {
       )}
       
       {/* Upgrade Banner for Free/Signed-Out Users */}
-      {(user?.subscription_tier === 'free' || user?.isAnonymous) && (
+      {(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2 px-4 text-sm font-medium">
-          <span>🚀 Upgrade to unlock scan history, advanced analysis, and team collaboration. </span>
+          <span>Upgrade to unlock full features including scan history, saved candidates, API access, and more. </span>
           <Link to={createPageUrl('Pricing')} className="underline font-bold hover:text-white/90">
             View Plans
           </Link>
@@ -101,7 +101,7 @@ export default function Layout({ children }) {
       )}
       
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${(user?.subscription_tier === 'free' || user?.isAnonymous) ? 'top-10' : 'top-0'}`}>
+      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'top-10' : 'top-0'}`}>
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to={createPageUrl('Home')}>
@@ -242,7 +242,7 @@ export default function Layout({ children }) {
       </AnimatePresence>
 
       {/* Main content with padding for fixed header */}
-      <main className={(user?.subscription_tier === 'free' || user?.isAnonymous) ? 'pt-[104px]' : 'pt-16'}>
+      <main className={(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'pt-[104px]' : 'pt-16'}>
         {children}
       </main>
     </div>
