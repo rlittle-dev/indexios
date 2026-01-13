@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X } from 'lucide-react';
@@ -20,46 +21,6 @@ export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Set page title
-    document.title = 'Indexios - Resume Verification Platform | Detect Fraudulent Resumes';
-    
-    // Add meta description
-    const metaDescription = document.querySelector('meta[name="description"]') || document.createElement('meta');
-    metaDescription.name = 'description';
-    metaDescription.content = 'Indexios is an advanced resume verification platform that helps hiring teams detect fraudulent resumes, verify credentials, and make confident hiring decisions with legitimacy scoring and detailed candidate analysis.';
-    if (!document.querySelector('meta[name="description"]')) {
-      document.head.appendChild(metaDescription);
-    }
-    
-    // Add Open Graph tags for social sharing
-    const ogTitle = document.querySelector('meta[property="og:title"]') || document.createElement('meta');
-    ogTitle.setAttribute('property', 'og:title');
-    ogTitle.content = 'Indexios - Resume Verification Platform';
-    if (!document.querySelector('meta[property="og:title"]')) {
-      document.head.appendChild(ogTitle);
-    }
-    
-    const ogDescription = document.querySelector('meta[property="og:description"]') || document.createElement('meta');
-    ogDescription.setAttribute('property', 'og:description');
-    ogDescription.content = 'Verify resume legitimacy with advanced fraud detection and credential verification tools.';
-    if (!document.querySelector('meta[property="og:description"]')) {
-      document.head.appendChild(ogDescription);
-    }
-    
-    // Add favicon
-    const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
-    favicon.rel = 'icon';
-    favicon.href = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/797117048_4D82DA9B-3230-4F6C-A706-1F3E8B05E9F0.png';
-    if (!document.querySelector('link[rel="icon"]')) {
-      document.head.appendChild(favicon);
-    }
-    
-    // Add Google site verification meta tag
-    const metaTag = document.createElement('meta');
-    metaTag.name = 'google-site-verification';
-    metaTag.content = 'e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y';
-    document.head.appendChild(metaTag);
-
     const checkAuth = async () => {
       const isAuthenticated = await base44.auth.isAuthenticated();
       if (isAuthenticated) {
@@ -70,8 +31,8 @@ export default function Layout({ children }) {
         setUser({ subscription_tier: 'free', isAnonymous: true });
       }
       setLoading(false);
-      };
-      checkAuth();
+    };
+    checkAuth();
 
     // Refetch user data when window regains focus to sync profile changes
     const handleFocus = async () => {
@@ -119,6 +80,21 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <Helmet>
+        <title>Indexios - Resume Verification Platform | Detect Fraudulent Resumes</title>
+        <meta name="description" content="Indexios is an advanced resume verification platform that helps hiring teams detect fraudulent resumes, verify credentials, and make confident hiring decisions with legitimacy scoring and detailed candidate analysis." />
+        
+        <meta property="og:title" content="Indexios - Resume Verification Platform" />
+        <meta property="og:description" content="Verify resume legitimacy with advanced fraud detection and credential verification tools." />
+        
+        <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/797117048_4D82DA9B-3230-4F6C-A706-1F3E8B05E9F0.png" />
+        
+        <link rel="canonical" href="https://indexios.me/" />
+        <meta name="robots" content="index,follow" />
+        
+        <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
+      </Helmet>
+      
       {/* Chat Bot for all users */}
       {user && (
         <ChatBot user={user} />
