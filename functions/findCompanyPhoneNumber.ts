@@ -226,24 +226,31 @@ async function fallbackPhoneSearch(companyName, base44) {
 }
 
 Deno.serve(async (req) => {
+  const debug = {
+    called: true,
+    stage: 'discovery',
+    official_urls: [],
+    fetch_results: [],
+    official_candidates: [],
+    fallback_search_used: false,
+    fallback_sources: [],
+    fallback_candidates: [],
+    final_decision: '',
+    error: null,
+  };
+  
   try {
     const base44 = createClientFromRequest(req);
     const { company_name } = await req.json();
     
-    if (!company_name) {
-      return Response.json({ error: 'company_name required' }, { status: 400 });
-    }
+    console.log(`🔍 PHONE FINDER CALLED: ${company_name}`);
     
-    const debug = {
-      called: true,
-      official_urls: [],
-      fetch_results: [],
-      official_candidates: [],
-      fallback_search_used: false,
-      fallback_sources: [],
-      fallback_candidates: [],
-      final_decision: '',
-    };
+    if (!company_name) {
+      debug.error = 'company_name required';
+      debug.final_decision = 'FAILED: missing company_name param';
+      console.log(`❌ PHONE FINDER ERROR: ${company_name}`, JSON.stringify(debug, null, 2));
+      return Response.json({ error: 'company_name required', debug }, { status: 400 });
+    }
     
     // STEP 1: URL Discovery
     const officialUrls = await searchForUrls(company_name, base44);
