@@ -592,34 +592,51 @@ Deno.serve(async (req) => {
     debug.stage = 'end';
     const allCandidates = [...scoredOfficial, ...fallbackCandidates];
     
-    // Dedupe by e164
+    // Dedupe by digits (not e164, since formatting can vary)
     const unique = [];
     const seen = new Set();
     for (const c of allCandidates) {
-      if (!seen.has(c.e164)) {
+      const dedupeKey = c.digits || c.raw;
+      if (!seen.has(dedupeKey)) {
         unique.push(c);
-        seen.add(c.e164);
+        seen.add(dedupeKey);
       }
     }
     
-    // Sort by score desc
-    unique.sort((a, b) => b.score - a.score);
+    // Sort by score desc, prefer official, prefer hr type
+    unique.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.type === 'hr' && b.type !== 'hr') return -1;
+      if (a.type !== 'hr' && b.type === 'hr') return 1;
+      return 0;
+    });
     
-    // Select best (no hard threshold during debug, but filter obvious junk like personal numbers)
-    const best = unique.length > 0 ? unique[0] : null;
+    // Select best with score >= 0.5 (accepted)
+    const best = unique.find(c => c.score >= 0.5) || unique[0] || null;
+    
+    // Test logging example
+    if (company_name === 'Victoria\'s Secret & Co.' || company_name.includes('Victoria')) {
+      console.log(`🧪 TEST CASE: Victoria's Secret`);
+      console.log(`   Found ${unique.length} unique candidates, best: ${best ? best.raw : 'none'}`);
+      if (best) {
+        console.log(`   raw=${best.raw} → digits=${best.digits}, e164=${best.e164}, display=${best.display}`);
+      }
+    }
     
     if (best) {
-      const sourceLabel = officialCandidates.find(c => c.e164 === best.e164) ? 'official' : 'fallback';
-      debug.final_decision = `✅ RETURNED: ${best.type} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source)`;
+      // Ensure type is never "unknown" - fallback to "main"
+      const finalType = best.type === 'unknown' ? 'main' : best.type;
+      const sourceLabel = officialCandidates.find(c => c.raw === best.raw) ? 'official' : 'fallback';
+      debug.final_decision = `✅ RETURNED: ${finalType} number (${(best.score * 100).toFixed(0)}% confidence, ${sourceLabel} source)`;
       debug.error = null;
       
       console.log(`🎯 PHONE FINDER RESULT (${company_name}): ${debug.final_decision}`);
-      console.log(`   Final debug: ${JSON.stringify(debug, null, 2)}`);
+      console.log(`   raw=${best.raw}, e164=${best.e164}, display=${best.display}`);
       
       return Response.json({
         company: company_name,
         phone: {
-          type: best.type,
+          type: finalType,
           raw: best.raw,
           display: best.display,
           e164: best.e164 || '',
