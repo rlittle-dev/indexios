@@ -105,22 +105,22 @@ import React, { useState } from 'react';
                         </button>
                       )}
                     </div>
-                    {phoneDisplay ? (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-blue-400 font-mono text-sm">{phoneDisplay}</span>
-                        <Button
-                          disabled
-                          className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed whitespace-nowrap"
-                        >
-                          Verify with AI?
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
-                        <span className="text-white/60 text-xs">No number found - research manually</span>
-                      </div>
-                    )}
+                    {hasPhone ? (
+                       <div className="flex items-center justify-between gap-2">
+                         <span className="text-blue-400 font-mono text-sm">{phoneDisplay}</span>
+                         <Button
+                           disabled
+                           className="bg-blue-500/50 hover:bg-blue-500/50 text-white text-xs cursor-not-allowed whitespace-nowrap"
+                         >
+                           Verify with AI?
+                         </Button>
+                       </div>
+                     ) : (
+                       <div className="flex items-center gap-2">
+                         <AlertCircle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0" />
+                         <span className="text-yellow-400/80 text-xs font-medium">No number found</span>
+                       </div>
+                     )}
                     {showDebug === companyName && debug && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
