@@ -31,10 +31,14 @@ export default function Tickets() {
     checkAuth();
   }, []);
 
-  // Fetch user's tickets
+  // Fetch user's tickets (exclude resolved ones)
   const { data: userTickets = [] } = useQuery({
     queryKey: ['userTickets', user?.email],
-    queryFn: () => base44.entities.Ticket.filter({ user_email: user?.email }, '-created_date'),
+    queryFn: async () => {
+      const tickets = await base44.entities.Ticket.filter({ user_email: user?.email }, '-created_date');
+      // Filter out resolved tickets for regular users
+      return tickets.filter(t => t.status !== 'resolved');
+    },
     enabled: !!user && user.role !== 'admin',
   });
 
@@ -56,22 +60,25 @@ export default function Tickets() {
         message,
         timestamp: new Date().toISOString()
       });
-      await base44.entities.Ticket.update(ticketId, { responses });
+      return await base44.entities.Ticket.update(ticketId, { responses });
     },
-    onSuccess: () => {
+    onSuccess: (updatedTicket) => {
       queryClient.invalidateQueries({ queryKey: ['allTickets'] });
+      queryClient.invalidateQueries({ queryKey: ['userTickets'] });
       setAdminResponse('');
-      // Refresh selected ticket
-      const updatedTicket = allTickets.find(t => t.id === selectedTicket.id);
-      if (updatedTicket) setSelectedTicket(updatedTicket);
+      setSelectedTicket(updatedTicket);
       toast.success('Response added!');
     },
   });
 
   const updateTicketStatusMutation = useMutation({
-    mutationFn: ({ ticketId, status }) => base44.entities.Ticket.update(ticketId, { status }),
-    onSuccess: () => {
+    mutationFn: async ({ ticketId, status }) => {
+      return await base44.entities.Ticket.update(ticketId, { status });
+    },
+    onSuccess: (updatedTicket) => {
       queryClient.invalidateQueries({ queryKey: ['allTickets'] });
+      queryClient.invalidateQueries({ queryKey: ['userTickets'] });
+      setSelectedTicket(updatedTicket);
       toast.success('Ticket updated!');
     },
   });
@@ -201,12 +208,14 @@ export default function Tickets() {
                   </div>
                 )}
 
-                {/* Admin Response Form */}
-                {isAdmin && selectedTicket.status !== 'resolved' && (
+                {/* Response Form */}
+                {selectedTicket.status !== 'resolved' && (
                   <div className="border-t border-zinc-700 pt-6">
-                    <label className="text-white/80 text-sm mb-2 block">Add Response</label>
+                    <label className="text-white/80 text-sm mb-2 block">
+                      {isAdmin ? 'Add Response' : 'Reply to Support Team'}
+                    </label>
                     <textarea
-                      placeholder="Type your response..."
+                      placeholder={isAdmin ? "Type your response..." : "Type your reply..."}
                       value={adminResponse}
                       onChange={(e) => setAdminResponse(e.target.value)}
                       rows="3"
@@ -218,8 +227,13 @@ export default function Tickets() {
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      Send Response
+                      {isAdmin ? 'Send Response' : 'Send Reply'}
                     </Button>
+                  </div>
+                )}
+                {selectedTicket.status === 'resolved' && !isAdmin && (
+                  <div className="border-t border-zinc-700 pt-6">
+                    <p className="text-white/60 text-sm text-center">This ticket has been resolved and closed.</p>
                   </div>
                 )}
               </div>
