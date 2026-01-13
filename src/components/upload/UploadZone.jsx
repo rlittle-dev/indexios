@@ -84,7 +84,7 @@ export default function UploadZone({ onUpload, isUploading }) {
               className="flex flex-col items-center"
             >
               <Loader2 className="w-12 h-12 text-white animate-spin mb-4" />
-              <p className="text-white/70 text-sm">Analyzing resume...</p>
+              <p className="text-white/70 text-sm">Analyzing resume(s)… hold tight!</p>
             </motion.div>
           ) : (
             <motion.div
