@@ -2,6 +2,11 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
+    // Only accept POST requests
+    if (req.method !== 'POST') {
+      return Response.json({ error: 'Method not allowed' }, { status: 405 });
+    }
+
     // Verify Make webhook secret
     const makeSecret = req.headers.get('x-make-secret');
     const expectedSecret = Deno.env.get('MAKE_WEBHOOK_SECRET');
