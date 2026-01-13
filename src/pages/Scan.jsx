@@ -153,28 +153,36 @@ export default function Scan() {
       // Use advanced analysis for all users
       const analysisPrompt = `You are an expert fraud detection analyst AND a company phone number researcher. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-COMPANY PHONE NUMBER EXTRACTION (CRITICAL):
-For EACH company listed in work experience:
-1. Extract company name exactly as written
-2. Search for HR/Talent/Recruiting phone numbers with HIGHEST priority:
-   - Look for: "Human Resources", "HR", "People", "Talent", "Recruiting", "Careers"
-   - These departments have employment verification lines
-3. FALLBACK: Extract main corporate switchboard/headquarters number if HR not found
-4. STRICT QUALITY RULES:
-   - DO NOT fabricate numbers - only use numbers that can be found through web research
-   - DO NOT use support/customer service lines
-   - DO NOT use personal mobile numbers
-   - If multiple candidates exist, pick the most clearly labeled HR number
-   - Prefer country-specific formatting (US: +1-XXX-XXX-XXXX, UK: +44-XX-XXXX-XXXX, etc.)
-5. For EACH company in the resume, provide ONE phone number max
-6. If zero confidence that a number is correct, OMIT it entirely - do not guess
-7. Format output as array of best-effort phone numbers: ["+1-xyz-123-4567", "+44-abc-456-7890"]
+COMPANY PHONE NUMBER EXTRACTION (CRITICAL - DO THIS STEP):
+For EACH company in the work experience section, attempt to find their HR/employment verification phone number:
 
-EXAMPLES OF WHAT TO EXTRACT:
-- Apple HR Line: +1-408-974-4897
-- Google Talent: +1-650-253-0000
-- Microsoft Recruiting: +1-425-882-8080
-If none found with confidence, return empty array []
+PRIORITY ORDER (apply in sequence for each company):
+1. PRIMARY: HR/People/Talent phone numbers (these handle employment verifications)
+   - Search company websites for: HR, Human Resources, People Ops, Talent Acquisition, Recruiting, Careers contact pages
+   - These are the BEST numbers for employment verification calls
+2. SECONDARY: Main corporate headquarters/switchboard number (if HR line not found)
+   - General company phone that can route to HR
+3. DO NOT USE: Support lines, sales lines, personal mobile numbers
+
+EXTRACTION METHOD:
+- For each company mentioned, use your knowledge of well-known companies to find their ACTUAL phone numbers
+- Examples of REAL numbers to extract if found:
+  * Apple: +1-408-996-1010 (main), +1-408-974-4897 (HR)
+  * Google: +1-650-253-0000 (main), +1-650-867-2000 (HR/Recruiting)
+  * Microsoft: +1-425-882-8080 (main), +1-425-882-8080 ext. HR
+  * Amazon: +1-206-266-1000 (main)
+  * Meta: +1-650-308-7300 (main)
+  * Tesla: +1-888-518-3752 (main)
+  * Netflix: +1-408-540-3700 (main)
+- For smaller/regional companies: if they appear in the resume, include their publicly listed phone number
+
+FORMAT:
+- Return as array of phone numbers found: ["+1-408-974-4897", "+1-650-867-2000"]
+- Include formatting like country code and dashes
+- One number per company maximum
+- If NO companies found or no numbers can be located, return empty array: []
+
+CRITICAL: Attempt to find real phone numbers for each company listed. This is important for employment verification.
 
       CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
 
