@@ -317,67 +317,14 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         companyNames = analysis.company_names;
       }
 
-      // Look up phone numbers for each company (with full phone object capture)
-      const companies = [];
-      const companyPhoneDebug = {};
+      // Build companies array from extracted names (no phone lookups)
+      const companies = companyNames.map(name => ({
+        name,
+        phone: null,
+        phone_debug: null,
+      }));
 
-      // Use Promise.all to await ALL phone lookups in parallel
-      const phoneEnrichmentPromises = companyNames.map(async (company) => {
-        try {
-          const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
-
-          // Capture full phone object
-          let phone = null;
-          if (phoneResult.data && phoneResult.data.phone) {
-            phone = {
-              type: phoneResult.data.phone.type || 'main',
-              raw: phoneResult.data.phone.raw,
-              digits: phoneResult.data.phone.digits,
-              display: phoneResult.data.phone.display,
-              e164: phoneResult.data.phone.e164,
-              source_url: phoneResult.data.phone.source_url || phoneResult.data.phone.source,
-              extraction_source: phoneResult.data.phone.extraction_source,
-              confidence: phoneResult.data.phone.confidence,
-            };
-          }
-
-          // Capture debug
-          if (phoneResult.data && phoneResult.data.debug) {
-            companyPhoneDebug[company] = phoneResult.data.debug;
-          }
-
-          companies.push({
-            name: company,
-            phone, // Full phone object, can be null
-            phone_debug: companyPhoneDebug[company],
-          });
-        } catch (error) {
-          console.error(`Error looking up ${company}:`, error);
-          companyPhoneDebug[company] = {
-            called: true,
-            stage: 'error',
-            error: error.message,
-            final_decision: `Exception during function invoke: ${error.message}`,
-          };
-          companies.push({
-            name: company,
-            phone: null,
-            phone_debug: companyPhoneDebug[company],
-          });
-        }
-      });
-
-      // CRITICAL: Await all phone lookups
-      await Promise.all(phoneEnrichmentPromises);
-      const phonesFound = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
-      console.log(`📱 Phone enrichment complete: ${phonesFound}/${companyNames.length} companies with phones found`);
-      console.log('🔍 SCAN RESULT COMPANIES:', companies);
-      console.log('🔍 COMPANIES ARRAY STRUCTURE:');
-      companies.forEach((c, i) => {
-        console.log(`  [${i}] name="${c.name}" phone=${c.phone ? JSON.stringify({e164: c.phone.e164, display: c.phone.display}) : 'null'}`);
-      });
-
-      // Build the analysis object with standardized company structure
+      // Build the analysis object
       const analysisData = {
         consistency_score: analysis.consistency_score,
         consistency_details: analysis.consistency_details,
@@ -392,14 +339,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
         summary: analysis.summary,
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
-        // NEW: Store full company objects with phone data
-        companies,
-        // LEGACY: Keep old format for backward compat (extract from companies array)
         company_names: companyNames,
-        company_phone_numbers: Object.fromEntries(
-          companies.filter(c => c.phone).map(c => [c.name, c.phone.display || c.phone.e164])
-        ),
-        company_phone_debug: companyPhoneDebug,
       };
 
       let updatedCandidate;
@@ -456,16 +396,9 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
          }
        }
 
-       // DEBUG LOGGING (remove later)
-       console.log('✅ FINAL SCAN RESULT:');
-       console.log('Candidate:', updatedCandidate.name);
-       console.log('Companies with phones:', companies.filter(c => c.phone).length);
-       console.log('First company:', companies[0]);
-       console.log('Full analysis.companies:', analysisData.companies);
-
        // Show toast notification
        toast.success('Analysis complete!', {
-         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}% • ${phonesFound} companies found`,
+         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`,
          icon: <CheckCircle2 className="w-4 h-4" />
        });
     } catch (error) {
