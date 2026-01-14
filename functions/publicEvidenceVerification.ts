@@ -23,7 +23,37 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
     // STEP 1: Multi-round comprehensive search
     let allUrls = [];
     
-    // Round 1: Direct searches for each employer individually (MOST EFFECTIVE)
+    // Round 0: RocketReach profile search (HIGHEST PRIORITY - career summaries)
+    console.log(`[Public Evidence] Round 0: RocketReach profile search (PRIMARY SOURCE)...`);
+    const rocketReachPrompt = `Search for: "${candidateName} rocketreach"
+
+Find the RocketReach profile page for this person. RocketReach shows complete career history and past roles.
+
+Return the RocketReach profile URL.`;
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: rocketReachPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            urls: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+      
+      if (result.urls && result.urls.length > 0) {
+        allUrls = allUrls.concat(result.urls);
+        console.log(`[Public Evidence] 🚀 RocketReach: ${result.urls.length} URLs found`);
+      } else {
+        console.log(`[Public Evidence] ⚠️ No RocketReach profile found`);
+      }
+    } catch (error) {
+      console.log(`[Public Evidence] RocketReach search failed: ${error.message}`);
+    }
+    
+    // Round 1: Direct searches for each employer individually
     console.log(`[Public Evidence] Round 1: Direct employer searches...`);
     for (const employer of employers) {
       // Search 1a: Current/general mention
@@ -129,35 +159,7 @@ Return all relevant URLs.`;
       console.log(`[Public Evidence] Broad search failed: ${error.message}`);
     }
 
-    // Round 3: RocketReach profile search (career summary)
-    console.log(`[Public Evidence] Round 3: RocketReach profile search...`);
-    const rocketReachPrompt = `Search for "${candidateName} rocketreach"
-
-Find the RocketReach profile page for this person. RocketReach profiles show career summaries and past roles.
-
-Return the RocketReach profile URL if found.`;
-
-    try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: rocketReachPrompt,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            urls: { type: "array", items: { type: "string" } }
-          }
-        }
-      });
-      
-      if (result.urls && result.urls.length > 0) {
-        allUrls = allUrls.concat(result.urls);
-        console.log(`[Public Evidence] RocketReach search: ${result.urls.length} URLs`);
-      }
-    } catch (error) {
-      console.log(`[Public Evidence] RocketReach search failed: ${error.message}`);
-    }
-
-    // Round 4: Company-specific searches (team pages, about pages)
+    // Round 3: Company-specific searches (team pages, about pages)
     console.log(`[Public Evidence] Round 4: Company team/about pages...`);
     for (const employer of employers) {
       const companyPrompt = `Find the team page, about page, leadership page, or employee directory for "${employer.name}".
@@ -212,25 +214,30 @@ COMPANIES: ${employerNames}
 ${searchUrls.length > 0 ? `ANALYZE ALL ${searchUrls.length} URLS:\n${searchUrls.map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
 ACCEPTANCE CRITERIA (VERY LOW BAR):
-✅ ACCEPT ANY OF THESE:
-- Full name "${candidateName}" anywhere on company website or in article
-- First name OR last name on company team/about page
-- Name variation (Jan, Janet, J. Little, etc.) with company context
-- Company website mentioning them as staff/employee/founder/owner
-- Any article mentioning them with the company
-- Bio, profile, or description linking them to company
-- Press release, announcement, or news with their name + company
+✅ ACCEPT ANY OF THESE (prioritize in this order):
+1. ROCKETREACH PROFILE - If you find a rocketreach.co URL, check career history for the company name
+   - RocketReach shows "Current" and "Past" positions
+   - Accept if company appears anywhere in work history
+   - HIGH confidence (0.8+) for RocketReach matches
+2. Full name "${candidateName}" anywhere on company website or in article
+3. First name OR last name on company team/about page
+4. Name variation (Jan, Janet, J. Little, etc.) with company context
+5. Bio, profile, or description linking them to company
+6. Any article mentioning them with the company
+7. Press release, announcement, or news with their name + company
 
 ❌ ONLY REJECT IF:
 - Zero mention of the name at all
 - Clearly a different person (wrong gender, age, location if stated)
 
 CONFIDENCE SCORING (BE GENEROUS):
-- 0.85-1.0 = Company website lists them OR 2+ sources
+- 0.85-1.0 = RocketReach profile with company OR company website listing them OR 2+ sources
 - 0.6-0.84 = Any article mentions them OR single company page mention  
 - 0.4-0.59 = Partial name match with reasonable context
 - 0.3-0.39 = Very weak/ambiguous mention
 - 0.0-0.29 = Nothing found
+
+CRITICAL: If you find a rocketreach.co URL in the list, PRIORITIZE analyzing it first!
 
 For EACH company, return:
 - found: true/false
