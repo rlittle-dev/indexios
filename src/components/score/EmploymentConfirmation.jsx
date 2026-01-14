@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, ChevronDown, AlertCircle, Bug, Play, RefreshCw, Eye, CheckCircle, Clock, XCircle, Activity, FileSearch, Send, Lock } from 'lucide-react';
+import { Phone, ChevronDown, AlertCircle, Bug, Play, RefreshCw, Eye, CheckCircle, Clock, XCircle, Activity, FileSearch, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 import VerificationDetailsModal from '@/components/verification/VerificationDetailsModal';
 
-      export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [], phoneDebug = {}, companies: companiesWithPhone = [], candidateId, user }) {
+      export default function EmploymentConfirmation({ phoneNumbers = {}, allCompanies = [], phoneDebug = {}, companies: companiesWithPhone = [], candidateId }) {
         const [isExpanded, setIsExpanded] = useState(false);
         const [showDebug, setShowDebug] = useState(false);
         const [verifications, setVerifications] = useState([]);
@@ -14,43 +14,13 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
         const [isRefreshing, setIsRefreshing] = useState(false);
         const [selectedVerification, setSelectedVerification] = useState(null);
         const [verificationSummary, setVerificationSummary] = useState(null);
-        const [verificationUsageCount, setVerificationUsageCount] = useState(0);
 
-  // Check access tier
-  const tier = user?.subscription_tier || 'free';
-  const hasUnlimitedAccess = tier === 'enterprise';
-  const monthlyLimit = tier === 'professional' ? 25 : 0;
-  const hasAccess = tier === 'enterprise' || tier === 'professional';
-  const isLocked = !hasAccess;
-
-  // Fetch verification status and usage count on mount
+  // Fetch verification status on mount and when candidateId changes
   useEffect(() => {
-    if (candidateId && hasAccess) {
+    if (candidateId) {
       fetchVerificationStatus();
-      fetchUsageCount();
     }
-  }, [candidateId, hasAccess]);
-
-  const fetchUsageCount = async () => {
-  if (!user?.email || tier === 'enterprise') return;
-
-  try {
-  // Count verifications created this month by this user
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const allVerifications = await base44.entities.EmployerVerification.list();
-  const userVerifications = allVerifications.filter(v => 
-    v.created_by === user.email && 
-    new Date(v.created_date) >= startOfMonth
-  );
-
-  setVerificationUsageCount(userVerifications.length);
-  } catch (error) {
-  console.error('Error fetching usage count:', error);
-  }
-  };
+  }, [candidateId]);
 
   const fetchVerificationStatus = async () => {
     if (!candidateId) return;
@@ -69,12 +39,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
   const handleStartVerification = async () => {
     if (!candidateId || companies.length === 0) return;
 
-    // Check usage limits for professional tier
-    if (tier === 'professional' && verificationUsageCount >= monthlyLimit) {
-      alert(`You've reached your monthly limit of ${monthlyLimit} verifications. Upgrade to Enterprise for unlimited access.`);
-      return;
-    }
-
     setIsStartingVerification(true);
     try {
       const employers = companies.map(c => ({
@@ -89,7 +53,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
 
       if (response.data.success) {
         setVerifications(response.data.verifications);
-        setVerificationUsageCount(prev => prev + employers.length);
         console.log(`✅ Started verification for ${response.data.count} employers`);
       }
     } catch (error) {
@@ -238,68 +201,43 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
         className="overflow-hidden"
       >
         <div className="px-5 pb-5 border-t border-blue-500/20 space-y-4">
-          {/* Tier Lockout for Starter and Free */}
-          {isLocked && (
-            <div className="pt-3">
-              <div className="bg-zinc-800/50 backdrop-blur-sm rounded-lg p-6 text-center border border-zinc-700/50">
-                <Lock className="w-12 h-12 text-zinc-500 mx-auto mb-3" />
-                <h3 className="text-white font-semibold mb-2">Employment Verification Locked</h3>
-                <p className="text-white/60 text-sm mb-4">
-                  Upgrade to Professional or Enterprise to unlock automated employment verification
-                </p>
-                <Button
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                  onClick={() => window.location.href = '/Pricing'}
-                >
-                  View Plans
-                </Button>
-              </div>
-            </div>
-          )}
           {/* Verification Controls */}
-          {!isLocked && companies && companies.length > 0 && (
-            <div className="pt-3">
-              {tier === 'professional' && (
-                <p className="text-white/60 text-xs mb-2">
-                  Usage: {verificationUsageCount} / {monthlyLimit} verifications this month
-                </p>
-              )}
-              <div className="flex items-center gap-2">
+          {companies && companies.length > 0 && (
+            <div className="flex items-center gap-2 pt-3">
+              <Button
+                onClick={handleStartVerification}
+                disabled={isStartingVerification || verifications.length > 0}
+                className="bg-blue-500 hover:bg-blue-400 text-white text-sm"
+                size="sm"
+              >
+                {isStartingVerification ? (
+                  <>
+                    <Clock className="w-3 h-3 mr-1 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3 h-3 mr-1" />
+                    {verifications.length > 0 ? 'Verification Started' : 'Start Verification'}
+                  </>
+                )}
+              </Button>
+              {verifications.length > 0 && (
                 <Button
-                  onClick={handleStartVerification}
-                  disabled={isStartingVerification || verifications.length > 0 || (tier === 'professional' && verificationUsageCount >= monthlyLimit)}
-                  className="bg-blue-500 hover:bg-blue-400 text-white text-sm"
+                  onClick={handleRefreshStatus}
+                  disabled={isRefreshing}
+                  variant="outline"
+                  className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-sm"
                   size="sm"
                 >
-                  {isStartingVerification ? (
-                    <>
-                      <Clock className="w-3 h-3 mr-1 animate-spin" />
-                      Starting...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3 h-3 mr-1" />
-                      {verifications.length > 0 ? 'Verification Started' : 'Start Verification'}
-                    </>
-                  )}
+                  <RefreshCw className={`w-3 h-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Refresh
                 </Button>
-                {verifications.length > 0 && (
-                  <Button
-                    onClick={handleRefreshStatus}
-                    disabled={isRefreshing}
-                    variant="outline"
-                    className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-sm"
-                    size="sm"
-                  >
-                    <RefreshCw className={`w-3 h-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    Refresh
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
           )}
 
-          {!isLocked && companies && companies.length > 0 ? (
+          {companies && companies.length > 0 ? (
             <>
               {companies.map((company, index) => {
                 // Handle both new {name, phone} and legacy string formats
@@ -465,7 +403,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
         <VerificationDetailsModal
           verification={selectedVerification}
           onClose={() => setSelectedVerification(null)}
-          user={user}
         />
       )}
     </>
