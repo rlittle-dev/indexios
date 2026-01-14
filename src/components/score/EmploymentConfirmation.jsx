@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, ChevronDown, AlertCircle, Bug, Play, RefreshCw, Eye, CheckCircle, Clock, XCircle, Activity, FileSearch, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { base44 } from '@/api/base44Client';
 import VerificationDetailsModal from '@/components/verification/VerificationDetailsModal';
 
@@ -17,7 +16,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
         const [verificationSummary, setVerificationSummary] = useState(null);
         const [user, setUser] = useState(null);
         const [verificationUsage, setVerificationUsage] = useState(0);
-        const [verificationProgress, setVerificationProgress] = useState(0);
 
   // Fetch user and verification status on mount
   useEffect(() => {
@@ -60,14 +58,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
     }
 
     setIsStartingVerification(true);
-    
-    // Simulate progress for UI feedback
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 5;
-      if (progress >= 90) clearInterval(progressInterval);
-    }, 200);
-
     try {
       const employers = companies.map(c => ({
         name: c.name,
@@ -95,8 +85,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
     } catch (error) {
       console.error('Error starting verification:', error);
     }
-    
-    clearInterval(progressInterval);
     setIsStartingVerification(false);
   };
 
@@ -282,7 +270,7 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                   {isStartingVerification ? (
                     <>
                       <Clock className="w-3 h-3 mr-1 animate-spin" />
-                      Verifying...
+                      Starting...
                     </>
                   ) : (
                     <>
@@ -308,14 +296,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                 <p className="text-white/40 text-xs">
                   Usage: {verificationUsage} / 25 this month
                 </p>
-              )}
-              {isStartingVerification && (
-                <div className="mt-3">
-                  <Progress value={verificationProgress} className="h-2" />
-                  <p className="text-white/40 text-xs mt-1">
-                    Starting verification for {companies.length} employer{companies.length > 1 ? 's' : ''}...
-                  </p>
-                </div>
               )}
             </div>
           )}

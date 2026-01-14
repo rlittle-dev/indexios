@@ -6,11 +6,9 @@ import { Folder, FolderPlus, Lock, Plus, Trash2, Edit2, Save, X, StickyNote, Arr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import CandidateCard from '@/components/candidates/CandidateCard';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const FOLDER_COLORS = [
   { name: 'blue', class: 'bg-blue-500' },
@@ -37,7 +35,6 @@ export default function SavedCandidates() {
   const [editingFolder, setEditingFolder] = useState(null);
   const [editName, setEditName] = useState('');
   const [candidateNotes, setCandidateNotes] = useState({});
-  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
 
@@ -146,65 +143,6 @@ export default function SavedCandidates() {
   const handleDeleteFolder = (folder) => {
     if (confirm(`Delete folder "${folder.name}"? All saved candidates will be removed.`)) {
       deleteFolderMutation.mutate(folder.id);
-    }
-  };
-
-  const handleViewCandidate = (candidate) => {
-    navigate(createPageUrl('Scan'), { state: { selectedCandidate: candidate } });
-  };
-
-  const handleDownload = async (candidate) => {
-    try {
-      const response = await base44.functions.invoke('getSharedCandidate', {
-        candidateId: candidate.id
-      });
-
-      if (response.data.success) {
-        const element = document.createElement('div');
-        element.innerHTML = `
-          <div style="padding: 40px; font-family: Arial, sans-serif;">
-            <h1 style="color: #7c3aed; margin-bottom: 20px;">Indexios Resume Analysis Report</h1>
-            <h2 style="margin-bottom: 10px;">${candidate.name}</h2>
-            <p style="color: #666; margin-bottom: 30px;">Generated: ${new Date().toLocaleDateString()}</p>
-            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <h3 style="color: #7c3aed; font-size: 48px; margin: 0;">${candidate.legitimacy_score}%</h3>
-              <p style="margin: 0; color: #666;">Legitimacy Score</p>
-            </div>
-            ${candidate.analysis?.summary ? `<p style="margin-bottom: 20px;">${candidate.analysis.summary}</p>` : ''}
-          </div>
-        `;
-        document.body.appendChild(element);
-        
-        const canvas = await html2canvas(element, { scale: 2 });
-        document.body.removeChild(element);
-        
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgData = canvas.toDataURL('image/png');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${candidate.name || 'candidate'}-analysis.pdf`);
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      alert('Failed to download report');
-    }
-  };
-
-  const handleShare = async (candidate) => {
-    try {
-      const response = await base44.functions.invoke('getSharedCandidate', {
-        candidateId: candidate.id
-      });
-
-      if (response.data.success && response.data.shareUrl) {
-        await navigator.clipboard.writeText(response.data.shareUrl);
-        alert('Share link copied to clipboard!');
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-      alert('Failed to generate share link');
     }
   };
 
@@ -447,9 +385,9 @@ export default function SavedCandidates() {
                         >
                           <CandidateCard
                             candidate={saved.candidate}
-                            onClick={() => handleViewCandidate(saved.candidate)}
-                            onDownload={() => handleDownload(saved.candidate)}
-                            onShare={() => handleShare(saved.candidate)}
+                            onClick={() => {}}
+                            onDownload={() => {}}
+                            onShare={() => {}}
                           />
                           
                           <div className="mt-4 pt-4 border-t border-zinc-800">
