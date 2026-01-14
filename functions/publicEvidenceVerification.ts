@@ -5,12 +5,31 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
  * Robust matching with normalization and multiple query strategies
  */
 
-function addArtifact(label, type, value = '', snippet = '') {
+/**
+ * Clean snippet: strip HTML, decode entities, collapse whitespace
+ */
+function cleanSnippet(text) {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>/g, ' ') // Strip HTML tags
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (m, c) => String.fromCharCode(parseInt(c, 10)))
+    .replace(/\s+/g, ' ')
+    .trim()
+    .substring(0, 300); // Cap at 300 chars
+}
+
+function addArtifact(label, type, value = '', snippet = '', sourceType = '') {
   return {
     type,
     value,
     label,
-    snippet,
+    snippet: cleanSnippet(snippet),
+    sourceType,
     timestamp: new Date().toISOString()
   };
 }
@@ -41,8 +60,35 @@ function getLastName(fullName) {
 }
 
 /**
- * Check if person-employer match exists
- * Returns: { found, quality, excerpt }
+ * Extract matched sentence(s) from page text
+ * Finds the sentence containing personName, limited context
+ */
+function extractMatchedSentence(pageText, personName) {
+  if (!pageText || !personName) return '';
+  
+  const idx = pageText.toLowerCase().indexOf(personName.toLowerCase());
+  if (idx === -1) return '';
+  
+  // Find sentence boundaries (. ! ? or newline)
+  let start = idx;
+  let end = idx + personName.length;
+  
+  // Expand to sentence start
+  while (start > 0 && !/[.!?\n]/.test(pageText[start - 1])) {
+    start--;
+  }
+  
+  // Expand to sentence end
+  while (end < pageText.length && !/[.!?\n]/.test(pageText[end])) {
+    end++;
+  }
+  
+  return pageText.substring(start, end).trim();
+}
+
+/**
+ * Check if person-employer match exists in page text
+ * EMPLOYER MATCH IS REQUIRED - only return true if employer is found on page
  */
 function checkMatch(pageText, personName, employerName, personLastName) {
   if (!pageText) return { found: false, quality: 'none', excerpt: '' };
@@ -52,34 +98,26 @@ function checkMatch(pageText, personName, employerName, personLastName) {
   const normLast = normalizeText(personLastName);
   const normEmployer = normalizeText(employerName);
 
-  // Strategy 1: Full name + normalized employer (anywhere in page)
-  if (normPage.includes(normPerson) && normPage.includes(normEmployer)) {
-    // Try to find a short excerpt with both
-    const personIdx = pageText.toLowerCase().indexOf(personName.toLowerCase());
-    if (personIdx > -1) {
-      const start = Math.max(0, personIdx - 50);
-      const end = Math.min(pageText.length, personIdx + personName.length + 100);
-      const excerpt = pageText.substring(start, end);
-      return { found: true, quality: 'high', excerpt };
-    }
-    return { found: true, quality: 'high', excerpt: `${personName} at ${employerName}` };
+  // CRITICAL: Employer must be on the page (otherwise it's contamination)
+  if (!normPage.includes(normEmployer)) {
+    return { found: false, quality: 'none', excerpt: 'employer_not_on_page' };
   }
 
-  // Strategy 2: Last name + strong role phrase (CEO, President, CFO, etc.)
+  // Strategy 1: Full name + employer found on same page
+  if (normPage.includes(normPerson)) {
+    const excerpt = extractMatchedSentence(pageText, personName);
+    return { found: true, quality: 'high', excerpt };
+  }
+
+  // Strategy 2: Last name + senior role phrase
   const seniorRoles = ['ceo', 'chief executive', 'president', 'cfo', 'chief financial', 
                        'coo', 'chief operating', 'cto', 'chief technology',
                        'board', 'director', 'executive vice president', 'evp'];
   const hasRole = seniorRoles.some(role => normPage.includes(role));
 
-  if (hasRole && normPage.includes(normLast) && normPage.includes(normEmployer)) {
-    const lastIdx = pageText.toLowerCase().indexOf(personLastName.toLowerCase());
-    if (lastIdx > -1) {
-      const start = Math.max(0, lastIdx - 50);
-      const end = Math.min(pageText.length, lastIdx + personLastName.length + 150);
-      const excerpt = pageText.substring(start, end);
-      return { found: true, quality: 'medium', excerpt };
-    }
-    return { found: true, quality: 'medium', excerpt: `${personLastName} in ${employerName}` };
+  if (hasRole && normPage.includes(normLast)) {
+    const excerpt = extractMatchedSentence(pageText, personLastName);
+    return { found: true, quality: 'medium', excerpt };
   }
 
   return { found: false, quality: 'none', excerpt: '' };
@@ -181,14 +219,19 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
   const lastNamePerson = getLastName(candidateName);
 
   for (const employer of employers) {
-    console.log(`[Evidence] Processing ${candidateName} @ ${employer.name}...`);
+    // SCOPING: Each employer gets its own isolated evidence record
+    const employerKey = employer.name; // Use full name as key (should be unique per verification)
+    
+    console.log(`[Evidence] Processing ${candidateName} @ ${employerKey}...`);
 
     const debug = {
       normalized_person: normalizeText(candidateName),
       normalized_employer: normalizeText(employer.name),
+      employer_match_required: true,
       queries_used: [],
       fetched_urls: [],
-      matches_found: []
+      matches_found: [],
+      employer_mismatch_rejected: []
     };
 
     try {
@@ -196,7 +239,7 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
       const urls = await searchWithVariants(base44, candidateName, employer.name);
       debug.queries_used = urls.slice(0, 3);
 
-      const sources = [];
+      const sources = []; // SCOPING: Fresh sources array per employer
 
       // Fetch and check each URL
       for (const url of urls) {
@@ -205,9 +248,15 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
 
         const match = checkMatch(pageContent, candidateName, employer.name, lastNamePerson);
         
+        // Reject if employer not found on page (prevents contamination)
+        if (match.excerpt === 'employer_not_on_page') {
+          debug.employer_mismatch_rejected.push({ url, reason: 'employer_not_on_page' });
+          continue;
+        }
+        
         if (match.found) {
-          debug.fetched_urls.push({ url, match_found: true });
-          debug.matches_found.push({ url, quality: match.quality, excerpt: match.excerpt });
+          debug.fetched_urls.push({ url, match_found: true, quality: match.quality });
+          debug.matches_found.push({ url, quality: match.quality, excerpt: match.excerpt.substring(0, 100) });
 
           // Determine source type/quality
           let sourceType = 'news';
@@ -224,41 +273,44 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
             quality = 'HIGH';
           }
 
+          // Create new source object (avoid mutations)
           sources.push({
             url,
             type: sourceType,
             quality,
-            snippet: match.excerpt
+            snippet: match.excerpt,
+            snippetClean: cleanSnippet(match.excerpt)
           });
         } else {
           debug.fetched_urls.push({ url, match_found: false });
         }
       }
 
+      // SCOPING: Each employer record is independent
       if (sources.length > 0) {
         const confidence = calculateConfidence(sources, employer.name, candidateName, employer.jobTitle);
         
-        evidenceByEmployer[employer.name] = {
+        evidenceByEmployer[employerKey] = {
           found: true,
           confidence,
-          sources,
+          sources: JSON.parse(JSON.stringify(sources)), // Deep copy to prevent mutations
           debug
         };
 
-        console.log(`✅ [Evidence] Found ${sources.length} sources for ${candidateName} @ ${employer.name} (${confidence.toFixed(2)} confidence)`);
+        console.log(`✅ [Evidence] Found ${sources.length} sources for ${candidateName} @ ${employerKey} (${confidence.toFixed(2)} confidence)`);
       } else {
-        evidenceByEmployer[employer.name] = {
+        evidenceByEmployer[employerKey] = {
           found: false,
           confidence: 0.1,
           sources: [],
           debug
         };
 
-        console.log(`⚠️ [Evidence] No sources found for ${candidateName} @ ${employer.name}`);
+        console.log(`⚠️ [Evidence] No sources found for ${candidateName} @ ${employerKey}`);
       }
     } catch (error) {
-      console.error(`[Evidence] Error processing ${employer.name}:`, error.message);
-      evidenceByEmployer[employer.name] = {
+      console.error(`[Evidence] Error processing ${employerKey}:`, error.message);
+      evidenceByEmployer[employerKey] = {
         found: false,
         confidence: 0,
         sources: [],
@@ -289,22 +341,30 @@ Deno.serve(async (req) => {
 
     const evidenceByEmployer = await searchPublicEvidenceMultiEmployer(base44, candidateName, employers);
 
-    // Build response
+    // Build response - each employer gets isolated results
     const results = {};
 
     for (const employer of employers) {
-      const evidence = evidenceByEmployer[employer.name];
-      const artifacts = [];
+      const evidence = evidenceByEmployer[employer.name] || {
+        found: false,
+        confidence: 0,
+        sources: [],
+        debug: {}
+      };
+      
+      const artifacts = []; // Fresh artifacts array per employer
 
       let verificationSummary = '';
 
       if (evidence.found && evidence.sources.length > 0) {
+        // Attach artifacts only to this employer
         evidence.sources.forEach(source => {
           artifacts.push(addArtifact(
             `${source.quality} quality source: ${source.type}`,
             'public_evidence',
             source.url,
-            source.snippet
+            source.snippetClean || source.snippet,
+            source.type
           ));
         });
 
@@ -315,12 +375,12 @@ Deno.serve(async (req) => {
           'No public evidence found',
           'public_evidence',
           '',
-          'No credible sources found'
+          'No credible sources found for this employer'
         ));
         verificationSummary = 'No public evidence found - manual verification required.';
       }
 
-      // Outcome determination
+      // Outcome determination (per-employer)
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
 
@@ -338,6 +398,7 @@ Deno.serve(async (req) => {
         status = 'action_required';
       }
 
+      // SCOPING: Each employer has isolated result
       results[employer.name] = {
         found: evidence.found,
         confidence: evidence.confidence,
