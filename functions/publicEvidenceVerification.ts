@@ -26,23 +26,17 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
     // Round 1: Direct searches for each employer individually (MOST EFFECTIVE)
     console.log(`[Public Evidence] Round 1: Direct employer searches...`);
     for (const employer of employers) {
-      const directPrompt = `Search the internet for "${candidateName}" at "${employer.name}".
+      // Search 1a: Current/general mention
+      const directPrompt = `Search for "${candidateName}" "${employer.name}"
 
-Find ANYTHING that mentions both:
-- The name "${candidateName}" (or variations like first name only + last name separately)
-- The company "${employer.name}"
-
-Include:
-- Company website pages (about, team, leadership, employees, staff)
-- Any news articles (major or local)
-- Press releases
-- Business directories
+Find ANY web pages mentioning both the person and company:
+- Company website (team, about, staff pages)
+- News articles or press releases
+- Professional bios or profiles
 - Conference materials
-- Social media posts (company accounts, not personal)
-- Blog posts
-- ANY other source
+- ANY article or page mentioning both
 
-Return EVERY URL that might mention this person at this company.`;
+Return ALL URLs found.`;
 
       try {
         const result = await base44.integrations.Core.InvokeLLM({
@@ -58,10 +52,42 @@ Return EVERY URL that might mention this person at this company.`;
         
         if (result.urls && result.urls.length > 0) {
           allUrls = allUrls.concat(result.urls);
-          console.log(`[Public Evidence] Found ${result.urls.length} URLs for ${candidateName} + ${employer.name}`);
+          console.log(`[Public Evidence] Direct search: ${result.urls.length} URLs for ${candidateName} + ${employer.name}`);
         }
       } catch (error) {
-        console.log(`[Public Evidence] Direct search failed for ${employer.name}: ${error.message}`);
+        console.log(`[Public Evidence] Direct search failed: ${error.message}`);
+      }
+
+      // Search 1b: Past employment/career history
+      const careerPrompt = `Find articles about "${candidateName}" career history that mention past work at "${employer.name}"
+
+Include:
+- Career profiles or bios mentioning past employment
+- News about job changes ("previously at", "formerly with")
+- Alumni pages or directories
+- Professional history summaries
+- ANY mention of past work experience
+
+Return ALL URLs.`;
+
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: careerPrompt,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              urls: { type: "array", items: { type: "string" } }
+            }
+          }
+        });
+        
+        if (result.urls && result.urls.length > 0) {
+          allUrls = allUrls.concat(result.urls);
+          console.log(`[Public Evidence] Career history search: ${result.urls.length} URLs for ${candidateName}`);
+        }
+      } catch (error) {
+        console.log(`[Public Evidence] Career search failed: ${error.message}`);
       }
     }
 
@@ -296,7 +322,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { candidateName, employers } = await req.json();
+    const { candidateName, employers, candidateId } = await req.json();
 
     if (!candidateName || !employers || !Array.isArray(employers)) {
       return Response.json({ 
@@ -304,12 +330,54 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const evidenceByEmployer = await searchPublicEvidenceMultiEmployer(base44, candidateName, employers);
+    // Check cache for existing verified evidence (per employer)
+    const cachedResults = {};
+    if (candidateId) {
+      for (const employer of employers) {
+        const cached = await base44.asServiceRole.entities.EmployerVerification.filter({
+          candidateId,
+          employerName: employer.name,
+          outcome: 'verified_public_evidence',
+          status: 'completed'
+        }, '-created_date', 1);
+
+        if (cached.length > 0) {
+          const cachedVerif = cached[0];
+          console.log(`[Public Evidence] ✅ CACHE HIT for ${candidateName} at ${employer.name}`);
+          
+          cachedResults[employer.name] = {
+            found: true,
+            confidence: cachedVerif.confidence || 0.8,
+            outcome: cachedVerif.outcome,
+            isVerified: cachedVerif.isVerified,
+            status: cachedVerif.status,
+            artifacts: cachedVerif.proofArtifacts || [],
+            reasoning: `Cached verification result from ${new Date(cachedVerif.created_date).toLocaleDateString()}`
+          };
+        }
+      }
+    }
+
+    // Only search for employers not in cache
+    const employersToSearch = employers.filter(e => !cachedResults[e.name]);
+    console.log(`[Public Evidence] Cache: ${Object.keys(cachedResults).length} found, searching ${employersToSearch.length} employers`);
+
+    let evidenceByEmployer = {};
+    if (employersToSearch.length > 0) {
+      evidenceByEmployer = await searchPublicEvidenceMultiEmployer(base44, candidateName, employersToSearch);
+    }
 
     // Build response with artifacts for each employer
     const results = {};
     
     for (const employer of employers) {
+      // Use cached result if available
+      if (cachedResults[employer.name]) {
+        results[employer.name] = cachedResults[employer.name];
+        console.log(`[Public Evidence] Using cached result for ${employer.name}`);
+        continue;
+      }
+
       const evidence = evidenceByEmployer[employer.name];
       const artifacts = [];
       
