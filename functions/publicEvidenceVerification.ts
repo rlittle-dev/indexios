@@ -22,62 +22,118 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
   const employerNames = employers.map(e => e.name).join(', ');
 
   try {
-    // STEP 1: Find relevant URLs
-    const searchPrompt = `Find web pages that mention "${candidateName}" and their work history.
-
-Look for pages that show employment at any of these companies: ${employerNames}
+    // STEP 1: Comprehensive URL discovery - search multiple angles
+    const searchPrompts = [
+      // Primary search - direct career mentions
+      `Find web pages that mention "${candidateName}" and their work history at: ${employerNames}
 
 Search for:
-- Company websites (about, leadership, team, executives, press releases)
-- News articles from business publications
-- SEC filings if these are public companies
-- Press releases and announcements
+- Company websites: about us, leadership, team pages, executive bios, board members
+- Company press releases and announcements
+- SEC filings (10-K, 8-K, proxy statements, DEF 14A)
+- News articles from business publications (Bloomberg, Reuters, WSJ, Forbes, Business Insider, TechCrunch)
+- Industry publications and trade journals
+- Conference speaker pages and event listings
+- Patent filings and research publications
 
-Return URLs that likely contain career/employment information.`;
+Return ALL relevant URLs.`,
 
-    let searchUrls = [];
-    try {
-      const searchResult = await base44.integrations.Core.InvokeLLM({
-        prompt: searchPrompt,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            urls: { type: "array", items: { type: "string" } }
+      // Secondary search - news and media
+      `Search news articles and media coverage mentioning "${candidateName}" in connection with any of: ${employerNames}
+
+Include:
+- Press releases from PR Newswire, Business Wire, GlobeNewswire
+- Industry news sites and trade publications
+- Local business journals
+- Professional association announcements
+- Award announcements and recognition
+- Speaking engagements and conference materials
+
+Return URLs to articles and news sources.`,
+
+      // Tertiary search - professional context
+      `Find professional mentions of "${candidateName}" related to work at: ${employerNames}
+
+Look for:
+- Company blog posts and case studies
+- Podcast transcripts and video descriptions
+- Webinar speaker bios
+- Corporate social responsibility reports
+- Annual reports and sustainability reports
+- Acquisition and merger announcements
+- Product launch announcements
+
+Return URLs that show professional activity.`
+    ];
+
+    let allUrls = [];
+    for (const prompt of searchPrompts) {
+      try {
+        const searchResult = await base44.integrations.Core.InvokeLLM({
+          prompt,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              urls: { type: "array", items: { type: "string" } }
+            }
           }
+        });
+        if (searchResult.urls && searchResult.urls.length > 0) {
+          allUrls = allUrls.concat(searchResult.urls);
         }
-      });
-      searchUrls = searchResult.urls || [];
-      console.log(`[Public Evidence] Found ${searchUrls.length} candidate URLs`);
-    } catch (error) {
-      console.log(`[Public Evidence] URL search failed: ${error.message}`);
+      } catch (error) {
+        console.log(`[Public Evidence] Search round failed: ${error.message}`);
+      }
     }
 
-    // STEP 2: Validate employment at each company
-    const validationPrompt = `You are verifying employment history for "${candidateName}".
+    // Deduplicate URLs
+    const searchUrls = [...new Set(allUrls)];
+    console.log(`[Public Evidence] Found ${searchUrls.length} unique candidate URLs`);
+    
+    if (searchUrls.length === 0) {
+      console.log(`[Public Evidence] No URLs found, may indicate low public profile`);
+    }
 
-CRITICAL RULES:
+    // STEP 2: Deep validation across all discovered sources
+    const validationPrompt = `You are conducting a comprehensive employment verification for "${candidateName}".
+
+CRITICAL VERIFICATION RULES:
 1. Full name "${candidateName}" must appear (both first and last name together)
-2. Do NOT accept just last name matches
-3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia
-4. ONLY use: company websites, SEC filings, reputable news (Bloomberg, Reuters, WSJ, Forbes, Business Insider), press releases
+2. Do NOT accept just last name matches or similar names
+3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia, personal blogs
+4. ONLY use: company websites, SEC filings, reputable news outlets, press releases, industry publications
 
-Companies to check: ${employerNames}
+Companies to verify: ${employerNames}
 
-${searchUrls.length > 0 ? `Priority sources:\n${searchUrls.slice(0, 8).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+${searchUrls.length > 0 ? `SOURCES TO ANALYZE (${searchUrls.length} total):\n${searchUrls.slice(0, 20).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+
+THOROUGH ANALYSIS REQUIRED:
+For EACH company, perform comprehensive search:
+- Check company website (about, team, leadership, press releases)
+- Review SEC filings (10-K, 8-K, proxy statements for executive mentions)
+- Search news archives (Bloomberg, Reuters, WSJ, Forbes, Business Insider, TechCrunch)
+- Check press release databases (PR Newswire, Business Wire)
+- Review industry publications and trade journals
+- Look for conference speaker listings and event participation
+- Check patent filings and research publications
 
 For EACH company, determine:
-- Did you find the full name "${candidateName}" associated with this company?
-- What credible sources confirm this?
-- What was their role (if mentioned)?
+- Did you find the full name "${candidateName}" explicitly mentioned with this company?
+- What specific sources confirm this employment?
+- What was their role/title (if mentioned)?
+- What dates or timeframe (if mentioned)?
+- What context provides confidence this is the correct person?
 
 Return results for each company separately, even if one source mentions multiple employers.
 
-Quality levels:
-- HIGH (0.85-1.0): Company website/SEC filing with full name, OR 2+ news sources
-- MEDIUM (0.6-0.84): Single news article with full name
-- LOW (0.3-0.59): Weak/ambiguous sources
-- NONE (0-0.29): No full name matches`;
+CONFIDENCE SCORING:
+- HIGH (0.85-1.0): Multiple high-quality sources (company website + news, or SEC filing + press release, or 3+ news articles)
+- MEDIUM (0.6-0.84): Single high-quality source (company website OR reputable news article with full name and role)
+- LOW (0.3-0.59): Weak or ambiguous sources (brief mentions, unclear context)
+- NONE (0-0.29): No full name matches or credible sources found
+
+Be thorough - spend time analyzing all sources for lower-profile candidates.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
