@@ -160,13 +160,13 @@ async function runWebPolicyDiscovery(base44, employerName, employerDomain) {
 /**
  * Main orchestrator: determines stages, next steps, and routes
  */
-export async function orchestrateVerification(base44, employerName, employerPhone) {
+export async function orchestrateVerification(base44, employerName, employerPhone, candidateName = '', jobTitle = '') {
   const employerDomain = normalizeEmployerDomain(employerName);
   const artifacts = [];
   let stage = 'contact_enrichment';
   let stageHistory = [{ stage: 'contact_enrichment', timestamp: new Date().toISOString() }];
 
-  console.log(`[Orchestrator] Starting verification for ${employerName}`);
+  console.log(`[Orchestrator] Starting verification for ${candidateName || 'unknown'} at ${employerName}`);
 
   // STAGE 1: Contact Enrichment
   if (employerPhone) {
@@ -216,10 +216,93 @@ export async function orchestrateVerification(base44, employerName, employerPhon
         proofArtifacts: artifacts
       };
     }
+  }
 
-    // Policy found but not network-only - need to determine next verification step
+  // STAGE 3: Public Evidence Verification (automatic, runs for all non-network cases)
+  if (candidateName) {
+    stage = 'public_evidence_verification';
+    stageHistory.push({ stage: 'public_evidence_verification', timestamp: new Date().toISOString() });
+
+    console.log(`[Orchestrator] Running public evidence verification for ${candidateName}`);
+
+    try {
+      const evidenceResponse = await base44.functions.invoke('publicEvidenceVerification', {
+        candidateName,
+        employerName,
+        jobTitle
+      });
+
+      if (evidenceResponse.data.success) {
+        artifacts.push(...evidenceResponse.data.artifacts);
+
+        // If high confidence public evidence found, mark as verified
+        if (evidenceResponse.data.isVerified && evidenceResponse.data.confidence >= 0.85) {
+          stage = 'completion';
+          stageHistory.push({ stage: 'completion', timestamp: new Date().toISOString() });
+
+          console.log(`[Orchestrator] ✅ Verified via public evidence (${evidenceResponse.data.confidence})`);
+
+          return {
+            stage,
+            stageHistory,
+            status: 'completed',
+            outcome: 'verified_public_evidence',
+            method: 'public_evidence',
+            confidence: evidenceResponse.data.confidence,
+            isVerified: true,
+            nextSteps: [],
+            proofArtifacts: artifacts
+          };
+        }
+
+        // Medium confidence - public evidence helps but not conclusive
+        if (evidenceResponse.data.confidence >= 0.6) {
+          console.log(`[Orchestrator] Partial public evidence found (${evidenceResponse.data.confidence})`);
+          
+          // If we also have a policy, combine them
+          if (policyResult.policyFound) {
+            return {
+              stage,
+              stageHistory,
+              status: 'action_required',
+              outcome: 'policy_identified',
+              method: 'policy_discovery',
+              confidence: Math.max(0.7, evidenceResponse.data.confidence),
+              isVerified: false,
+              nextSteps: [
+                {
+                  action: 'send_email_request',
+                  label: 'Send verification request email',
+                  enabled: false,
+                  priority: 1
+                },
+                {
+                  action: 'start_ai_policy_call',
+                  label: 'Start AI call for detailed policy',
+                  enabled: false,
+                  priority: 2
+                }
+              ],
+              proofArtifacts: artifacts
+            };
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[Orchestrator] Public evidence check failed:', error);
+      artifacts.push(addArtifact(
+        'Public evidence check failed',
+        'public_evidence',
+        '',
+        error.message
+      ));
+    }
+  }
+
+  // If policy found but no strong public evidence
+  if (policyResult.policyFound) {
     return {
-      stage,
+      stage: 'policy_discovery',
       stageHistory,
       status: 'action_required',
       outcome: 'policy_identified',
@@ -244,11 +327,11 @@ export async function orchestrateVerification(base44, employerName, employerPhon
     };
   }
 
-  // No policy found - determine next steps based on contact info
+  // No policy or strong evidence - determine next steps based on contact info
   if (employerPhone) {
-    // Have phone but no policy - AI call is needed
+    // Have phone but no policy/evidence - AI call is needed
     return {
-      stage,
+      stage: stage === 'public_evidence_verification' ? stage : 'policy_discovery',
       stageHistory,
       status: 'action_required',
       outcome: 'contact_identified',
@@ -299,13 +382,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { employerName, employerPhone } = await req.json();
+    const { employerName, employerPhone, candidateName, jobTitle } = await req.json();
 
     if (!employerName) {
       return Response.json({ error: 'Missing employerName' }, { status: 400 });
     }
 
-    const result = await orchestrateVerification(base44, employerName, employerPhone);
+    const result = await orchestrateVerification(base44, employerName, employerPhone, candidateName, jobTitle);
 
     return Response.json({
       success: true,

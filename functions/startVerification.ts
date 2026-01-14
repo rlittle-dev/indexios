@@ -4,11 +4,13 @@ function normalizeEmployerDomain(name) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 }
 
-async function orchestrateVerificationFlow(base44, employerName, employerPhone) {
+async function orchestrateVerificationFlow(base44, employerName, employerPhone, candidateName = '', jobTitle = '') {
   // Call the verification orchestrator
   const response = await base44.functions.invoke('verificationOrchestrator', {
     employerName,
-    employerPhone
+    employerPhone,
+    candidateName,
+    jobTitle
   });
 
   if (!response.data.success) {
@@ -37,10 +39,15 @@ Deno.serve(async (req) => {
 
     console.log(`Starting verification for ${employers.length} employers on candidate ${candidateId}`);
 
+    // Get candidate info for public evidence matching
+    const candidates = await base44.entities.Candidate.filter({ id: candidateId });
+    const candidate = candidates.length > 0 ? candidates[0] : null;
+    const candidateName = candidate?.name || '';
+
     const verificationRecords = [];
 
     for (const employer of employers) {
-      const { name, phone } = employer;
+      const { name, phone, jobTitle } = employer;
       if (!name) continue;
 
       // Check if verification already exists
@@ -55,8 +62,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Run orchestrator
-      const result = await orchestrateVerificationFlow(base44, name, phone);
+      // Run orchestrator with candidate info for public evidence
+      const result = await orchestrateVerificationFlow(base44, name, phone, candidateName, jobTitle);
 
       // Create verification record
       const verificationData = {
@@ -64,6 +71,8 @@ Deno.serve(async (req) => {
         employerName: name,
         employerDomain: normalizeEmployerDomain(name),
         employerPhone: phone || '',
+        candidateName,
+        candidateJobTitle: jobTitle || '',
         stage: result.stage,
         stageHistory: result.stageHistory,
         status: result.status,

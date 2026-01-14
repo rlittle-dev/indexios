@@ -21,6 +21,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
   const methodIcons = {
     contact_enrichment: <FileSearch className="w-4 h-4" />,
     policy_discovery: <FileSearch className="w-4 h-4" />,
+    public_evidence: <FileSearch className="w-4 h-4" />,
     email_request: <Mail className="w-4 h-4" />,
     network: <Network className="w-4 h-4" />,
     phone_call: <Phone className="w-4 h-4" />
@@ -41,6 +42,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
   const getOutcomeColor = (outcome) => {
     const colors = {
       verified: 'bg-green-900/40 text-green-300',
+      verified_public_evidence: 'bg-emerald-900/40 text-emerald-300',
       contact_identified: 'bg-cyan-900/40 text-cyan-300',
       policy_identified: 'bg-blue-900/40 text-blue-300',
       network_required: 'bg-purple-900/40 text-purple-300',
@@ -224,8 +226,18 @@ export default function VerificationDetailsModal({ verification, onClose }) {
                         </Badge>
                       </div>
                       {artifact.value && (
-                        <p className="text-white/40 text-xs break-all font-mono bg-black/20 rounded p-2">
+                        <a 
+                          href={artifact.value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-xs break-all font-mono bg-black/20 rounded p-2 block hover:bg-black/30 transition-colors"
+                        >
                           {artifact.value}
+                        </a>
+                      )}
+                      {artifact.snippet && (
+                        <p className="text-white/50 text-xs italic mt-2 border-l-2 border-white/10 pl-2">
+                          "{artifact.snippet}"
                         </p>
                       )}
                     </div>
