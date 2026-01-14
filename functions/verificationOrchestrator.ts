@@ -229,30 +229,57 @@ export async function orchestrateVerification(base44, employerName, employerPhon
 
     artifacts.push(...publicEvidenceResult.artifacts);
 
-    console.log(`[Orchestrator] People evidence: found=${publicEvidenceResult.found}, confidence=${publicEvidenceResult.confidence}, outcome=${publicEvidenceResult.outcome}`);
-
-    // Check if people evidence was found (ANY artifacts = verified)
-    const hasAnyArtifacts = artifacts.length > 0 && artifacts.some(a => 
-      a.type === 'people_evidence' && !a.label.toLowerCase().includes('no')
-    );
-    
-    if (publicEvidenceResult.outcome === 'people_evidence_found' || hasAnyArtifacts) {
+    // If high confidence public evidence found, mark as verified
+    if (publicEvidenceResult.isVerified && publicEvidenceResult.confidence >= 0.85) {
       stage = 'completion';
       stageHistory.push({ stage: 'completion', timestamp: new Date().toISOString() });
 
-      console.log(`[Orchestrator] ✅ People evidence found with ${artifacts.length} artifact(s) - VERIFIED`);
+      console.log(`[Orchestrator] ✅ Verified via public evidence (${publicEvidenceResult.confidence})`);
 
       return {
         stage,
         stageHistory,
         status: 'completed',
-        outcome: 'people_evidence_found',
-        method: 'people_evidence',
-        confidence: 1.0, // Always 100% if we have artifacts
-        isVerified: true, // Always true if we have artifacts
+        outcome: 'verified_public_evidence',
+        method: 'public_evidence',
+        confidence: publicEvidenceResult.confidence,
+        isVerified: true,
         nextSteps: [],
         proofArtifacts: artifacts
       };
+    }
+
+    // Medium confidence - public evidence helps but not conclusive
+    if (publicEvidenceResult.confidence >= 0.6) {
+      console.log(`[Orchestrator] Partial public evidence found (${publicEvidenceResult.confidence})`);
+      
+      // If we also have a policy, combine them
+      if (policyResult.policyFound) {
+        return {
+          stage,
+          stageHistory,
+          status: 'action_required',
+          outcome: 'policy_identified',
+          method: 'policy_discovery',
+          confidence: Math.max(0.7, publicEvidenceResult.confidence),
+          isVerified: false,
+          nextSteps: [
+            {
+              action: 'send_email_request',
+              label: 'Send verification request email',
+              enabled: false,
+              priority: 1
+            },
+            {
+              action: 'start_ai_policy_call',
+              label: 'Start AI call for detailed policy',
+              enabled: false,
+              priority: 2
+            }
+          ],
+          proofArtifacts: artifacts
+        };
+      }
     }
   }
 

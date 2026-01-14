@@ -53,7 +53,6 @@ Deno.serve(async (req) => {
       try {
         const evidenceResponse = await base44.functions.invoke('publicEvidenceVerification', {
           candidateName,
-          candidateId,
           employers: employers.map(e => ({ name: e.name, jobTitle: e.jobTitle }))
         });
 
@@ -92,13 +91,6 @@ Deno.serve(async (req) => {
       const result = await orchestrateVerificationFlow(base44, name, phone, candidateName, jobTitle, publicEvidence);
 
       // Create verification record
-      // If has people evidence artifacts, force to completed/verified
-      const hasArtifacts = result.proofArtifacts && 
-        result.proofArtifacts.length > 0 &&
-        result.proofArtifacts.some(a => 
-          a.type === 'people_evidence' && !a.label.toLowerCase().includes('no')
-        );
-      
       const verificationData = {
         candidateId,
         employerName: name,
@@ -108,17 +100,17 @@ Deno.serve(async (req) => {
         candidateJobTitle: jobTitle || '',
         stage: result.stage,
         stageHistory: result.stageHistory,
-        status: hasArtifacts ? 'completed' : result.status,
-        outcome: hasArtifacts ? 'people_evidence_found' : result.outcome,
+        status: result.status,
+        outcome: result.outcome,
         method: result.method,
-        confidence: hasArtifacts ? 1.0 : result.confidence,
-        isVerified: hasArtifacts ? true : result.isVerified,
+        confidence: result.confidence,
+        isVerified: result.isVerified,
         nextSteps: result.nextSteps,
         proofArtifacts: result.proofArtifacts
       };
 
-      // Set completedAt if has artifacts or status is completed
-      if (hasArtifacts || result.status === 'completed') {
+      // Only set completedAt if status is completed
+      if (result.status === 'completed') {
         verificationData.completedAt = new Date().toISOString();
       }
 

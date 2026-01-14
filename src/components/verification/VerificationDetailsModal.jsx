@@ -1,21 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Clock, Network, Mail, Phone, FileSearch, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { base44 } from '@/api/base44Client';
 
 export default function VerificationDetailsModal({ verification, onClose }) {
   const [showDebug, setShowDebug] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-    };
-    fetchUser();
-  }, []);
 
   if (!verification) return null;
 
@@ -175,7 +165,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
                       <div key={idx} className="bg-zinc-800/50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-white/40 text-xs">#{idx + 1}</span>
+                            <span className="text-white/40 text-xs">#{step.priority || idx + 1}</span>
                             <span className="text-white text-sm">{step.label}</span>
                           </div>
                           <Badge variant={step.enabled ? "default" : "outline"} className="text-xs">
@@ -220,74 +210,38 @@ export default function VerificationDetailsModal({ verification, onClose }) {
               <div>
                 <h3 className="text-white/60 text-sm font-medium mb-2">Evidence & Audit Trail</h3>
                 <div className="space-y-2">
-                  {verification.proofArtifacts.map((artifact, idx) => {
-                    const isPeopleEvidence = artifact.type === 'people_evidence' && 
-                      artifact.label && 
-                      !artifact.label.toLowerCase().includes('no');
-                    const isRocketReach = artifact.label?.includes('RocketReach');
-                    const isPositiveEvidence = isPeopleEvidence;
-
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`bg-zinc-800/50 rounded-lg p-3 border-l-2 ${
-                          isRocketReach ? 'border-purple-500/60' :
-                          isPositiveEvidence ? 'border-green-500/50' : 'border-blue-500/30'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex-1">
-                            {isRocketReach && (
-                              <div className="mb-1">
-                                <span className="text-purple-400 text-xs font-bold">🚀 ROCKETREACH</span>
-                              </div>
-                            )}
-                            <p className={`text-sm font-medium ${
-                              isRocketReach ? 'text-purple-300' :
-                              isPositiveEvidence ? 'text-green-300' : 'text-white/80'
-                            }`}>
-                              {artifact.label}
+                  {verification.proofArtifacts.map((artifact, idx) => (
+                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3 border-l-2 border-blue-500/30">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1">
+                          <p className="text-white/80 text-sm font-medium">{artifact.label}</p>
+                          {artifact.timestamp && (
+                            <p className="text-white/30 text-xs mt-0.5">
+                              {new Date(artifact.timestamp).toLocaleString()}
                             </p>
-                            {artifact.timestamp && (
-                              <p className="text-white/30 text-xs mt-0.5">
-                                {new Date(artifact.timestamp).toLocaleString()}
-                              </p>
-                            )}
-                          </div>
-                          <Badge 
-                            variant="outline" 
-                            className={`text-xs ${
-                              isPositiveEvidence 
-                                ? 'border-green-500/40 text-green-300' 
-                                : 'border-blue-500/30 text-blue-300'
-                            }`}
-                          >
-                            {artifact.type.replace('_', ' ')}
-                          </Badge>
+                          )}
                         </div>
-                        {artifact.value && artifact.value.startsWith('http') && (
-                          <a 
-                            href={artifact.value}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-xs break-all font-mono bg-black/20 rounded p-2 block hover:bg-black/30 transition-colors"
-                          >
-                            🔗 {artifact.value}
-                          </a>
-                        )}
-                        {artifact.value && !artifact.value.startsWith('http') && artifact.value.trim() && (
-                          <p className="text-white/60 text-xs mt-2 font-mono bg-black/20 rounded p-2">
-                            {artifact.value}
-                          </p>
-                        )}
-                        {artifact.snippet && (
-                          <p className="text-white/50 text-xs italic mt-2 border-l-2 border-white/10 pl-2">
-                            {artifact.snippet}
-                          </p>
-                        )}
+                        <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
+                          {artifact.type}
+                        </Badge>
                       </div>
-                    );
-                  })}
+                      {artifact.value && (
+                        <a 
+                          href={artifact.value}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-xs break-all font-mono bg-black/20 rounded p-2 block hover:bg-black/30 transition-colors"
+                        >
+                          {artifact.value}
+                        </a>
+                      )}
+                      {artifact.snippet && (
+                        <p className="text-white/50 text-xs italic mt-2 border-l-2 border-white/10 pl-2">
+                          "{artifact.snippet}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -326,30 +280,28 @@ export default function VerificationDetailsModal({ verification, onClose }) {
               </div>
             )}
 
-            {/* Debug Toggle - Admin Only */}
-            {user?.role === 'admin' && (
-              <div className="pt-4 border-t border-zinc-800">
-                <button
-                  onClick={() => setShowDebug(!showDebug)}
-                  className="flex items-center gap-2 text-white/40 hover:text-white/60 text-sm transition-colors"
-                >
-                  <Bug className="w-4 h-4" />
-                  <span>{showDebug ? 'Hide' : 'Show'} debug info</span>
-                </button>
+            {/* Debug Toggle */}
+            <div className="pt-4 border-t border-zinc-800">
+              <button
+                onClick={() => setShowDebug(!showDebug)}
+                className="flex items-center gap-2 text-white/40 hover:text-white/60 text-sm transition-colors"
+              >
+                <Bug className="w-4 h-4" />
+                <span>{showDebug ? 'Hide' : 'Show'} debug info</span>
+              </button>
 
-                {showDebug && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mt-3 bg-black/30 rounded-lg p-4 overflow-x-auto"
-                  >
-                    <pre className="text-white/60 text-xs font-mono">
-                      {JSON.stringify(verification, null, 2)}
-                    </pre>
-                  </motion.div>
-                )}
-              </div>
-            )}
+              {showDebug && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-3 bg-black/30 rounded-lg p-4 overflow-x-auto"
+                >
+                  <pre className="text-white/60 text-xs font-mono">
+                    {JSON.stringify(verification, null, 2)}
+                  </pre>
+                </motion.div>
+              )}
+            </div>
           </div>
 
           {/* Footer */}

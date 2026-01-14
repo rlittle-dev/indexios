@@ -99,34 +99,10 @@ function normalizePhone(raw) {
 
 // Extract tel: links from HTML
 function extractTelLinks(html) {
-const candidates = [];
-
-// Extract tel: links
-const telRegex = /href=["']tel:([^"']+)["']/gi;
-let match;
-while ((match = telRegex.exec(html)) !== null) {
-  const raw = match[1];
-  const normalized = normalizePhone(raw);
-  if (normalized) {
-    candidates.push({
-      raw: normalized.raw,
-      digits: normalized.raw.replace(/\D/g, ''),
-      source: 'tel',
-      context_snippet: raw.substring(0, 100),
-    });
-  }
-}
-
-// Also extract phones near contact/phone keywords
-const contextPatterns = [
-  /(?:contact|phone|call|tel|telephone|reach\s+us|get\s+in\s+touch)[:\s]*([+\d][\d\s\-().]{8,})/gi,
-  /(?:customer\s+service|support|help)[:\s]*([+\d][\d\s\-().]{8,})/gi,
-  /(?:toll\s+free|hotline)[:\s]*([+\d][\d\s\-().]{8,})/gi
-];
-
-for (const pattern of contextPatterns) {
-  pattern.lastIndex = 0;
-  while ((match = pattern.exec(html)) !== null) {
+  const candidates = [];
+  const telRegex = /href=["']tel:([^"']+)["']/gi;
+  let match;
+  while ((match = telRegex.exec(html)) !== null) {
     const raw = match[1];
     const normalized = normalizePhone(raw);
     if (normalized) {
@@ -134,13 +110,11 @@ for (const pattern of contextPatterns) {
         raw: normalized.raw,
         digits: normalized.raw.replace(/\D/g, ''),
         source: 'tel',
-        context_snippet: match[0].substring(0, 100),
+        context_snippet: raw.substring(0, 100),
       });
     }
   }
-}
-
-return candidates;
+  return candidates;
 }
 
 // Extract phones from plain text (HTML stripped)
@@ -382,38 +356,30 @@ async function fetchPage(url, timeout = 8000) {
 }
 
 async function searchForUrls(companyName, base44) {
+  const queries = [
+    `${companyName} contact us phone number`,
+    `${companyName} customer service contact`,
+    `${companyName} headquarters address phone`,
+  ];
+  
   try {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Find ALL pages for "${companyName}" that might contain phone numbers.
-
-Search VERY BROADLY - return 10-15 URLs including:
-- Main homepage
-- Contact page (contact, contact-us, get-in-touch)
-- About page (about, about-us, company)
-- Support/Help pages (support, help, customer-service)
-- Press/Media page (press, media, newsroom)
-- Locations/Offices page (locations, offices, find-us)
-- Careers page (careers, jobs, work-with-us)
-- Team/Leadership page (team, leadership, management)
-- Footer links with phone numbers
-- FAQ pages that might list phone numbers
-
-Return comprehensive list of URLs from official company domain.`,
+      prompt: `Find official contact pages for: ${companyName}. Search queries: ${queries.join(' | ')}. Return top 6–8 URLs from the official company domain only. Include /contact, /about, /careers, /locations, /support. Return as JSON.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: 'object',
         properties: {
           urls: {
             type: 'array',
-            items: { type: 'string' }
-          }
-        }
+            items: { type: 'string' },
+            description: 'Official company URLs',
+          },
+        },
+        required: ['urls'],
       },
     });
     
-    const urls = result.urls ? result.urls.filter(u => typeof u === 'string' && u.includes('http')) : [];
-    console.log(`[URL Discovery] Found ${urls.length} URLs to scrape`);
-    return urls;
+    return result.urls ? result.urls.filter(u => typeof u === 'string' && u.includes('http')).slice(0, 8) : [];
   } catch (error) {
     console.error('URL search failed:', error.message);
     return [];
@@ -492,18 +458,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'company_name required', debug }, { status: 400 });
     }
     
-    // STEP 1: Aggressive URL Discovery
+    // STEP 1: URL Discovery
     debug.stage = 'discovery';
-    console.log(`📍 Starting AGGRESSIVE URL discovery for: ${company_name}`);
-    
     const officialUrls = await searchForUrls(company_name, base44);
     debug.official_urls = officialUrls;
-    
-    console.log(`📍 URL DISCOVERY: found ${officialUrls.length} URLs to scrape`);
+    console.log(`📍 URL DISCOVERY: found ${officialUrls.length} official URLs`);
     if (officialUrls.length > 0) {
-      console.log(`   First 5 URLs:\n${officialUrls.slice(0, 5).map(u => `   - ${u}`).join('\n')}`);
-    } else {
-      console.log(`   ⚠️ WARNING: No URLs found - this is unusual`);
+      console.log(`   URLs: ${officialUrls.slice(0, 3).join(', ')}`);
     }
     
     // STEP 2: Fetch + Extract
@@ -532,13 +493,8 @@ Deno.serve(async (req) => {
           console.log(`⚠️  WARN: ${url} very small (${fetchResult.raw_html_length} bytes)`);
         }
         
-        // Add filtered candidates with source URL
-        const candidatesWithSource = extraction.filtered.map(c => ({
-          ...c,
-          source_url: url
-        }));
-        
-        officialCandidates.push(...candidatesWithSource);
+        // Add filtered candidates to official candidates
+        officialCandidates.push(...extraction.filtered);
         
         // Track ALL extracted (for debug)
         allExtractedCandidates.push(...extraction.all);
@@ -547,12 +503,7 @@ Deno.serve(async (req) => {
         const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
         lastResult.candidates_found = extraction.filtered.length;
         
-        const isContactPage = url.toLowerCase().includes('/contact');
-        console.log(`✅ EXTRACTED: ${url}${isContactPage ? ' (CONTACT PAGE - HIGH PRIORITY)' : ''}`);
-        console.log(`   Total extracted: ${extraction.total}, After filtering: ${extraction.filtered.length}`);
-        if (extraction.filtered.length > 0) {
-          console.log(`   Best phone: ${extraction.filtered[0].raw} (source: ${extraction.filtered[0].source})`);
-        }
+        console.log(`✅ FETCH: ${url} (${fetchResult.status}) → ${fetchResult.raw_html_length} bytes → extracted ${extraction.total} total, ${extraction.filtered.length} after filtering`);
       } else {
         console.log(`❌ FETCH FAILED: ${url} (${fetchResult.status})${fetchResult.error ? ' - ' + fetchResult.error : ''}`);
       }
