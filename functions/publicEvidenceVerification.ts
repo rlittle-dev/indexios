@@ -99,6 +99,37 @@ Return ALL URLs with any professional mention - leave no stone unturned.`
         console.log(`[Public Evidence] Search round failed: ${error.message}`);
       }
     }
+    
+    // ADDITIONAL SEARCH: Direct name + company queries for each employer
+    for (const employer of employers) {
+      try {
+        const directSearch = await base44.integrations.Core.InvokeLLM({
+          prompt: `Find ANY articles or web pages mentioning "${candidateName}" and "${employer.name}" together.
+
+Search for:
+- "${candidateName}" AND "${employer.name}"
+- "${candidateName}" + role/title at "${employer.name}"
+- News about "${candidateName}" at "${employer.name}"
+- "${employer.name}" + employee/staff/team + "${candidateName}"
+
+Return ALL URLs found, no matter how small the publication.`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              urls: { type: "array", items: { type: "string" } }
+            }
+          }
+        });
+        
+        if (directSearch.urls && directSearch.urls.length > 0) {
+          allUrls = allUrls.concat(directSearch.urls);
+          console.log(`[Public Evidence] Direct search for ${candidateName} + ${employer.name}: found ${directSearch.urls.length} URLs`);
+        }
+      } catch (error) {
+        console.log(`[Public Evidence] Direct search failed for ${employer.name}: ${error.message}`);
+      }
+    }
 
     // Deduplicate URLs
     const searchUrls = [...new Set(allUrls)];
@@ -109,46 +140,44 @@ Return ALL URLs with any professional mention - leave no stone unturned.`
     }
 
     // STEP 2: Deep validation across all discovered sources
-    const validationPrompt = `You are conducting a comprehensive employment verification for "${candidateName}".
+    const validationPrompt = `You are conducting a COMPREHENSIVE employment verification for "${candidateName}".
 
-CRITICAL VERIFICATION RULES:
-1. Full name "${candidateName}" must appear (both first and last name together)
-2. Do NOT accept just last name matches or similar names
-3. EXCLUDE ONLY: LinkedIn, Twitter, Facebook, Instagram, Wikipedia (personal social media)
-4. ACCEPT ANY credible sources including: company websites, SEC filings, ANY news outlets (major or local), press releases, industry publications, trade journals, local business news, company blogs, professional podcasts, conference materials, patents, research papers, awards/recognition announcements, speaking engagements
-
-BE BROAD: Accept any professional mention that confirms employment, even from smaller publications or local news
+SEARCH EVERYWHERE - BE EXTREMELY THOROUGH:
+1. Company websites (any page mentioning employees)
+2. ALL news articles (major outlets, local news, trade publications, blogs)
+3. Press releases (any service)
+4. SEC filings for public companies
+5. Conference speaker lists
+6. Award announcements
+7. Podcast transcripts
+8. Company social media posts (non-personal accounts)
+9. Business directories
+10. Industry reports
 
 Companies to verify: ${employerNames}
 
-${searchUrls.length > 0 ? `SOURCES TO ANALYZE (${searchUrls.length} total):\n${searchUrls.slice(0, 20).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+${searchUrls.length > 0 ? `ANALYZE THESE SOURCES (${searchUrls.length} total):\n${searchUrls.slice(0, 20).map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
-THOROUGH ANALYSIS REQUIRED:
-For EACH company, perform comprehensive search:
-- Check company website (about, team, leadership, press releases)
-- Review SEC filings (10-K, 8-K, proxy statements for executive mentions)
-- Search news archives (Bloomberg, Reuters, WSJ, Forbes, Business Insider, TechCrunch)
-- Check press release databases (PR Newswire, Business Wire)
-- Review industry publications and trade journals
-- Look for conference speaker listings and event participation
-- Check patent filings and research publications
+MATCHING RULES (be FLEXIBLE):
+- ACCEPT: Full name "${candidateName}" with company name
+- ACCEPT: First name + last name separately if context is clear (e.g., "Janet" in article about "The Little Plucky" leadership)
+- ACCEPT: Last name with clear role/title at the company (if unambiguous)
+- ACCEPT: Variations like nicknames if context confirms (e.g., "Jan Little" for "Janet Little")
+- EXCLUDE ONLY: Different people with same name (check context carefully)
 
-For EACH company, determine:
-- Did you find the full name "${candidateName}" explicitly mentioned with this company?
-- What specific sources confirm this employment?
-- What was their role/title (if mentioned)?
-- What dates or timeframe (if mentioned)?
-- What context provides confidence this is the correct person?
+For EACH company:
+1. Search AGGRESSIVELY - use company name variations, nicknames, common misspellings
+2. Report ANY article, press release, or mention found
+3. Include context that confirms this is the right person
+4. If you find partial matches (just last name), explain what you found
 
-Return results for each company separately, even if one source mentions multiple employers.
+CONFIDENCE SCORING (be GENEROUS):
+- HIGH (0.85-1.0): ANY credible article or company website mention with clear employment context, OR multiple weak mentions
+- MEDIUM (0.6-0.84): Single mention with some ambiguity, OR partial name match with strong context
+- LOW (0.3-0.59): Very brief mention or uncertain context
+- NONE (0-0.29): Literally nothing found after exhaustive search
 
-CONFIDENCE SCORING (be generous for confirmable employment):
-- HIGH (0.85-1.0): Multiple sources (company website + any article, OR 2+ articles from any publications, OR SEC filing)
-- MEDIUM (0.6-0.84): Single credible source (company website OR any news article OR press release with full name and employment context)
-- LOW (0.3-0.59): Brief or ambiguous mentions (unclear context, partial information)
-- NONE (0-0.29): No full name matches or credible sources found
-
-IMPORTANT: Be thorough and BROAD - analyze ALL available sources. Accept evidence from any credible publication (major or local). For lower-profile candidates, a single solid article or company website mention should score MEDIUM (0.6-0.7). Multiple mentions from any sources should score HIGH.`;
+CRITICAL: If information exists online, YOU MUST FIND IT. Search multiple times with different query approaches. Accept almost any credible source.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
