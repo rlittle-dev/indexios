@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, ChevronDown, Play, RefreshCw, Eye, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Phone, ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -18,7 +18,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     try {
       const response = await base44.functions.invoke('employmentConfirmation', {
         candidateName,
-        employers: companyNames.map(name => ({ name, jobTitle: '' }))
+        employers: companyNames.map(name => ({ name }))
       });
 
       if (response.data?.success) {
@@ -35,53 +35,23 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'partial':
-        return <AlertCircle className="w-4 h-4 text-yellow-400" />;
-      case 'not_found':
-        return <XCircle className="w-4 h-4 text-red-400" />;
-      default:
-        return null;
-    }
+    return status === 'verified' 
+      ? <CheckCircle className="w-4 h-4 text-green-400" />
+      : <XCircle className="w-4 h-4 text-red-400" />;
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-900/40 text-green-300';
-      case 'partial':
-        return 'bg-yellow-900/40 text-yellow-300';
-      case 'not_found':
-        return 'bg-red-900/40 text-red-300';
-      default:
-        return 'bg-zinc-700 text-zinc-300';
-    }
-  };
-
-  const getSourceLabel = (source) => {
-    switch (source) {
-      case 'rocketreach':
-        return 'RocketReach';
-      case 'web':
-        return 'Web Evidence';
-      case 'none':
-        return 'Not found';
-      default:
-        return 'Unknown';
-    }
+    return status === 'verified'
+      ? 'bg-green-900/40 text-green-300'
+      : 'bg-red-900/40 text-red-300';
   };
 
   if (!companyNames || companyNames.length === 0) {
     return null;
   }
 
-  const confirmedCount = results
-    ? Object.values(results).filter(r => r.status === 'confirmed').length
-    : 0;
-  const partialCount = results
-    ? Object.values(results).filter(r => r.status === 'partial').length
+  const verifiedCount = results
+    ? Object.values(results).filter(r => r.status === 'verified').length
     : 0;
 
   return (
@@ -96,24 +66,15 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-500/20">
-            <Phone className="w-4 h-4 text-blue-400" />
-          </div>
-          <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
-          {results && (
-            <div className="flex items-center gap-2 ml-2">
-              {confirmedCount > 0 && (
-                <span className="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full font-medium">
-                  {confirmedCount} confirmed
-                </span>
-              )}
-              {partialCount > 0 && (
-                <span className="text-xs bg-yellow-500/30 text-yellow-300 px-2 py-0.5 rounded-full font-medium">
-                  {partialCount} partial
-                </span>
-              )}
-            </div>
-          )}
+        <div className="p-2 rounded-lg bg-blue-500/20">
+          <Phone className="w-4 h-4 text-blue-400" />
+        </div>
+        <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
+        {results && verifiedCount > 0 && (
+          <span className="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full font-medium ml-2">
+            {verifiedCount} verified
+          </span>
+        )}
         </div>
         <ChevronDown
           className={`w-5 h-5 text-blue-400 transition-transform duration-300 ${
@@ -145,10 +106,15 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                   <Play className="w-3 h-3 mr-1 animate-pulse" />
                   Verifying...
                 </>
+              ) : results ? (
+                <>
+                  <Play className="w-3 h-3 mr-1" />
+                  Verification Complete
+                </>
               ) : (
                 <>
                   <Play className="w-3 h-3 mr-1" />
-                  {results ? 'Verification Complete' : 'Run Verification'}
+                  Run Verification
                 </>
               )}
             </Button>
@@ -171,6 +137,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               {companyNames.map((company, idx) => {
                 const result = results[company] || {};
                 const status = result.status || 'not_found';
+                const hasEvidence = result.sources && result.sources.length > 0;
 
                 return (
                   <motion.div
@@ -178,31 +145,26 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-zinc-800/50 rounded-lg p-3 grid grid-cols-5 gap-2 items-center text-sm"
+                    className="bg-zinc-800/50 rounded-lg p-3 grid grid-cols-4 gap-2 items-center text-sm"
                   >
                     {/* Employer */}
                     <div className="text-white font-medium truncate">{company}</div>
 
                     {/* Status */}
                     <div className="flex items-center gap-1">
-                      {getStatusIcon(result.status || status)}
-                      <Badge className={`text-xs ${getStatusColor(result.status || status)}`}>
-                        {result.status || status}
+                      {getStatusIcon(status)}
+                      <Badge className={`text-xs ${getStatusColor(status)}`}>
+                        {status === 'verified' ? 'Verified' : 'Not found'}
                       </Badge>
                     </div>
 
-                    {/* Confidence */}
-                    <div className="text-white/70 text-xs font-medium">
-                      {result.confidence || 0}%
-                    </div>
-
-                    {/* Source */}
-                    <div className="text-white/60 text-xs">
-                      {getSourceLabel(result.source)}
+                    {/* Evidence Count */}
+                    <div className="text-white/70 text-xs">
+                      {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
                     </div>
 
                     {/* Evidence Button */}
-                    {result.artifacts && result.artifacts.length > 0 && (
+                    {hasEvidence && (
                       <Button
                         onClick={() => setSelectedEvidence({ company, result })}
                         variant="ghost"
@@ -249,41 +211,28 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               </h2>
 
               <div className="space-y-4">
-                {selectedEvidence.result.artifacts?.map((artifact, idx) => (
+                {selectedEvidence.result.sources?.map((source, idx) => (
                   <div key={idx} className="bg-zinc-800/50 rounded-lg p-4 border-l-2 border-blue-500/30">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="text-white font-medium text-sm">{artifact.label}</p>
+                      <p className="text-white font-medium text-sm">{source.source}</p>
                       <Badge variant="outline" className="text-xs">
-                        {artifact.type}
+                        {source.type === 'rocketreach_summary' ? 'RocketReach' : 'Web'}
                       </Badge>
                     </div>
 
-                    {artifact.snippet && (
-                      <p className="text-white/70 text-xs mb-2 italic">
-                        "{artifact.snippet}"
-                      </p>
-                    )}
+                    <p className="text-white/70 text-xs mb-2 italic">
+                      "{source.text}"
+                    </p>
 
-                    {artifact.value && (
+                    {source.url && (
                       <a
-                        href={artifact.value}
+                        href={source.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:text-blue-300 text-xs break-all"
                       >
-                        {artifact.value}
+                        {source.url}
                       </a>
-                    )}
-
-                    {artifact.matchedFields && Object.keys(artifact.matchedFields).length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-white/10 text-xs text-white/60">
-                        <p className="font-medium mb-1">Matched fields:</p>
-                        {Object.entries(artifact.matchedFields).map(([key, val]) => (
-                          <p key={key}>
-                            {key}: <span className="text-white/80">{val}</span>
-                          </p>
-                        ))}
-                      </div>
                     )}
                   </div>
                 ))}
