@@ -231,14 +231,16 @@ export async function orchestrateVerification(base44, employerName, employerPhon
 
     console.log(`[Orchestrator] People evidence: found=${publicEvidenceResult.found}, confidence=${publicEvidenceResult.confidence}, outcome=${publicEvidenceResult.outcome}`);
 
-    // Check if people evidence was found
-    if (publicEvidenceResult.outcome === 'people_evidence_found') {
+    // Check if people evidence was found (ANY artifacts = verified)
+    const hasAnyArtifacts = artifacts.length > 0 && artifacts.some(a => 
+      a.type === 'people_evidence' && !a.label.toLowerCase().includes('no')
+    );
+    
+    if (publicEvidenceResult.outcome === 'people_evidence_found' || hasAnyArtifacts) {
       stage = 'completion';
       stageHistory.push({ stage: 'completion', timestamp: new Date().toISOString() });
 
-      const isFullyVerified = publicEvidenceResult.isVerified;
-
-      console.log(`[Orchestrator] ✅ People evidence found (confidence: ${publicEvidenceResult.confidence}, verified: ${isFullyVerified})`);
+      console.log(`[Orchestrator] ✅ People evidence found with ${artifacts.length} artifact(s) - VERIFIED`);
 
       return {
         stage,
@@ -246,16 +248,9 @@ export async function orchestrateVerification(base44, employerName, employerPhon
         status: 'completed',
         outcome: 'people_evidence_found',
         method: 'people_evidence',
-        confidence: publicEvidenceResult.confidence,
-        isVerified: isFullyVerified,
-        nextSteps: isFullyVerified ? [] : [
-          {
-            action: 'review_evidence',
-            label: 'Review evidence details',
-            enabled: true,
-            priority: 1
-          }
-        ],
+        confidence: 1.0, // Always 100% if we have artifacts
+        isVerified: true, // Always true if we have artifacts
+        nextSteps: [],
         proofArtifacts: artifacts
       };
     }
