@@ -99,10 +99,34 @@ function normalizePhone(raw) {
 
 // Extract tel: links from HTML
 function extractTelLinks(html) {
-  const candidates = [];
-  const telRegex = /href=["']tel:([^"']+)["']/gi;
-  let match;
-  while ((match = telRegex.exec(html)) !== null) {
+const candidates = [];
+
+// Extract tel: links
+const telRegex = /href=["']tel:([^"']+)["']/gi;
+let match;
+while ((match = telRegex.exec(html)) !== null) {
+  const raw = match[1];
+  const normalized = normalizePhone(raw);
+  if (normalized) {
+    candidates.push({
+      raw: normalized.raw,
+      digits: normalized.raw.replace(/\D/g, ''),
+      source: 'tel',
+      context_snippet: raw.substring(0, 100),
+    });
+  }
+}
+
+// Also extract phones near contact/phone keywords
+const contextPatterns = [
+  /(?:contact|phone|call|tel|telephone|reach\s+us|get\s+in\s+touch)[:\s]*([+\d][\d\s\-().]{8,})/gi,
+  /(?:customer\s+service|support|help)[:\s]*([+\d][\d\s\-().]{8,})/gi,
+  /(?:toll\s+free|hotline)[:\s]*([+\d][\d\s\-().]{8,})/gi
+];
+
+for (const pattern of contextPatterns) {
+  pattern.lastIndex = 0;
+  while ((match = pattern.exec(html)) !== null) {
     const raw = match[1];
     const normalized = normalizePhone(raw);
     if (normalized) {
@@ -110,11 +134,13 @@ function extractTelLinks(html) {
         raw: normalized.raw,
         digits: normalized.raw.replace(/\D/g, ''),
         source: 'tel',
-        context_snippet: raw.substring(0, 100),
+        context_snippet: match[0].substring(0, 100),
       });
     }
   }
-  return candidates;
+}
+
+return candidates;
 }
 
 // Extract phones from plain text (HTML stripped)
@@ -466,13 +492,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'company_name required', debug }, { status: 400 });
     }
     
-    // STEP 1: URL Discovery
+    // STEP 1: Aggressive URL Discovery
     debug.stage = 'discovery';
+    console.log(`📍 Starting AGGRESSIVE URL discovery for: ${company_name}`);
+    
     const officialUrls = await searchForUrls(company_name, base44);
     debug.official_urls = officialUrls;
-    console.log(`📍 URL DISCOVERY: found ${officialUrls.length} official URLs`);
+    
+    console.log(`📍 URL DISCOVERY: found ${officialUrls.length} URLs to scrape`);
     if (officialUrls.length > 0) {
-      console.log(`   URLs: ${officialUrls.slice(0, 3).join(', ')}`);
+      console.log(`   First 5 URLs:\n${officialUrls.slice(0, 5).map(u => `   - ${u}`).join('\n')}`);
+    } else {
+      console.log(`   ⚠️ WARNING: No URLs found - this is unusual`);
     }
     
     // STEP 2: Fetch + Extract
@@ -511,7 +542,11 @@ Deno.serve(async (req) => {
         const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
         lastResult.candidates_found = extraction.filtered.length;
         
-        console.log(`✅ FETCH: ${url} (${fetchResult.status}) → ${fetchResult.raw_html_length} bytes → extracted ${extraction.total} total, ${extraction.filtered.length} after filtering`);
+        console.log(`✅ EXTRACTED: ${url}`);
+        console.log(`   Total extracted: ${extraction.total}, After filtering: ${extraction.filtered.length}`);
+        if (extraction.filtered.length > 0) {
+          console.log(`   Best phone: ${extraction.filtered[0].raw} (source: ${extraction.filtered[0].source})`);
+        }
       } else {
         console.log(`❌ FETCH FAILED: ${url} (${fetchResult.status})${fetchResult.error ? ' - ' + fetchResult.error : ''}`);
       }

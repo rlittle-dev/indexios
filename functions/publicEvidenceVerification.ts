@@ -17,102 +17,36 @@ function addArtifact(label, type, value = '', snippet = '') {
 }
 
 async function searchPublicEvidenceMultiEmployer(base44, candidateName, employers) {
-  console.log(`[Public Evidence] Searching for: ${candidateName} across ${employers.length} employers`);
-
-  const employerNames = employers.map(e => e.name).join(', ');
+  console.log(`[Public Evidence] AGGRESSIVE SEARCH for: ${candidateName} across ${employers.length} employers`);
 
   try {
-    // STEP 1: Comprehensive URL discovery - search multiple angles
-    const searchPrompts = [
-      // Primary search - direct career mentions
-      `Find web pages that mention "${candidateName}" and their work history at: ${employerNames}
-
-Search BROADLY across:
-- Company websites: about us, leadership, team pages, executive bios, board members, employee spotlights
-- Company press releases and announcements (any PR service)
-- SEC filings (10-K, 8-K, proxy statements, DEF 14A) for public companies
-- News articles from ANY publication (major national news, regional/local news, industry trade journals, online publications)
-- Business journals and local business news
-- Industry-specific publications and newsletters
-- Conference speaker pages, event listings, webinar descriptions
-- Patent filings and research publications
-- Award announcements and professional recognition
-- Podcast transcripts and video descriptions
-
-Return ALL relevant URLs - cast a very wide net.`,
-
-      // Secondary search - news and media
-      `Search for ANY news articles, blog posts, or media mentions of "${candidateName}" connected to: ${employerNames}
-
-Include EVERYTHING:
-- Press releases from any PR service (PR Newswire, Business Wire, GlobeNewswire, etc.)
-- Industry news sites and trade publications (any publication)
-- Local business journals and regional news
-- Company blogs and employee spotlight posts
-- Professional association announcements
-- Award announcements and recognition (any level)
-- Speaking engagements and conference materials
-- Podcast episodes and video content
-- Newsletter mentions and email archives
-- University/alumni publications
-- Chamber of commerce announcements
-
-Return ALL URLs that mention the person - be very broad.`,
-
-      // Tertiary search - any professional context
-      `Find ANY professional mentions of "${candidateName}" related to: ${employerNames}
-
-Look EVERYWHERE:
-- Company blog posts, case studies, customer stories
-- Podcast transcripts, video descriptions, YouTube content
-- Webinar speaker bios and virtual event materials
-- Corporate reports (CSR, annual, sustainability, diversity)
-- Acquisition and merger announcements
-- Product launch announcements and marketing materials
-- Grant announcements and funding news
-- Community involvement and volunteer activities
-- Professional certifications and credentials
-- Expert commentary and quotes in articles
-- Guest articles or contributed content
-- Panel discussions and roundtables
-
-Return ALL URLs with any professional mention - leave no stone unturned.`
-    ];
-
+    // STEP 1: Multi-round comprehensive search
     let allUrls = [];
-    for (const prompt of searchPrompts) {
-      try {
-        const searchResult = await base44.integrations.Core.InvokeLLM({
-          prompt,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              urls: { type: "array", items: { type: "string" } }
-            }
-          }
-        });
-        if (searchResult.urls && searchResult.urls.length > 0) {
-          allUrls = allUrls.concat(searchResult.urls);
-        }
-      } catch (error) {
-        console.log(`[Public Evidence] Search round failed: ${error.message}`);
-      }
-    }
     
-    // ADDITIONAL SEARCH: Direct name + company queries for each employer
+    // Round 1: Direct searches for each employer individually (MOST EFFECTIVE)
+    console.log(`[Public Evidence] Round 1: Direct employer searches...`);
     for (const employer of employers) {
+      const directPrompt = `Search the internet for "${candidateName}" at "${employer.name}".
+
+Find ANYTHING that mentions both:
+- The name "${candidateName}" (or variations like first name only + last name separately)
+- The company "${employer.name}"
+
+Include:
+- Company website pages (about, team, leadership, employees, staff)
+- Any news articles (major or local)
+- Press releases
+- Business directories
+- Conference materials
+- Social media posts (company accounts, not personal)
+- Blog posts
+- ANY other source
+
+Return EVERY URL that might mention this person at this company.`;
+
       try {
-        const directSearch = await base44.integrations.Core.InvokeLLM({
-          prompt: `Find ANY articles or web pages mentioning "${candidateName}" and "${employer.name}" together.
-
-Search for:
-- "${candidateName}" AND "${employer.name}"
-- "${candidateName}" + role/title at "${employer.name}"
-- News about "${candidateName}" at "${employer.name}"
-- "${employer.name}" + employee/staff/team + "${candidateName}"
-
-Return ALL URLs found, no matter how small the publication.`,
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: directPrompt,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -122,62 +56,134 @@ Return ALL URLs found, no matter how small the publication.`,
           }
         });
         
-        if (directSearch.urls && directSearch.urls.length > 0) {
-          allUrls = allUrls.concat(directSearch.urls);
-          console.log(`[Public Evidence] Direct search for ${candidateName} + ${employer.name}: found ${directSearch.urls.length} URLs`);
+        if (result.urls && result.urls.length > 0) {
+          allUrls = allUrls.concat(result.urls);
+          console.log(`[Public Evidence] Found ${result.urls.length} URLs for ${candidateName} + ${employer.name}`);
         }
       } catch (error) {
         console.log(`[Public Evidence] Direct search failed for ${employer.name}: ${error.message}`);
       }
     }
 
-    // Deduplicate URLs
-    const searchUrls = [...new Set(allUrls)];
-    console.log(`[Public Evidence] Found ${searchUrls.length} unique candidate URLs`);
-    
-    if (searchUrls.length === 0) {
-      console.log(`[Public Evidence] No URLs found, may indicate low public profile`);
+    // Round 2: Broad career history search
+    console.log(`[Public Evidence] Round 2: Broad career search...`);
+    const employerList = employers.map(e => e.name).join(', ');
+    const broadPrompt = `Find any web pages about "${candidateName}" career, work history, or professional background.
+
+Companies of interest: ${employerList}
+
+Search for:
+- Professional biography or profile pages
+- Company "about us" or "team" pages
+- News articles mentioning career moves
+- Press releases about hiring or promotions
+- Industry publication profiles
+- Conference speaker bios
+- Award or recognition announcements
+
+Return all relevant URLs.`;
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: broadPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            urls: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+      
+      if (result.urls && result.urls.length > 0) {
+        allUrls = allUrls.concat(result.urls);
+        console.log(`[Public Evidence] Broad search found ${result.urls.length} URLs`);
+      }
+    } catch (error) {
+      console.log(`[Public Evidence] Broad search failed: ${error.message}`);
     }
 
-    // STEP 2: Deep validation across all discovered sources
-    const validationPrompt = `You are conducting a COMPREHENSIVE employment verification for "${candidateName}".
+    // Round 3: Company-specific searches (team pages, about pages)
+    console.log(`[Public Evidence] Round 3: Company team/about pages...`);
+    for (const employer of employers) {
+      const companyPrompt = `Find the team page, about page, leadership page, or employee directory for "${employer.name}".
 
-SEARCH EVERYWHERE - BE EXTREMELY THOROUGH:
-1. Company websites (any page mentioning employees)
-2. ALL news articles (major outlets, local news, trade publications, blogs)
-3. Press releases (any service)
-4. SEC filings for public companies
-5. Conference speaker lists
-6. Award announcements
-7. Podcast transcripts
-8. Company social media posts (non-personal accounts)
-9. Business directories
-10. Industry reports
+We're looking for pages that list employees or staff members.
 
-Companies to verify: ${employerNames}
+Return URLs to:
+- Team page
+- About us page
+- Leadership page
+- Staff directory
+- Employee profiles`;
 
-${searchUrls.length > 0 ? `ANALYZE THESE SOURCES (${searchUrls.length} total):\n${searchUrls.slice(0, 20).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: companyPrompt,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              urls: { type: "array", items: { type: "string" } }
+            }
+          }
+        });
+        
+        if (result.urls && result.urls.length > 0) {
+          allUrls = allUrls.concat(result.urls);
+          console.log(`[Public Evidence] Company pages for ${employer.name}: ${result.urls.length} URLs`);
+        }
+      } catch (error) {
+        console.log(`[Public Evidence] Company page search failed for ${employer.name}: ${error.message}`);
+      }
+    }
 
-MATCHING RULES (be FLEXIBLE):
-- ACCEPT: Full name "${candidateName}" with company name
-- ACCEPT: First name + last name separately if context is clear (e.g., "Janet" in article about "The Little Plucky" leadership)
-- ACCEPT: Last name with clear role/title at the company (if unambiguous)
-- ACCEPT: Variations like nicknames if context confirms (e.g., "Jan Little" for "Janet Little")
-- EXCLUDE ONLY: Different people with same name (check context carefully)
+    // Deduplicate URLs
+    const searchUrls = [...new Set(allUrls)];
+    console.log(`[Public Evidence] ✅ Total unique URLs found: ${searchUrls.length}`);
+    
+    if (searchUrls.length === 0) {
+      console.log(`[Public Evidence] ⚠️ WARNING: No URLs found after 3 search rounds`);
+    }
 
-For EACH company:
-1. Search AGGRESSIVELY - use company name variations, nicknames, common misspellings
-2. Report ANY article, press release, or mention found
-3. Include context that confirms this is the right person
-4. If you find partial matches (just last name), explain what you found
+    // STEP 2: Aggressive validation with multiple passes
+    console.log(`[Public Evidence] Step 2: Analyzing sources for each employer...`);
+    
+    const employerNames = employers.map(e => e.name).join(', ');
+    
+    const validationPrompt = `CRITICAL MISSION: Find employment evidence for "${candidateName}".
 
-CONFIDENCE SCORING (be GENEROUS):
-- HIGH (0.85-1.0): ANY credible article or company website mention with clear employment context, OR multiple weak mentions
-- MEDIUM (0.6-0.84): Single mention with some ambiguity, OR partial name match with strong context
-- LOW (0.3-0.59): Very brief mention or uncertain context
-- NONE (0-0.29): Literally nothing found after exhaustive search
+TARGET COMPANIES: ${employerNames}
 
-CRITICAL: If information exists online, YOU MUST FIND IT. Search multiple times with different query approaches. Accept almost any credible source.`;
+YOU HAVE ${searchUrls.length} URLS TO ANALYZE. Your job is to find ANY mention of "${candidateName}" working at these companies.
+
+${searchUrls.length > 0 ? `URLS TO CHECK:\n${searchUrls.map(u => `- ${u}`).join('\n')}\n\n` : ''}
+
+SEARCH RULES (VERY FLEXIBLE):
+✅ ACCEPT if you find:
+- Full name "${candidateName}" + company name together
+- First and last name separately on same page with company context
+- Last name + clear job title at the company
+- Any name variation (nicknames, shortened names) with company
+- Professional bio mentioning the company
+- Company page listing them as employee/team member
+- Any article mentioning them in context of the company
+
+❌ ONLY REJECT if:
+- Completely different person (wrong industry/location/context)
+- No connection to the company at all
+
+For EACH company, you MUST:
+1. Check ALL provided URLs thoroughly
+2. Use the company website domain if found in URLs
+3. Report EVERYTHING you find, even weak/ambiguous mentions
+4. If found on company website = HIGH confidence (0.85+)
+5. If found in any article = MEDIUM confidence (0.65+)
+6. If partial/unclear = LOW confidence (0.4+)
+
+RESPOND WITH: For each company, state found/not found, list sources with URLs, and assign confidence.
+
+IF YOU DON'T FIND ANYTHING: Double-check you analyzed all URLs. This person likely HAS public information.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
