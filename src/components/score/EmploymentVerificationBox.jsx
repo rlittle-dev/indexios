@@ -18,17 +18,20 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     try {
       const response = await base44.functions.invoke('employmentConfirmation', {
         candidateName,
-        unconfirmedEmployers: companyNames.map(name => ({ name, jobTitle: '' }))
+        employers: companyNames.map(name => ({ name, jobTitle: '' }))
       });
 
-      if (response.data.success) {
+      if (response.data?.success) {
         setResults(response.data.results);
         console.log('✅ Verification complete:', response.data.summary);
+      } else {
+        console.error('Verification failed:', response.data);
       }
     } catch (error) {
       console.error('Verification error:', error);
+    } finally {
+      setIsRunning(false);
     }
-    setIsRunning(false);
   };
 
   const getStatusIcon = (status) => {
