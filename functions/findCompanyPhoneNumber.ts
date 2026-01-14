@@ -356,30 +356,38 @@ async function fetchPage(url, timeout = 8000) {
 }
 
 async function searchForUrls(companyName, base44) {
-  const queries = [
-    `${companyName} contact us phone number`,
-    `${companyName} customer service contact`,
-    `${companyName} headquarters address phone`,
-  ];
-  
   try {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Find official contact pages for: ${companyName}. Search queries: ${queries.join(' | ')}. Return top 6–8 URLs from the official company domain only. Include /contact, /about, /careers, /locations, /support. Return as JSON.`,
+      prompt: `Find ALL pages for "${companyName}" that might contain phone numbers.
+
+Search VERY BROADLY - return 10-15 URLs including:
+- Main homepage
+- Contact page (contact, contact-us, get-in-touch)
+- About page (about, about-us, company)
+- Support/Help pages (support, help, customer-service)
+- Press/Media page (press, media, newsroom)
+- Locations/Offices page (locations, offices, find-us)
+- Careers page (careers, jobs, work-with-us)
+- Team/Leadership page (team, leadership, management)
+- Footer links with phone numbers
+- FAQ pages that might list phone numbers
+
+Return comprehensive list of URLs from official company domain.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: 'object',
         properties: {
           urls: {
             type: 'array',
-            items: { type: 'string' },
-            description: 'Official company URLs',
-          },
-        },
-        required: ['urls'],
+            items: { type: 'string' }
+          }
+        }
       },
     });
     
-    return result.urls ? result.urls.filter(u => typeof u === 'string' && u.includes('http')).slice(0, 8) : [];
+    const urls = result.urls ? result.urls.filter(u => typeof u === 'string' && u.includes('http')) : [];
+    console.log(`[URL Discovery] Found ${urls.length} URLs to scrape`);
+    return urls;
   } catch (error) {
     console.error('URL search failed:', error.message);
     return [];
