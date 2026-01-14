@@ -2,7 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
  * RocketReach Evidence Lookup
- * Uses official RocketReach API to search for candidate employment history
+ * Searches for candidate on RocketReach using web search (no API key required)
+ * Returns employment history and matches against resume claims
  */
 
 function cleanSnippet(text) {
@@ -22,123 +23,94 @@ function normalizeText(text) {
   return text.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 }
 
-async function searchRocketReachAPI(candidateName, employers = []) {
-  const apiKey = Deno.env.get('ROCKETREACH_API_KEY');
-  if (!apiKey) {
-    console.error('[RocketReach] Missing API key');
-    return { found: false, matches: [], debug: 'API key not configured' };
-  }
-
-  console.log(`[RocketReach API] Searching for ${candidateName}`);
+async function searchRocketReachProfile(base44, candidateName, employers = []) {
+  console.log(`[RocketReach] Searching for ${candidateName}`);
 
   try {
-    // Parse name into parts
-    const nameParts = candidateName.trim().split(/\s+/);
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ') || '';
-
-    // Search for person by name
-    const searchResponse = await fetch('https://api.rocketreach.co/rest/v2/person.search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        first_name: firstName,
-        last_name: lastName,
-        limit: 5,
-      }),
+    // Use LLM to find RocketReach profile via web search
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Search for RocketReach profile or LinkedIn profile for "${candidateName}". 
+      Return their employment history with company names, job titles, and timeframes if available.
+      Format: JSON with {profile_url, employment_history: [{company, title, dates}]}`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          profile_url: { type: 'string' },
+          found: { type: 'boolean' },
+          employment_history: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                company: { type: 'string' },
+                title: { type: 'string' },
+                dates: { type: 'string' },
+                summary: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
     });
 
-    if (!searchResponse.ok) {
-      throw new Error(`RocketReach API error: ${searchResponse.status}`);
+    if (!result.found || !result.employment_history) {
+      return { found: false, matches: [], debug: 'No profile found' };
     }
 
-    const searchData = await searchResponse.json();
+    console.log(`✅ [RocketReach] Found profile with ${result.employment_history.length} positions`);
 
-    if (!searchData.people || searchData.people.length === 0) {
-      return { found: false, matches: [], debug: 'No person found' };
-    }
-
-    // Get the top match
-    const person = searchData.people[0];
-    console.log(`✅ [RocketReach API] Found ${person.name || candidateName}`);
-
-    // Fetch detailed profile
-    const detailResponse = await fetch(
-      `https://api.rocketreach.co/rest/v2/person/${person.id}`,
-      {
-        headers: {
-          'X-API-KEY': apiKey,
-        },
-      }
-    );
-
-    if (!detailResponse.ok) {
-      throw new Error(`Failed to fetch person details: ${detailResponse.status}`);
-    }
-
-    const personDetail = await detailResponse.json();
-
-    // Extract employment history
-    const employmentHistory = personDetail.profiles?.map(p => ({
-      company: p.company_name || '',
-      title: p.job_title || '',
-      dates: p.time_period || '',
-      summary: p.job_title ? `${p.job_title} at ${p.company_name}` : '',
-    })) || [];
-
-    console.log(`[RocketReach API] Found ${employmentHistory.length} employment records`);
-
-    // Match resume employers
+    // Match resume employers against RocketReach employment history
     const matches = [];
 
     for (const employer of employers) {
       const normEmployer = normalizeText(employer.name);
-
-      for (const empRecord of employmentHistory) {
-        const normCompany = normalizeText(empRecord.company);
-
-        if (normEmployer === normCompany || normCompany.includes(normEmployer) || normEmployer.includes(normCompany)) {
-          let quality = 'medium';
-          let matchedFields = { company: empRecord.company };
-
-          if (employer.jobTitle && empRecord.title) {
+      
+      for (const rrEntry of result.employment_history) {
+        const normRrCompany = normalizeText(rrEntry.company || '');
+        
+        // Check for company match
+        if (normEmployer === normRrCompany || normRrCompany.includes(normEmployer) || normEmployer.includes(normRrCompany)) {
+          let quality = 'medium'; // Company match
+          let matchedFields = { company: rrEntry.company };
+          
+          // Upgrade to strong if role also matches
+          if (employer.jobTitle && rrEntry.title) {
             const normTitle = normalizeText(employer.jobTitle);
-            const normRecordTitle = normalizeText(empRecord.title);
-            if (normTitle === normRecordTitle || normRecordTitle.includes(normTitle)) {
+            const normRrTitle = normalizeText(rrEntry.title);
+            if (normTitle === normRrTitle || normRrTitle.includes(normTitle)) {
               quality = 'strong';
-              matchedFields.title = empRecord.title;
+              matchedFields.title = rrEntry.title;
             }
           }
-
-          if (empRecord.dates) {
-            matchedFields.dates = empRecord.dates;
+          
+          // Add dates if available
+          if (rrEntry.dates) {
+            matchedFields.dates = rrEntry.dates;
           }
-
+          
           matches.push({
             employerName: employer.name,
             quality,
             matchedFields,
-            empRecord,
-            confidence: quality === 'strong' ? 92 : 80,
+            rrEntry,
+            confidence: quality === 'strong' ? 92 : 80
           });
-
-          break;
+          
+          break; // Only one match per employer
         }
       }
     }
 
     return {
       found: true,
-      profileUrl: `https://rocketreach.co/p/${person.id || ''}`,
+      profileUrl: result.profile_url,
       matches,
-      debug: `Matched ${matches.length}/${employers.length} employers`,
+      debug: `Matched ${matches.length}/${employers.length} employers`
     };
 
   } catch (error) {
-    console.error('[RocketReach API] Error:', error.message);
+    console.error('[RocketReach] Error:', error.message);
     return { found: false, matches: [], debug: error.message };
   }
 }
@@ -160,7 +132,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const result = await searchRocketReachAPI(candidateName, employers);
+    const result = await searchRocketReachProfile(base44, candidateName, employers);
 
     // Build artifacts for each matched employer
     const artifacts = {};
@@ -169,8 +141,8 @@ Deno.serve(async (req) => {
       const artifact = {
         type: 'rocketreach',
         value: result.profileUrl || '',
-        label: `RocketReach match (${match.quality}): ${match.empRecord.company}${match.empRecord.title ? ' - ' + match.empRecord.title : ''}`,
-        snippet: cleanSnippet(`${match.empRecord.company}${match.empRecord.title ? ', ' + match.empRecord.title : ''}${match.empRecord.dates ? ' (' + match.empRecord.dates + ')' : ''}`),
+        label: `RocketReach match (${match.quality}): ${match.rrEntry.company}${match.rrEntry.title ? ' - ' + match.rrEntry.title : ''}`,
+        snippet: cleanSnippet(`${match.rrEntry.company}${match.rrEntry.title ? ', ' + match.rrEntry.title : ''}${match.rrEntry.dates ? ' (' + match.rrEntry.dates + ')' : ''}`),
         matchedFields: match.matchedFields,
         timestamp: new Date().toISOString()
       };
