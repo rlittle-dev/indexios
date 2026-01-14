@@ -14,6 +14,7 @@ export default function Tickets() {
   const [loading, setLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [adminResponse, setAdminResponse] = useState('');
+  const [pollingInterval, setPollingInterval] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -40,6 +41,7 @@ export default function Tickets() {
       return tickets.filter(t => t.status !== 'resolved');
     },
     enabled: !!user && user.role !== 'admin',
+    refetchInterval: selectedTicket ? 3000 : false, // Poll every 3s when viewing a ticket
   });
 
   // Fetch all tickets for admins
@@ -47,7 +49,36 @@ export default function Tickets() {
     queryKey: ['allTickets'],
     queryFn: () => base44.entities.Ticket.list('-created_date', 100),
     enabled: !!user && user.role === 'admin',
+    refetchInterval: selectedTicket ? 3000 : false, // Poll every 3s when viewing a ticket
   });
+
+  // Monitor selected ticket for closure
+  useEffect(() => {
+    if (!selectedTicket || user?.role === 'admin') return;
+
+    const checkTicketStatus = async () => {
+      const tickets = await base44.entities.Ticket.filter({ id: selectedTicket.id });
+      if (tickets.length > 0) {
+        const currentTicket = tickets[0];
+        if (currentTicket.status === 'resolved') {
+          // Ticket was resolved, kick user out
+          toast.info('This ticket has been resolved and closed.');
+          setSelectedTicket(null);
+          queryClient.invalidateQueries({ queryKey: ['userTickets'] });
+        } else {
+          // Update with latest data
+          setSelectedTicket(currentTicket);
+        }
+      }
+    };
+
+    const interval = setInterval(checkTicketStatus, 3000);
+    setPollingInterval(interval);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [selectedTicket, user]);
 
 
 
@@ -73,13 +104,24 @@ export default function Tickets() {
 
   const updateTicketStatusMutation = useMutation({
     mutationFn: async ({ ticketId, status }) => {
-      return await base44.entities.Ticket.update(ticketId, { status });
+      const updatedTicket = await base44.entities.Ticket.update(ticketId, { status });
+      
+      // Send transcript email when ticket is resolved
+      if (status === 'resolved') {
+        try {
+          await base44.functions.invoke('sendTicketResolvedEmail', { ticketId });
+        } catch (error) {
+          console.error('Failed to send transcript email:', error);
+        }
+      }
+      
+      return updatedTicket;
     },
     onSuccess: (updatedTicket) => {
       queryClient.invalidateQueries({ queryKey: ['allTickets'] });
       queryClient.invalidateQueries({ queryKey: ['userTickets'] });
       setSelectedTicket(updatedTicket);
-      toast.success('Ticket updated!');
+      toast.success(updatedTicket.status === 'resolved' ? 'Ticket resolved! Transcript sent to user.' : 'Ticket updated!');
     },
   });
 
