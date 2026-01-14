@@ -129,8 +129,36 @@ Return all relevant URLs.`;
       console.log(`[Public Evidence] Broad search failed: ${error.message}`);
     }
 
-    // Round 3: Company-specific searches (team pages, about pages)
-    console.log(`[Public Evidence] Round 3: Company team/about pages...`);
+    // Round 3: RocketReach profile search (career summary)
+    console.log(`[Public Evidence] Round 3: RocketReach profile search...`);
+    const rocketReachPrompt = `Search for "${candidateName} rocketreach"
+
+Find the RocketReach profile page for this person. RocketReach profiles show career summaries and past roles.
+
+Return the RocketReach profile URL if found.`;
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: rocketReachPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            urls: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+      
+      if (result.urls && result.urls.length > 0) {
+        allUrls = allUrls.concat(result.urls);
+        console.log(`[Public Evidence] RocketReach search: ${result.urls.length} URLs`);
+      }
+    } catch (error) {
+      console.log(`[Public Evidence] RocketReach search failed: ${error.message}`);
+    }
+
+    // Round 4: Company-specific searches (team pages, about pages)
+    console.log(`[Public Evidence] Round 4: Company team/about pages...`);
     for (const employer of employers) {
       const companyPrompt = `Find the team page, about page, leadership page, or employee directory for "${employer.name}".
 
