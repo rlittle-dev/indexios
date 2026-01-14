@@ -2,8 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
  * Public Evidence Verification - Multi-Employer
- * Searches for public evidence across ALL employers for a candidate
- * Returns evidence mapped to each employer
+ * Robust matching with normalization and multiple query strategies
  */
 
 function addArtifact(label, type, value = '', snippet = '') {
@@ -17,225 +16,258 @@ function addArtifact(label, type, value = '', snippet = '') {
 }
 
 /**
- * Calculate confidence score for public evidence
- * Rules:
- * - Base 0.50 if any evidence exists
- * - +0.30 for employer domain or SEC filing
- * - +0.20 for second independent reputable source
- * - +0.10 for exact role match in snippet
- * - Cap at 0.95
+ * Normalize text for matching
+ * - lowercase, trim, collapse whitespace
+ * - remove punctuation
+ * - normalize company suffixes
+ */
+function normalizeText(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[&,.']/g, '')
+    .replace(/\b(co|co\.|company|inc|corp|corporation|ltd|llc)\b/g, '');
+}
+
+/**
+ * Extract last name from full name
+ */
+function getLastName(fullName) {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  return parts.length > 0 ? parts[parts.length - 1] : '';
+}
+
+/**
+ * Check if person-employer match exists
+ * Returns: { found, quality, excerpt }
+ */
+function checkMatch(pageText, personName, employerName, personLastName) {
+  if (!pageText) return { found: false, quality: 'none', excerpt: '' };
+
+  const normPage = normalizeText(pageText);
+  const normPerson = normalizeText(personName);
+  const normLast = normalizeText(personLastName);
+  const normEmployer = normalizeText(employerName);
+
+  // Strategy 1: Full name + normalized employer (anywhere in page)
+  if (normPage.includes(normPerson) && normPage.includes(normEmployer)) {
+    // Try to find a short excerpt with both
+    const personIdx = pageText.toLowerCase().indexOf(personName.toLowerCase());
+    if (personIdx > -1) {
+      const start = Math.max(0, personIdx - 50);
+      const end = Math.min(pageText.length, personIdx + personName.length + 100);
+      const excerpt = pageText.substring(start, end);
+      return { found: true, quality: 'high', excerpt };
+    }
+    return { found: true, quality: 'high', excerpt: `${personName} at ${employerName}` };
+  }
+
+  // Strategy 2: Last name + strong role phrase (CEO, President, CFO, etc.)
+  const seniorRoles = ['ceo', 'chief executive', 'president', 'cfo', 'chief financial', 
+                       'coo', 'chief operating', 'cto', 'chief technology',
+                       'board', 'director', 'executive vice president', 'evp'];
+  const hasRole = seniorRoles.some(role => normPage.includes(role));
+
+  if (hasRole && normPage.includes(normLast) && normPage.includes(normEmployer)) {
+    const lastIdx = pageText.toLowerCase().indexOf(personLastName.toLowerCase());
+    if (lastIdx > -1) {
+      const start = Math.max(0, lastIdx - 50);
+      const end = Math.min(pageText.length, lastIdx + personLastName.length + 150);
+      const excerpt = pageText.substring(start, end);
+      return { found: true, quality: 'medium', excerpt };
+    }
+    return { found: true, quality: 'medium', excerpt: `${personLastName} in ${employerName}` };
+  }
+
+  return { found: false, quality: 'none', excerpt: '' };
+}
+
+/**
+ * Calculate confidence score
  */
 function calculateConfidence(sources, employerName, candidateName, roleMentioned) {
   if (!sources || sources.length === 0) return 0.1;
 
-  let confidence = 0.50; // Base confidence
+  let confidence = 0.50; // Base
 
-  // Normalize employer domain for matching
-  const employerDomain = employerName.toLowerCase()
-    .replace(/\s+/g, '')
-    .replace(/[.,&]/g, '')
-    .replace(/inc|corp|llc|ltd|limited|company|co$/g, '')
-    .trim();
-
-  // Check for primary source (employer domain or SEC)
+  const employerDomain = normalizeText(employerName);
+  
+  // Primary source bonus
   const hasPrimarySource = sources.some(s => {
     const url = s.url.toLowerCase();
     return url.includes(employerDomain) || 
            url.includes('sec.gov') ||
-           s.type.toLowerCase().includes('sec') ||
-           s.type.toLowerCase().includes('company website');
+           s.type?.toLowerCase().includes('sec');
   });
+  if (hasPrimarySource) confidence += 0.30;
 
-  if (hasPrimarySource) {
-    confidence += 0.30;
-  }
-
-  // Check for independent reputable sources (news, Equilar, Bloomberg, Reuters, etc.)
-  const reputableDomains = ['equilar.com', 'bloomberg.com', 'reuters.com', 'wsj.com', 
-                             'forbes.com', 'businessinsider.com', 'marketwatch.com',
-                             'cnbc.com', 'ft.com'];
-  const hasIndependentSource = sources.some(s => 
-    reputableDomains.some(domain => s.url.toLowerCase().includes(domain)) ||
-    (s.quality === 'HIGH' && !s.url.toLowerCase().includes(employerDomain))
+  // Independent source bonus (2+ sources)
+  const reputableDomains = ['equilar.com', 'bloomberg.com', 'reuters.com', 'wsj.com',
+                             'forbes.com', 'businessinsider.com', 'cnbc.com'];
+  const hasIndependentSource = sources.some(s =>
+    reputableDomains.some(d => s.url.toLowerCase().includes(d))
   );
+  if (hasIndependentSource && sources.length >= 2) confidence += 0.20;
 
-  if (hasIndependentSource && sources.length >= 2) {
-    confidence += 0.20;
+  // Role match bonus
+  if (roleMentioned && sources.some(s => 
+    (s.snippet || '').toLowerCase().includes(roleMentioned.toLowerCase())
+  )) {
+    confidence += 0.10;
   }
 
-  // Check for exact role match in snippets
-  if (roleMentioned) {
-    const roleInSnippet = sources.some(s => {
-      const snippet = s.snippet?.toLowerCase() || '';
-      const role = roleMentioned.toLowerCase();
-      const name = candidateName.toLowerCase();
-      // Check if snippet contains both name and role close together
-      return snippet.includes(name) && snippet.includes(role);
-    });
-    
-    if (roleInSnippet) {
-      confidence += 0.10;
-    }
-  }
-
-  // Cap at 0.95
   return Math.min(confidence, 0.95);
 }
 
-async function searchPublicEvidenceMultiEmployer(base44, candidateName, employers) {
-  console.log(`[Public Evidence] Searching for: ${candidateName} across ${employers.length} employers`);
-
-  const employerNames = employers.map(e => e.name).join(', ');
-
+/**
+ * Fetch page content
+ */
+async function fetchPageContent(url) {
   try {
-    // STEP 1: Find relevant URLs
-    const searchPrompt = `Find web pages that mention "${candidateName}" and their work history.
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (response.ok) {
+      return await response.text();
+    }
+    return null;
+  } catch (error) {
+    console.log(`[Evidence] Fetch failed for ${url}: ${error.message}`);
+    return null;
+  }
+}
 
-Look for pages that show employment at any of these companies: ${employerNames}
+/**
+ * Search with multiple query variants
+ */
+async function searchWithVariants(base44, candidateName, employerName) {
+  const queries = [
+    `${candidateName} ${employerName} CEO`,
+    `${candidateName} ${employerName}`,
+    `${candidateName} site:${employerName.toLowerCase().replace(/\s+/g, '')}.com`,
+  ];
 
-Search for:
-- Company websites (about, leadership, team, executives, press releases)
-- News articles from business publications
-- SEC filings if these are public companies
-- Press releases and announcements
+  const allUrls = new Set();
 
-Return URLs that likely contain career/employment information.`;
-
-    let searchUrls = [];
+  for (const query of queries) {
     try {
-      const searchResult = await base44.integrations.Core.InvokeLLM({
-        prompt: searchPrompt,
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find top 5 URLs mentioning "${query}". Prefer official company domains, Equilar, SEC, news. Return as JSON array of URLs.`,
         add_context_from_internet: true,
         response_json_schema: {
-          type: "object",
-          properties: {
-            urls: { type: "array", items: { type: "string" } }
-          }
+          type: 'object',
+          properties: { urls: { type: 'array', items: { type: 'string' } } }
         }
       });
-      searchUrls = searchResult.urls || [];
-      console.log(`[Public Evidence] Found ${searchUrls.length} candidate URLs`);
-    } catch (error) {
-      console.log(`[Public Evidence] URL search failed: ${error.message}`);
+      if (result.urls) {
+        result.urls.forEach(u => allUrls.add(u));
+      }
+    } catch (e) {
+      console.log(`[Evidence] Query failed: ${query}`);
     }
+  }
 
-    // STEP 2: Validate employment at each company
-    const validationPrompt = `You are verifying employment history for "${candidateName}".
+  return Array.from(allUrls).slice(0, 10);
+}
 
-CRITICAL RULES:
-1. Full name "${candidateName}" must appear (both first and last name together)
-2. Do NOT accept just last name matches
-3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia
-4. ONLY use: company websites, SEC filings, reputable news (Bloomberg, Reuters, WSJ, Forbes, Business Insider), press releases
+async function searchPublicEvidenceMultiEmployer(base44, candidateName, employers) {
+  console.log(`[Evidence] Searching: ${candidateName} across ${employers.length} employers`);
 
-Companies to check: ${employerNames}
+  const evidenceByEmployer = {};
+  const lastNamePerson = getLastName(candidateName);
 
-${searchUrls.length > 0 ? `Priority sources:\n${searchUrls.slice(0, 8).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+  for (const employer of employers) {
+    console.log(`[Evidence] Processing ${candidateName} @ ${employer.name}...`);
 
-For EACH company, determine:
-- Did you find the full name "${candidateName}" associated with this company?
-- What credible sources confirm this?
-- What was their role (if mentioned)?
+    const debug = {
+      normalized_person: normalizeText(candidateName),
+      normalized_employer: normalizeText(employer.name),
+      queries_used: [],
+      fetched_urls: [],
+      matches_found: []
+    };
 
-Return results for each company separately, even if one source mentions multiple employers.
+    try {
+      // Search with variants
+      const urls = await searchWithVariants(base44, candidateName, employer.name);
+      debug.queries_used = urls.slice(0, 3);
 
-Quality levels:
-- HIGH (0.85-1.0): Company website/SEC filing with full name, OR 2+ news sources
-- MEDIUM (0.6-0.84): Single news article with full name
-- LOW (0.3-0.59): Weak/ambiguous sources
-- NONE (0-0.29): No full name matches`;
+      const sources = [];
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: validationPrompt,
-      add_context_from_internet: true,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          companies: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                company_name: { type: "string" },
-                found: { type: "boolean" },
-                confidence: { type: "number" },
-                full_name_matched: { type: "boolean" },
-                role_mentioned: { type: "string" },
-                sources: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      url: { type: "string" },
-                      type: { type: "string" },
-                      quality: { type: "string" },
-                      snippet: { type: "string" }
-                    }
-                  }
-                },
-                reasoning: { type: "string" }
-              }
-            }
+      // Fetch and check each URL
+      for (const url of urls) {
+        const pageContent = await fetchPageContent(url);
+        if (!pageContent) continue;
+
+        const match = checkMatch(pageContent, candidateName, employer.name, lastNamePerson);
+        
+        if (match.found) {
+          debug.fetched_urls.push({ url, match_found: true });
+          debug.matches_found.push({ url, quality: match.quality, excerpt: match.excerpt });
+
+          // Determine source type/quality
+          let sourceType = 'news';
+          let quality = match.quality === 'high' ? 'HIGH' : 'MEDIUM';
+
+          if (url.toLowerCase().includes('equilar')) {
+            sourceType = 'Equilar (exec database)';
+            quality = 'HIGH';
+          } else if (url.toLowerCase().includes('sec.gov')) {
+            sourceType = 'SEC filing';
+            quality = 'HIGH';
+          } else if (employer.name.toLowerCase().split(' ').some(w => url.includes(w))) {
+            sourceType = 'Company website';
+            quality = 'HIGH';
           }
+
+          sources.push({
+            url,
+            type: sourceType,
+            quality,
+            snippet: match.excerpt
+          });
+        } else {
+          debug.fetched_urls.push({ url, match_found: false });
         }
       }
-    });
 
-    console.log(`[Public Evidence] Validation complete for ${result.companies?.length || 0} companies`);
-
-    // Map results back to employer names with proper confidence scoring
-    const evidenceByEmployer = {};
-    
-    for (const employer of employers) {
-      const match = result.companies?.find(c => 
-        c.company_name.toLowerCase().includes(employer.name.toLowerCase()) ||
-        employer.name.toLowerCase().includes(c.company_name.toLowerCase())
-      );
-
-      if (match && match.full_name_matched && match.sources && match.sources.length > 0) {
-        // Filter out social media
-        const validSources = match.sources.filter(s => 
-          !s.url.toLowerCase().includes('linkedin.com') &&
-          !s.url.toLowerCase().includes('twitter.com') &&
-          !s.url.toLowerCase().includes('facebook.com') &&
-          !s.url.toLowerCase().includes('instagram.com')
-        );
-
-        // Calculate confidence using new rules
-        const confidence = calculateConfidence(validSources, employer.name, candidateName, match.role_mentioned);
-
+      if (sources.length > 0) {
+        const confidence = calculateConfidence(sources, employer.name, candidateName, employer.jobTitle);
+        
         evidenceByEmployer[employer.name] = {
-          found: match.found && validSources.length > 0,
-          confidence: confidence,
-          sources: validSources,
-          reasoning: match.reasoning,
-          roleMentioned: match.role_mentioned
+          found: true,
+          confidence,
+          sources,
+          debug
         };
+
+        console.log(`✅ [Evidence] Found ${sources.length} sources for ${candidateName} @ ${employer.name} (${confidence.toFixed(2)} confidence)`);
       } else {
         evidenceByEmployer[employer.name] = {
           found: false,
           confidence: 0.1,
           sources: [],
-          reasoning: match?.reasoning || `No full name match found for ${candidateName} at ${employer.name}`
+          debug
         };
+
+        console.log(`⚠️ [Evidence] No sources found for ${candidateName} @ ${employer.name}`);
       }
-    }
-
-    return evidenceByEmployer;
-
-  } catch (error) {
-    console.error('[Public Evidence] Search error:', error);
-    const errorResult = {};
-    for (const employer of employers) {
-      errorResult[employer.name] = {
+    } catch (error) {
+      console.error(`[Evidence] Error processing ${employer.name}:`, error.message);
+      evidenceByEmployer[employer.name] = {
         found: false,
         confidence: 0,
         sources: [],
-        reasoning: `Error during search: ${error.message}`
+        debug: { error: error.message }
       };
     }
-    return errorResult;
   }
+
+  return evidenceByEmployer;
 }
 
 Deno.serve(async (req) => {
@@ -250,64 +282,57 @@ Deno.serve(async (req) => {
     const { candidateName, employers } = await req.json();
 
     if (!candidateName || !employers || !Array.isArray(employers)) {
-      return Response.json({ 
-        error: 'Missing required fields: candidateName, employers (array)' 
+      return Response.json({
+        error: 'Missing: candidateName, employers (array)'
       }, { status: 400 });
     }
 
     const evidenceByEmployer = await searchPublicEvidenceMultiEmployer(base44, candidateName, employers);
 
-    // Build response with artifacts for each employer
+    // Build response
     const results = {};
-    
+
     for (const employer of employers) {
       const evidence = evidenceByEmployer[employer.name];
       const artifacts = [];
-      
+
       let verificationSummary = '';
-      
+
       if (evidence.found && evidence.sources.length > 0) {
         evidence.sources.forEach(source => {
           artifacts.push(addArtifact(
-            `${source.quality.toUpperCase()} quality source: ${source.type}`,
+            `${source.quality} quality source: ${source.type}`,
             'public_evidence',
             source.url,
             source.snippet
           ));
         });
 
-        // Build verification summary
         const sourceTypes = [...new Set(evidence.sources.map(s => s.type))];
-        verificationSummary = `Verified via ${sourceTypes.join(' and ')} - ${evidence.sources.length} independent source${evidence.sources.length > 1 ? 's' : ''} confirm employment${evidence.roleMentioned ? ` as ${evidence.roleMentioned}` : ''}.`;
+        verificationSummary = `Verified via ${sourceTypes.join(' and ')} - ${evidence.sources.length} source${evidence.sources.length > 1 ? 's' : ''} confirm employment.`;
       } else {
         artifacts.push(addArtifact(
-          'No strong public evidence found',
+          'No public evidence found',
           'public_evidence',
           '',
-          evidence.reasoning
+          'No credible sources found'
         ));
         verificationSummary = 'No public evidence found - manual verification required.';
       }
 
-      // Determine outcome based on confidence thresholds
+      // Outcome determination
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
-      
-      // High confidence (>= 0.80) = verified
+
       if (evidence.found && hasCredibleSources && evidence.confidence >= 0.80) {
         outcome = 'verified_public_evidence';
         isVerified = true;
         status = 'completed';
-      } 
-      // Medium confidence (0.60-0.79) = helpful but not conclusive
-      else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.60) {
+      } else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.60) {
         outcome = 'policy_identified';
         isVerified = false;
         status = 'action_required';
-        verificationSummary = `Partial evidence found (${Math.round(evidence.confidence * 100)}% confidence) - additional verification recommended.`;
-      } 
-      // Low confidence = didn't help
-      else {
+      } else {
         outcome = 'contact_identified';
         isVerified = false;
         status = 'action_required';
@@ -320,21 +345,17 @@ Deno.serve(async (req) => {
         isVerified,
         status,
         artifacts,
-        reasoning: evidence.reasoning,
-        verificationSummary
+        verificationSummary,
+        debug: evidence.debug
       };
     }
 
-    return Response.json({
-      success: true,
-      results
-    });
+    return Response.json({ success: true, results });
 
   } catch (error) {
-    console.error('Public evidence verification error:', error);
-    return Response.json({ 
-      error: error.message,
-      stack: error.stack 
+    console.error('[Evidence] Error:', error);
+    return Response.json({
+      error: error.message
     }, { status: 500 });
   }
 });

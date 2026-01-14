@@ -598,7 +598,7 @@ Deno.serve(async (req) => {
       console.log(`✨ OFFICIAL CANDIDATES FOUND: skipping fallback (${officialCandidates.length} official candidates)`);
     }
     
-    // STEP 5: Combine and select best with strict priority
+    // STEP 5: Combine and select best with DETERMINISTIC priority
     debug.stage = 'end';
     const allCandidates = [...scoredOfficial, ...fallbackCandidates];
     
@@ -613,41 +613,45 @@ Deno.serve(async (req) => {
       }
     }
     
-    // PRIORITY ORDER (STRICT):
-    // 1. type="hr" + extraction_source="tel" with score >= 0.5
-    // 2. type="main" + extraction_source="tel" with score >= 0.5
-    // 3. Any type + extraction_source="tel" with score >= 0.5
-    // 4. type="hr" + phone context words + score >= 0.5
-    // 5. type="main" + phone context words + score >= 0.5
-    // 6. Only if NONE exist: accept other sources but still require score >= 0.5
+    // DETERMINISTIC PRIORITY ORDER:
+    // 1. /contact page + tel link (highest priority - most reliable)
+    // 2. /contact page + phone words (high priority - intentional contact info)
+    // 3. Any tel link on official page (tel: links are explicit)
+    // 4. Phone words on official page (context suggests it's a real phone)
+    // 5. Only fallback to other sources if official yielded nothing
     
     const hasPhoneWords = (candidate) => {
       return /\b(phone|call|tel|contact|customer service|support|hotline|help)\b/i.test(
         candidate.context_snippet || ''
       );
     };
-    
+
+    const isFromContactPage = (candidate) => {
+      const context = (candidate.context_snippet || '').toLowerCase();
+      return context.includes('contact') || candidate.source?.includes('/contact');
+    };
+
     let best = null;
     
-    // Priority 1: HR + tel
-    best = unique.find(c => c.score >= 0.5 && c.type === 'hr' && c.extraction_source === 'tel');
+    // Priority 1: /contact page + tel link
+    best = unique.find(c => c.score >= 0.5 && c.extraction_source === 'tel' && isFromContactPage(c));
     if (best) {
-      debug.selection_reason = 'priority_1_hr_tel';
+      debug.selection_reason = 'priority_1_contact_page_tel';
     }
     
-    // Priority 2: Main + tel
+    // Priority 2: /contact page + phone words
     if (!best) {
-      best = unique.find(c => c.score >= 0.5 && c.type === 'main' && c.extraction_source === 'tel');
+      best = unique.find(c => c.score >= 0.5 && isFromContactPage(c) && hasPhoneWords(c));
       if (best) {
-        debug.selection_reason = 'priority_2_main_tel';
+        debug.selection_reason = 'priority_2_contact_page_words';
       }
     }
     
-    // Priority 3: Any + tel
+    // Priority 3: Any tel link on official page
     if (!best) {
       best = unique.find(c => c.score >= 0.5 && c.extraction_source === 'tel');
       if (best) {
-        debug.selection_reason = 'priority_3_any_tel';
+        debug.selection_reason = 'priority_3_any_tel_link';
       }
     }
     
@@ -667,7 +671,7 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Priority 6: Fallback - any accepted candidate
+    // Priority 6: Fallback - first accepted candidate (deterministic via order)
     if (!best) {
       best = unique.find(c => c.score >= 0.5);
       if (best) {
