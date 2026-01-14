@@ -273,14 +273,23 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                         {verification ? (
                           <div className="space-y-2">
                             <div className="flex flex-wrap items-center gap-2">
-                              {verification.stage && (
-                                <Badge variant="outline" className="text-xs border-white/20 text-white/60">
-                                  <Activity className="w-3 h-3 mr-1" />
-                                  {verification.stage.replace('_', ' ')}
+                              {verification.method && verification.method === 'public_evidence' && verification.status === 'completed' ? (
+                                <Badge className="bg-green-900/40 text-green-300 text-xs flex items-center gap-1">
+                                  <CheckCircle className="w-3 h-3" />
+                                  Verified (Public evidence)
                                 </Badge>
+                              ) : (
+                                <>
+                                  {verification.stage && (
+                                    <Badge variant="outline" className="text-xs border-white/20 text-white/60">
+                                      <Activity className="w-3 h-3 mr-1" />
+                                      {verification.stage.replace('_', ' ')}
+                                    </Badge>
+                                  )}
+                                  {getStatusBadge(verification.status)}
+                                  {getOutcomeBadge(verification.outcome)}
+                                </>
                               )}
-                              {getStatusBadge(verification.status)}
-                              {getOutcomeBadge(verification.outcome)}
                             </div>
                             {verification.confidence !== undefined && (
                               <div className="flex items-center gap-2">
@@ -294,6 +303,11 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                                   {(verification.confidence * 100).toFixed(0)}% confidence
                                 </span>
                               </div>
+                            )}
+                            {verification.verificationSummary && verification.status === 'completed' && (
+                              <p className="text-green-300/80 text-xs italic">
+                                {verification.verificationSummary}
+                              </p>
                             )}
                           </div>
                         ) : (
@@ -332,8 +346,8 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                       </div>
                     </div>
 
-                    {/* Next Steps - show if action required */}
-                    {verification && verification.status === 'action_required' && verification.nextSteps && verification.nextSteps.length > 0 && (
+                    {/* Next Steps - show if action required, hide if completed */}
+                    {verification && verification.status === 'action_required' && verification.nextSteps && verification.nextSteps.length > 0 && verification.nextSteps.some(s => s.action !== 'complete') && (
                       <AnimatePresence>
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
@@ -347,6 +361,7 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                           </p>
                           <div className="space-y-2">
                             {verification.nextSteps
+                              .filter(s => s.action !== 'complete')
                               .sort((a, b) => (a.priority || 99) - (b.priority || 99))
                               .map((step, idx) => (
                                 <Button
