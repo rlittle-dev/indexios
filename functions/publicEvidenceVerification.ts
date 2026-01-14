@@ -27,43 +27,56 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
       // Primary search - direct career mentions
       `Find web pages that mention "${candidateName}" and their work history at: ${employerNames}
 
-Search for:
-- Company websites: about us, leadership, team pages, executive bios, board members
-- Company press releases and announcements
-- SEC filings (10-K, 8-K, proxy statements, DEF 14A)
-- News articles from business publications (Bloomberg, Reuters, WSJ, Forbes, Business Insider, TechCrunch)
-- Industry publications and trade journals
-- Conference speaker pages and event listings
+Search BROADLY across:
+- Company websites: about us, leadership, team pages, executive bios, board members, employee spotlights
+- Company press releases and announcements (any PR service)
+- SEC filings (10-K, 8-K, proxy statements, DEF 14A) for public companies
+- News articles from ANY publication (major national news, regional/local news, industry trade journals, online publications)
+- Business journals and local business news
+- Industry-specific publications and newsletters
+- Conference speaker pages, event listings, webinar descriptions
 - Patent filings and research publications
+- Award announcements and professional recognition
+- Podcast transcripts and video descriptions
 
-Return ALL relevant URLs.`,
+Return ALL relevant URLs - cast a very wide net.`,
 
       // Secondary search - news and media
-      `Search news articles and media coverage mentioning "${candidateName}" in connection with any of: ${employerNames}
+      `Search for ANY news articles, blog posts, or media mentions of "${candidateName}" connected to: ${employerNames}
 
-Include:
-- Press releases from PR Newswire, Business Wire, GlobeNewswire
-- Industry news sites and trade publications
-- Local business journals
+Include EVERYTHING:
+- Press releases from any PR service (PR Newswire, Business Wire, GlobeNewswire, etc.)
+- Industry news sites and trade publications (any publication)
+- Local business journals and regional news
+- Company blogs and employee spotlight posts
 - Professional association announcements
-- Award announcements and recognition
+- Award announcements and recognition (any level)
 - Speaking engagements and conference materials
+- Podcast episodes and video content
+- Newsletter mentions and email archives
+- University/alumni publications
+- Chamber of commerce announcements
 
-Return URLs to articles and news sources.`,
+Return ALL URLs that mention the person - be very broad.`,
 
-      // Tertiary search - professional context
-      `Find professional mentions of "${candidateName}" related to work at: ${employerNames}
+      // Tertiary search - any professional context
+      `Find ANY professional mentions of "${candidateName}" related to: ${employerNames}
 
-Look for:
-- Company blog posts and case studies
-- Podcast transcripts and video descriptions
-- Webinar speaker bios
-- Corporate social responsibility reports
-- Annual reports and sustainability reports
+Look EVERYWHERE:
+- Company blog posts, case studies, customer stories
+- Podcast transcripts, video descriptions, YouTube content
+- Webinar speaker bios and virtual event materials
+- Corporate reports (CSR, annual, sustainability, diversity)
 - Acquisition and merger announcements
-- Product launch announcements
+- Product launch announcements and marketing materials
+- Grant announcements and funding news
+- Community involvement and volunteer activities
+- Professional certifications and credentials
+- Expert commentary and quotes in articles
+- Guest articles or contributed content
+- Panel discussions and roundtables
 
-Return URLs that show professional activity.`
+Return ALL URLs with any professional mention - leave no stone unturned.`
     ];
 
     let allUrls = [];
@@ -101,8 +114,10 @@ Return URLs that show professional activity.`
 CRITICAL VERIFICATION RULES:
 1. Full name "${candidateName}" must appear (both first and last name together)
 2. Do NOT accept just last name matches or similar names
-3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia, personal blogs
-4. ONLY use: company websites, SEC filings, reputable news outlets, press releases, industry publications
+3. EXCLUDE ONLY: LinkedIn, Twitter, Facebook, Instagram, Wikipedia (personal social media)
+4. ACCEPT ANY credible sources including: company websites, SEC filings, ANY news outlets (major or local), press releases, industry publications, trade journals, local business news, company blogs, professional podcasts, conference materials, patents, research papers, awards/recognition announcements, speaking engagements
+
+BE BROAD: Accept any professional mention that confirms employment, even from smaller publications or local news
 
 Companies to verify: ${employerNames}
 
@@ -127,13 +142,13 @@ For EACH company, determine:
 
 Return results for each company separately, even if one source mentions multiple employers.
 
-CONFIDENCE SCORING:
-- HIGH (0.85-1.0): Multiple high-quality sources (company website + news, or SEC filing + press release, or 3+ news articles)
-- MEDIUM (0.6-0.84): Single high-quality source (company website OR reputable news article with full name and role)
-- LOW (0.3-0.59): Weak or ambiguous sources (brief mentions, unclear context)
+CONFIDENCE SCORING (be generous for confirmable employment):
+- HIGH (0.85-1.0): Multiple sources (company website + any article, OR 2+ articles from any publications, OR SEC filing)
+- MEDIUM (0.6-0.84): Single credible source (company website OR any news article OR press release with full name and employment context)
+- LOW (0.3-0.59): Brief or ambiguous mentions (unclear context, partial information)
 - NONE (0-0.29): No full name matches or credible sources found
 
-Be thorough - spend time analyzing all sources for lower-profile candidates.`;
+IMPORTANT: Be thorough and BROAD - analyze ALL available sources. Accept evidence from any credible publication (major or local). For lower-profile candidates, a single solid article or company website mention should score MEDIUM (0.6-0.7). Multiple mentions from any sources should score HIGH.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
