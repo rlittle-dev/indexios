@@ -11,13 +11,13 @@ import MyAccount from './pages/MyAccount';
 import NewVerification from './pages/NewVerification';
 import Pricing from './pages/Pricing';
 import SavedCandidates from './pages/SavedCandidates';
-import Scan from './pages/Scan';
 import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
 import VerificationDetail from './pages/VerificationDetail';
 import VerificationsList from './pages/VerificationsList';
+import Scan from './pages/Scan';
 import __Layout from './Layout.jsx';
 
 
@@ -35,13 +35,13 @@ export const PAGES = {
     "NewVerification": NewVerification,
     "Pricing": Pricing,
     "SavedCandidates": SavedCandidates,
-    "Scan": Scan,
     "SharedReport": SharedReport,
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
     "VerificationDetail": VerificationDetail,
     "VerificationsList": VerificationsList,
+    "Scan": Scan,
 }
 
 export const pagesConfig = {
