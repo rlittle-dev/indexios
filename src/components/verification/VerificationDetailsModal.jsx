@@ -18,6 +18,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
   };
 
   const methodIcons = {
+    contact_enrichment: <FileSearch className="w-4 h-4" />,
     policy_discovery: <FileSearch className="w-4 h-4" />,
     email_request: <Mail className="w-4 h-4" />,
     network: <Network className="w-4 h-4" />,
@@ -38,6 +39,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
   const getOutcomeColor = (outcome) => {
     const colors = {
       verified: 'bg-green-900/40 text-green-300',
+      contact_identified: 'bg-cyan-900/40 text-cyan-300',
       policy_identified: 'bg-blue-900/40 text-blue-300',
       network_required: 'bg-purple-900/40 text-purple-300',
       unable_to_verify: 'bg-red-900/40 text-red-300'

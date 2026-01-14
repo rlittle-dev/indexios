@@ -6,9 +6,18 @@ const NETWORK_ONLY_EMPLOYERS = [
   'bestbuy', 'costco', 'kroger', 'walgreens', 'cvs'
 ];
 
-// Known verification vendors
+// Known verification vendors/networks
 const VERIFICATION_VENDORS = [
-  'the work number', 'equifax', 'truework', 'hireright'
+  'the work number', 'equifax', 'truework', 'hireright', 
+  'sterling', 'checkr', 'adp verification'
+];
+
+// Keywords that indicate explicit verification policy
+const VERIFICATION_POLICY_KEYWORDS = [
+  'employment verification', 'verify employment', 
+  'verification request', 'verification portal',
+  'send verification requests to', 'hr verification',
+  'background check verification'
 ];
 
 function normalizeEmployerDomain(name) {
@@ -64,33 +73,34 @@ async function determineVerificationMethod(base44, employerName, employerPhone) 
       method: 'network',
       outcome: 'network_required',
       proofArtifacts: [{
-        type: 'policy_discovery',
+        type: 'vendor_identified',
         value: vendor,
-        label: 'Verification vendor identified'
+        label: `Verification vendor identified: ${vendor}`
       }]
     };
   }
 
-  // Default: policy discovery if phone available, otherwise network
+  // If we only have contact info (phone/email) but no explicit verification policy
   if (employerPhone) {
     return {
-      method: 'policy_discovery',
-      outcome: 'policy_identified',
+      method: 'contact_enrichment',
+      outcome: 'contact_identified',
       proofArtifacts: [{
-        type: 'phone_available',
+        type: 'contact_info',
         value: employerPhone,
-        label: 'Phone number available for verification'
+        label: 'Contact information found (phone number)'
       }]
     };
   }
 
+  // No contact info or policy found
   return {
-    method: 'network',
-    outcome: 'network_required',
+    method: 'contact_enrichment',
+    outcome: 'unable_to_verify',
     proofArtifacts: [{
       type: 'no_contact',
       value: '',
-      label: 'No direct contact information available'
+      label: 'No contact information or verification policy found'
     }]
   };
 }

@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
       completed: 0,
       failed: 0,
       verified: 0,
+      contact_identified: 0,
       policy_identified: 0,
       network_required: 0,
       unable_to_verify: 0

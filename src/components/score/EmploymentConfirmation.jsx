@@ -92,6 +92,7 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
     if (!outcome) return null;
     const configs = {
       verified: { label: 'Verified', color: 'bg-green-900/40 text-green-300' },
+      contact_identified: { label: 'Contact identified', color: 'bg-cyan-900/40 text-cyan-300' },
       policy_identified: { label: 'Policy identified', color: 'bg-blue-900/40 text-blue-300' },
       network_required: { label: 'Network required', color: 'bg-purple-900/40 text-purple-300' },
       unable_to_verify: { label: 'Unable to verify', color: 'bg-red-900/40 text-red-300' }
