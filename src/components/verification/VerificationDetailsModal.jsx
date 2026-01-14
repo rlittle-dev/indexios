@@ -95,6 +95,26 @@ export default function VerificationDetailsModal({ verification, onClose }) {
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] space-y-6">
+            {/* Stage */}
+            {verification.stage && (
+              <div>
+                <h3 className="text-white/60 text-sm font-medium mb-2">Current Stage</h3>
+                <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <p className="text-white font-medium">{verification.stage.replace('_', ' ')}</p>
+                  {verification.stageHistory && verification.stageHistory.length > 1 && (
+                    <div className="mt-2 pt-2 border-t border-white/10 space-y-1">
+                      {verification.stageHistory.map((h, idx) => (
+                        <div key={idx} className="flex justify-between text-xs text-white/40">
+                          <span>{h.stage.replace('_', ' ')}</span>
+                          <span>{new Date(h.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Method & Confidence */}
             <div className="space-y-4">
               <div>
@@ -135,16 +155,23 @@ export default function VerificationDetailsModal({ verification, onClose }) {
             {/* Next Steps */}
             {verification.nextSteps && verification.nextSteps.length > 0 && (
               <div>
-                <h3 className="text-white/60 text-sm font-medium mb-2">Available Next Actions</h3>
+                <h3 className="text-white/60 text-sm font-medium mb-2">Recommended Next Steps</h3>
                 <div className="space-y-2">
-                  {verification.nextSteps.map((step, idx) => (
-                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3 flex items-center justify-between">
-                      <span className="text-white text-sm">{step.label}</span>
-                      <Badge variant={step.enabled ? "default" : "outline"} className="text-xs">
-                        {step.enabled ? 'Available' : 'Coming soon'}
-                      </Badge>
-                    </div>
-                  ))}
+                  {verification.nextSteps
+                    .sort((a, b) => (a.priority || 99) - (b.priority || 99))
+                    .map((step, idx) => (
+                      <div key={idx} className="bg-zinc-800/50 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/40 text-xs">#{step.priority || idx + 1}</span>
+                            <span className="text-white text-sm">{step.label}</span>
+                          </div>
+                          <Badge variant={step.enabled ? "default" : "outline"} className="text-xs">
+                            {step.enabled ? 'Available' : 'Coming soon'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             )}
@@ -176,24 +203,31 @@ export default function VerificationDetailsModal({ verification, onClose }) {
               </div>
             )}
 
-            {/* Proof Artifacts */}
+            {/* Proof Artifacts / Evidence Trail */}
             {verification.proofArtifacts && verification.proofArtifacts.length > 0 && (
               <div>
-                <h3 className="text-white/60 text-sm font-medium mb-2">Proof & Evidence</h3>
+                <h3 className="text-white/60 text-sm font-medium mb-2">Evidence & Audit Trail</h3>
                 <div className="space-y-2">
                   {verification.proofArtifacts.map((artifact, idx) => (
-                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3">
-                      <div className="flex items-start justify-between gap-2">
+                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3 border-l-2 border-blue-500/30">
+                      <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex-1">
                           <p className="text-white/80 text-sm font-medium">{artifact.label}</p>
-                          {artifact.value && (
-                            <p className="text-white/40 text-xs mt-1 break-all">{artifact.value}</p>
+                          {artifact.timestamp && (
+                            <p className="text-white/30 text-xs mt-0.5">
+                              {new Date(artifact.timestamp).toLocaleString()}
+                            </p>
                           )}
                         </div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
                           {artifact.type}
                         </Badge>
                       </div>
+                      {artifact.value && (
+                        <p className="text-white/40 text-xs break-all font-mono bg-black/20 rounded p-2">
+                          {artifact.value}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

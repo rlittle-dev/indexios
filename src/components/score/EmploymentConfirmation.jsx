@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Phone, ChevronDown, AlertCircle, Bug, Play, RefreshCw, Eye, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Phone, ChevronDown, AlertCircle, Bug, Play, RefreshCw, Eye, CheckCircle, Clock, XCircle, Activity, FileSearch, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -268,15 +268,31 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                           )}
                         </div>
                         
-                        {/* Verification Status & Outcome */}
+                        {/* Stage & Status */}
                         {verification ? (
-                          <div className="flex flex-wrap items-center gap-2">
-                            {getStatusBadge(verification.status)}
-                            {getOutcomeBadge(verification.outcome)}
-                            {verification.method && (
-                              <span className="text-xs text-white/40">
-                                via {verification.method.replace('_', ' ')}
-                              </span>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {verification.stage && (
+                                <Badge variant="outline" className="text-xs border-white/20 text-white/60">
+                                  <Activity className="w-3 h-3 mr-1" />
+                                  {verification.stage.replace('_', ' ')}
+                                </Badge>
+                              )}
+                              {getStatusBadge(verification.status)}
+                              {getOutcomeBadge(verification.outcome)}
+                            </div>
+                            {verification.confidence !== undefined && (
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-zinc-700/50 rounded-full h-1.5 max-w-[100px]">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all"
+                                    style={{ width: `${verification.confidence * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-white/40 text-xs">
+                                  {(verification.confidence * 100).toFixed(0)}% confidence
+                                </span>
+                              </div>
                             )}
                           </div>
                         ) : (
@@ -317,25 +333,38 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
 
                     {/* Next Steps - show if action required */}
                     {verification && verification.status === 'action_required' && verification.nextSteps && verification.nextSteps.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-white/10">
-                        <p className="text-white/60 text-xs font-medium mb-2">Available Actions:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {verification.nextSteps.map((step, idx) => (
-                            <Button
-                              key={idx}
-                              size="sm"
-                              disabled={!step.enabled}
-                              className={step.enabled 
-                                ? "bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                                : "bg-zinc-700 text-zinc-400 cursor-not-allowed text-xs"
-                              }
-                            >
-                              {step.label}
-                              {!step.enabled && <span className="ml-1 text-[10px]">(Coming soon)</span>}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
+                      <AnimatePresence>
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-3 pt-3 border-t border-white/10"
+                        >
+                          <p className="text-white/60 text-xs font-medium mb-2 flex items-center gap-1">
+                            <Send className="w-3 h-3" />
+                            Recommended Next Steps:
+                          </p>
+                          <div className="space-y-2">
+                            {verification.nextSteps
+                              .sort((a, b) => (a.priority || 99) - (b.priority || 99))
+                              .map((step, idx) => (
+                                <Button
+                                  key={idx}
+                                  size="sm"
+                                  disabled={!step.enabled}
+                                  className={step.enabled 
+                                    ? "w-full justify-start bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                    : "w-full justify-start bg-zinc-700/50 text-zinc-400 cursor-not-allowed text-xs"
+                                  }
+                                >
+                                  <span className="mr-2 text-white/40">#{idx + 1}</span>
+                                  {step.label}
+                                  {!step.enabled && <span className="ml-auto text-[10px]">(Coming soon)</span>}
+                                </Button>
+                              ))}
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
                     )}
 
                     {showDebug === companyName && debug && (

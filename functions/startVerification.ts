@@ -1,174 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-// Known network-only employers
-const NETWORK_ONLY_EMPLOYERS = [
-  'amazon', 'walmart', 'target', 'homedepot', 'lowes',
-  'bestbuy', 'costco', 'kroger', 'walgreens', 'cvs'
-];
-
-// Known verification vendors/networks
-const VERIFICATION_VENDORS = [
-  'the work number', 'equifax', 'truework', 'hireright', 
-  'sterling', 'checkr', 'adp verification'
-];
-
-// Keywords that indicate explicit verification policy
-const VERIFICATION_POLICY_KEYWORDS = [
-  'employment verification', 'verify employment', 
-  'verification request', 'verification portal',
-  'send verification requests to', 'hr verification',
-  'background check verification'
-];
-
 function normalizeEmployerDomain(name) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 }
 
-async function determineVerificationMethod(base44, employerName, employerPhone) {
-  const domain = normalizeEmployerDomain(employerName);
-  
-  // Check cache for existing policy
-  const policies = await base44.entities.EmployerVerificationPolicy.filter({ employerDomain: domain });
-  if (policies.length > 0) {
-    const policy = policies[0];
-    
-    if (policy.isNetworkOnly) {
-      // Definitive: Network required
-      return {
-        status: 'completed',
-        outcome: 'network_required',
-        method: 'network',
-        confidence: 0.95,
-        isVerified: false,
-        nextSteps: [{
-          action: 'start_network_verification',
-          label: `Start verification via ${policy.verificationVendor || 'verification network'}`,
-          enabled: false // Not implemented yet
-        }],
-        proofArtifacts: [{
-          type: 'policy_cache',
-          value: policy.verificationVendor || 'Verification network',
-          label: `Cached employer policy: ${policy.policyNotes}`
-        }]
-      };
-    }
+async function orchestrateVerificationFlow(base44, employerName, employerPhone) {
+  // Call the verification orchestrator
+  const response = await base44.functions.invoke('verificationOrchestrator', {
+    employerName,
+    employerPhone
+  });
 
-    // Policy identified but not definitive
-    return {
-      status: 'action_required',
-      outcome: 'policy_identified',
-      method: 'policy_discovery',
-      confidence: 0.7,
-      isVerified: false,
-      nextSteps: [{
-        action: 'send_email_request',
-        label: 'Send verification request email',
-        enabled: false
-      }],
-      proofArtifacts: [{
-        type: 'policy_cache',
-        value: policy.id,
-        label: 'Cached employer policy'
-      }]
-    };
+  if (!response.data.success) {
+    throw new Error('Orchestrator failed');
   }
 
-  // Check if known network-only employer
-  if (NETWORK_ONLY_EMPLOYERS.some(e => domain.includes(e))) {
-    // Cache this policy
-    await base44.entities.EmployerVerificationPolicy.create({
-      employerDomain: domain,
-      employerName,
-      recommendedMethod: 'network',
-      isNetworkOnly: true,
-      verificationVendor: 'The Work Number',
-      policyNotes: 'Large employer - verifies through The Work Number only',
-      lastChecked: new Date().toISOString()
-    });
-
-    return {
-      status: 'completed',
-      outcome: 'network_required',
-      method: 'network',
-      confidence: 0.95,
-      isVerified: false,
-      nextSteps: [{
-        action: 'start_network_verification',
-        label: 'Start verification via The Work Number',
-        enabled: false // Not implemented yet
-      }],
-      proofArtifacts: [{
-        type: 'policy_discovery',
-        value: 'The Work Number',
-        label: 'Known network-only employer - requires The Work Number'
-      }]
-    };
-  }
-
-  // Check if verification vendor mentioned in name
-  const vendor = VERIFICATION_VENDORS.find(v => employerName.toLowerCase().includes(v));
-  if (vendor) {
-    return {
-      status: 'completed',
-      outcome: 'network_required',
-      method: 'network',
-      confidence: 0.9,
-      isVerified: false,
-      nextSteps: [{
-        action: 'start_network_verification',
-        label: `Start verification via ${vendor}`,
-        enabled: false
-      }],
-      proofArtifacts: [{
-        type: 'vendor_identified',
-        value: vendor,
-        label: `Verification vendor identified: ${vendor}`
-      }]
-    };
-  }
-
-  // If we only have contact info (phone/email) but no explicit verification policy
-  if (employerPhone) {
-    return {
-      status: 'action_required',
-      outcome: 'contact_identified',
-      method: 'contact_enrichment',
-      confidence: 0.3,
-      isVerified: false,
-      nextSteps: [
-        {
-          action: 'start_policy_identification_call',
-          label: 'Start policy identification (AI call)',
-          enabled: false // Coming soon
-        },
-        {
-          action: 'mark_unable_to_verify',
-          label: 'Mark as unable to verify',
-          enabled: true
-        }
-      ],
-      proofArtifacts: [{
-        type: 'contact_info',
-        value: employerPhone,
-        label: 'Contact information found (phone number)'
-      }]
-    };
-  }
-
-  // No contact info or policy found - definitive dead end
-  return {
-    status: 'completed',
-    outcome: 'unable_to_verify',
-    method: 'contact_enrichment',
-    confidence: 0.1,
-    isVerified: false,
-    nextSteps: [],
-    proofArtifacts: [{
-      type: 'no_contact',
-      value: '',
-      label: 'No contact information or verification policy found'
-    }]
-  };
+  return response.data;
 }
 
 Deno.serve(async (req) => {
@@ -208,8 +55,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Determine verification method and status
-      const result = await determineVerificationMethod(base44, name, phone);
+      // Run orchestrator
+      const result = await orchestrateVerificationFlow(base44, name, phone);
 
       // Create verification record
       const verificationData = {
@@ -217,6 +64,8 @@ Deno.serve(async (req) => {
         employerName: name,
         employerDomain: normalizeEmployerDomain(name),
         employerPhone: phone || '',
+        stage: result.stage,
+        stageHistory: result.stageHistory,
         status: result.status,
         outcome: result.outcome,
         method: result.method,
@@ -233,7 +82,7 @@ Deno.serve(async (req) => {
 
       const verification = await base44.entities.EmployerVerification.create(verificationData);
 
-      console.log(`Created verification for ${name}: ${result.status} / ${result.outcome} (confidence: ${result.confidence})`);
+      console.log(`✅ ${name}: stage=${result.stage}, status=${result.status}, outcome=${result.outcome}`);
       verificationRecords.push(verification);
     }
 
