@@ -22,27 +22,23 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
   const employerNames = employers.map(e => e.name).join(', ');
 
   try {
-    // STEP 1: Find relevant URLs - COMPREHENSIVE SEARCH
-    // Multiple search attempts to ensure consistency
-    let allUrls = [];
-    
-    // Search 1: General employment history
-    const searchPrompt1 = `Search for pages mentioning "${candidateName}" in a professional context.
+    // STEP 1: Find relevant URLs
+    const searchPrompt = `Find web pages that mention "${candidateName}" and their work history.
 
-Find MULTIPLE sources for: ${employerNames}
+Look for pages that show employment at any of these companies: ${employerNames}
 
-Priority sources:
-1. Company websites (about us, leadership, team, executives, board members)
-2. SEC filings and regulatory documents
-3. News articles (Bloomberg, Reuters, WSJ, Forbes, Business Insider)
-4. Press releases and announcements
-5. Company blogs and official publications
+Search for:
+- Company websites (about, leadership, team, executives, press releases)
+- News articles from business publications
+- SEC filings if these are public companies
+- Press releases and announcements
 
-Return at least 10-15 relevant URLs.`;
+Return URLs that likely contain career/employment information.`;
 
+    let searchUrls = [];
     try {
-      const searchResult1 = await base44.integrations.Core.InvokeLLM({
-        prompt: searchPrompt1,
+      const searchResult = await base44.integrations.Core.InvokeLLM({
+        prompt: searchPrompt,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
@@ -51,85 +47,37 @@ Return at least 10-15 relevant URLs.`;
           }
         }
       });
-      allUrls.push(...(searchResult1.urls || []));
+      searchUrls = searchResult.urls || [];
+      console.log(`[Public Evidence] Found ${searchUrls.length} candidate URLs`);
     } catch (error) {
-      console.log(`[Public Evidence] Search 1 failed: ${error.message}`);
+      console.log(`[Public Evidence] URL search failed: ${error.message}`);
     }
 
-    // Search 2: Company-specific searches for each employer
-    for (const employer of employers) {
-      const searchPrompt2 = `Find pages showing "${candidateName}" worked at ${employer.name}.
+    // STEP 2: Validate employment at each company
+    const validationPrompt = `You are verifying employment history for "${candidateName}".
 
-Search for:
-- ${employer.name} leadership/team pages
-- ${employer.name} press releases mentioning ${candidateName}
-- News about ${candidateName} at ${employer.name}
-- SEC filings for ${employer.name} (if public company)
+CRITICAL RULES:
+1. Full name "${candidateName}" must appear (both first and last name together)
+2. Do NOT accept just last name matches
+3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia
+4. ONLY use: company websites, SEC filings, reputable news (Bloomberg, Reuters, WSJ, Forbes, Business Insider), press releases
 
-Return relevant URLs.`;
+Companies to check: ${employerNames}
 
-      try {
-        const searchResult2 = await base44.integrations.Core.InvokeLLM({
-          prompt: searchPrompt2,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              urls: { type: "array", items: { type: "string" } }
-            }
-          }
-        });
-        allUrls.push(...(searchResult2.urls || []));
-      } catch (error) {
-        console.log(`[Public Evidence] Search 2 for ${employer.name} failed: ${error.message}`);
-      }
-    }
+${searchUrls.length > 0 ? `Priority sources:\n${searchUrls.slice(0, 8).map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
-    // Deduplicate URLs
-    const searchUrls = [...new Set(allUrls)];
-    console.log(`[Public Evidence] Found ${searchUrls.length} total URLs from comprehensive search`);
+For EACH company, determine:
+- Did you find the full name "${candidateName}" associated with this company?
+- What credible sources confirm this?
+- What was their role (if mentioned)?
 
-    // STEP 2: Validate employment at each company - THOROUGH VALIDATION
-    const validationPrompt = `You are conducting a COMPREHENSIVE employment verification for "${candidateName}".
+Return results for each company separately, even if one source mentions multiple employers.
 
-CRITICAL VERIFICATION RULES:
-1. FULL NAME MATCH REQUIRED: "${candidateName}" must appear with both first AND last name
-2. NO PARTIAL MATCHES: Reject last name only or first name only
-3. BANNED SOURCES: LinkedIn, Twitter, Facebook, Instagram, Wikipedia, personal blogs
-4. TRUSTED SOURCES ONLY: Company websites, SEC filings, news (Bloomberg, Reuters, WSJ, Forbes, Business Insider), official press releases
-
-COMPANIES TO VERIFY: ${employerNames}
-
-AVAILABLE SOURCES (use ALL relevant):
-${searchUrls.length > 0 ? searchUrls.map((u, i) => `${i + 1}. ${u}`).join('\n') : 'No specific URLs provided - use web search'}
-
-VERIFICATION PROCESS:
-For EACH company, you must:
-1. Search thoroughly for "${candidateName}" + company name
-2. Look for MULTIPLE sources (don't stop at one)
-3. Check company official pages, press releases, SEC filings
-4. Verify full name appears in context of employment/role
-5. Note the specific role/title if mentioned
-
-QUALITY STANDARDS:
-- HIGH CONFIDENCE (0.85-1.0): 
-  * Company website/SEC filing explicitly lists them, OR
-  * 2+ credible news sources confirm employment, OR
-  * Official press release names them in a role
-  
-- MEDIUM CONFIDENCE (0.6-0.84): 
-  * Single credible news article with full name, OR
-  * Company blog post mentioning them
-  
-- LOW CONFIDENCE (0.3-0.59): 
-  * Ambiguous mentions
-  * Weak sources
-  
-- NO EVIDENCE (0-0.29): 
-  * No full name match found
-  * Only social media mentions
-
-IMPORTANT: If one source (like SEC filing) mentions multiple employers, apply that evidence to ALL relevant companies.`;
+Quality levels:
+- HIGH (0.85-1.0): Company website/SEC filing with full name, OR 2+ news sources
+- MEDIUM (0.6-0.84): Single news article with full name
+- LOW (0.3-0.59): Weak/ambiguous sources
+- NONE (0-0.29): No full name matches`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
@@ -159,8 +107,7 @@ IMPORTANT: If one source (like SEC filing) mentions multiple employers, apply th
                     }
                   }
                 },
-                reasoning: { type: "string" },
-                search_depth: { type: "string" }
+                reasoning: { type: "string" }
               }
             }
           }
@@ -168,10 +115,7 @@ IMPORTANT: If one source (like SEC filing) mentions multiple employers, apply th
       }
     });
 
-    console.log(`[Public Evidence] Comprehensive validation complete:`);
-    console.log(`- Total companies checked: ${result.companies?.length || 0}`);
-    console.log(`- Evidence found for: ${result.companies?.filter(c => c.found).length || 0} companies`);
-    console.log(`- Total sources discovered: ${result.companies?.reduce((sum, c) => sum + (c.sources?.length || 0), 0)}`);
+    console.log(`[Public Evidence] Validation complete for ${result.companies?.length || 0} companies`);
 
     // Map results back to employer names
     const evidenceByEmployer = {};
