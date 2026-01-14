@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
       try {
         const evidenceResponse = await base44.functions.invoke('publicEvidenceVerification', {
           candidateName,
+          candidateId,
           employers: employers.map(e => ({ name: e.name, jobTitle: e.jobTitle }))
         });
 
