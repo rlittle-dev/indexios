@@ -312,64 +312,86 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
           }
         });
         
-      // Extract company names from the analysis
+      // Extract company names from the analysis - ENSURE ALL ARE INCLUDED
       let companyNames = [];
       if (analysis.company_names && Array.isArray(analysis.company_names)) {
-        companyNames = analysis.company_names;
+        companyNames = [...new Set(analysis.company_names.filter(name => name && name.trim()))]; // Dedupe and filter empty
       }
+
+      console.log(`📋 Found ${companyNames.length} companies to enrich:`, companyNames);
 
       // Look up phone numbers for each company (with full phone object capture)
       const companies = [];
       const companyPhoneDebug = {};
 
-      // Use Promise.all to await ALL phone lookups in parallel
-      const phoneEnrichmentPromises = companyNames.map(async (company) => {
-        try {
-          const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
+      // Use Promise.allSettled to ensure ALL companies are processed, even if some fail
+      const phoneEnrichmentResults = await Promise.allSettled(
+        companyNames.map(async (company) => {
+          try {
+            const phoneResult = await base44.functions.invoke('findCompanyPhoneNumber', { company_name: company });
 
-          // Capture full phone object
-          let phone = null;
-          if (phoneResult.data && phoneResult.data.phone) {
-            phone = {
-              type: phoneResult.data.phone.type || 'main',
-              raw: phoneResult.data.phone.raw,
-              digits: phoneResult.data.phone.digits,
-              display: phoneResult.data.phone.display,
-              e164: phoneResult.data.phone.e164,
-              source_url: phoneResult.data.phone.source_url || phoneResult.data.phone.source,
-              extraction_source: phoneResult.data.phone.extraction_source,
-              confidence: phoneResult.data.phone.confidence,
+            // Capture full phone object
+            let phone = null;
+            if (phoneResult.data && phoneResult.data.phone) {
+              phone = {
+                type: phoneResult.data.phone.type || 'main',
+                raw: phoneResult.data.phone.raw,
+                digits: phoneResult.data.phone.digits,
+                display: phoneResult.data.phone.display,
+                e164: phoneResult.data.phone.e164,
+                source_url: phoneResult.data.phone.source_url || phoneResult.data.phone.source,
+                extraction_source: phoneResult.data.phone.extraction_source,
+                confidence: phoneResult.data.phone.confidence,
+              };
+            }
+
+            // Capture debug
+            if (phoneResult.data && phoneResult.data.debug) {
+              companyPhoneDebug[company] = phoneResult.data.debug;
+            }
+
+            return {
+              name: company,
+              phone,
+              phone_debug: companyPhoneDebug[company],
+            };
+          } catch (error) {
+            console.error(`Error looking up ${company}:`, error);
+            companyPhoneDebug[company] = {
+              called: true,
+              stage: 'error',
+              error: error.message,
+              final_decision: `Exception during function invoke: ${error.message}`,
+            };
+            return {
+              name: company,
+              phone: null,
+              phone_debug: companyPhoneDebug[company],
             };
           }
+        })
+      );
 
-          // Capture debug
-          if (phoneResult.data && phoneResult.data.debug) {
-            companyPhoneDebug[company] = phoneResult.data.debug;
-          }
-
-          companies.push({
-            name: company,
-            phone, // Full phone object, can be null
-            phone_debug: companyPhoneDebug[company],
-          });
-        } catch (error) {
-          console.error(`Error looking up ${company}:`, error);
-          companyPhoneDebug[company] = {
-            called: true,
-            stage: 'error',
-            error: error.message,
-            final_decision: `Exception during function invoke: ${error.message}`,
-          };
+      // Process results - ensure ALL companies are included
+      phoneEnrichmentResults.forEach((result, idx) => {
+        if (result.status === 'fulfilled' && result.value) {
+          companies.push(result.value);
+        } else {
+          // If promise was rejected, still include the company
+          const company = companyNames[idx];
+          console.error(`Failed to process ${company}:`, result.reason);
           companies.push({
             name: company,
             phone: null,
-            phone_debug: companyPhoneDebug[company],
+            phone_debug: {
+              called: true,
+              stage: 'error',
+              error: result.reason?.message || 'Unknown error',
+              final_decision: 'Promise rejected during enrichment'
+            }
           });
         }
       });
-
-      // CRITICAL: Await all phone lookups
-      await Promise.all(phoneEnrichmentPromises);
       const phonesFound = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
       console.log(`📱 Phone enrichment complete: ${phonesFound}/${companyNames.length} companies with phones found`);
       console.log('🔍 SCAN RESULT COMPANIES:', companies);
