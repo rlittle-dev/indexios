@@ -405,15 +405,18 @@ Deno.serve(async (req) => {
         if (cached.length > 0) {
           const cachedVerif = cached[0];
           console.log(`[Public Evidence] ✅ CACHE HIT for ${candidateName} at ${employer.name}`);
-          
+
+          // If cached as verified with evidence, ensure 100% confidence and completed status
+          const hasArtifacts = cachedVerif.proofArtifacts && cachedVerif.proofArtifacts.length > 0;
+
           cachedResults[employer.name] = {
             found: true,
-            confidence: cachedVerif.confidence || 0.8,
-            outcome: cachedVerif.outcome,
-            isVerified: cachedVerif.isVerified,
-            status: cachedVerif.status,
+            confidence: hasArtifacts ? 1.0 : (cachedVerif.confidence || 0.8), // 100% if has artifacts
+            outcome: hasArtifacts ? 'people_evidence_found' : cachedVerif.outcome,
+            isVerified: hasArtifacts ? true : cachedVerif.isVerified,
+            status: hasArtifacts ? 'completed' : cachedVerif.status,
             artifacts: cachedVerif.proofArtifacts || [],
-            reasoning: `Cached verification result from ${new Date(cachedVerif.created_date).toLocaleDateString()}`
+            reasoning: `Verified from previous check (${new Date(cachedVerif.created_date).toLocaleDateString()})`
           };
         }
       }
@@ -478,24 +481,13 @@ Deno.serve(async (req) => {
       const isCompanySite = evidence.sourceType === 'company_site';
       
       if (evidence.found && hasCredibleSources) {
-        // ANY credible source = verified and completed
-        // RocketReach, press, or company site all count as verification
-        if (isRocketReach || isPress || isCompanySite) {
-          outcome = 'people_evidence_found';
-          isVerified = true;
-          status = 'completed';
-          // Boost confidence to 100% for clear evidence
-          evidence.confidence = 1.0;
-        } else if (evidence.confidence >= 0.5) {
-          outcome = 'people_evidence_found';
-          isVerified = true;
-          status = 'completed';
-          evidence.confidence = 0.9; // High confidence for any valid source
-        } else {
-          outcome = 'contact_identified';
-          isVerified = false;
-          status = 'action_required';
-        }
+        // ANY credible source with valid URLs = 100% verified and completed
+        outcome = 'people_evidence_found';
+        isVerified = true;
+        status = 'completed';
+        evidence.confidence = 1.0; // Always 100% if we have credible sources
+        
+        console.log(`  ✅ VERIFIED: ${evidence.sources.length} source(s) found, type: ${evidence.sourceType}`);
       } else {
         outcome = 'contact_identified';
         isVerified = false;
