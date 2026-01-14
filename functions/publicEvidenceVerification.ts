@@ -23,30 +23,27 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
     // STEP 1: Multi-round comprehensive search
     let allUrls = [];
     
-    // Round 1: Direct searches for each employer individually (MOST EFFECTIVE)
-    console.log(`[Public Evidence] Round 1: Direct employer searches...`);
+    // Round 1: EXACT name + company searches (MOST EFFECTIVE for lower-profile individuals)
+    console.log(`[Public Evidence] Round 1: Exact name+company searches...`);
     for (const employer of employers) {
-      const directPrompt = `Search the internet for "${candidateName}" at "${employer.name}".
+      // Direct search with exact phrase
+      const exactPrompt = `Find web pages and articles about "${candidateName}" "${employer.name}".
 
-Find ANYTHING that mentions both:
-- The name "${candidateName}" (or variations like first name only + last name separately)
-- The company "${employer.name}"
+Search for the EXACT phrase: "${candidateName}" "${employer.name}"
 
-Include:
-- Company website pages (about, team, leadership, employees, staff)
-- Any news articles (major or local)
+This will find:
+- Articles mentioning both the person and company
 - Press releases
-- Business directories
+- News about their work at this company
+- Company pages listing them
 - Conference materials
-- Social media posts (company accounts, not personal)
 - Blog posts
-- ANY other source
 
-Return EVERY URL that might mention this person at this company.`;
+Return ALL URLs found.`;
 
       try {
         const result = await base44.integrations.Core.InvokeLLM({
-          prompt: directPrompt,
+          prompt: exactPrompt,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -58,10 +55,37 @@ Return EVERY URL that might mention this person at this company.`;
         
         if (result.urls && result.urls.length > 0) {
           allUrls = allUrls.concat(result.urls);
-          console.log(`[Public Evidence] Found ${result.urls.length} URLs for ${candidateName} + ${employer.name}`);
+          console.log(`[Public Evidence] Exact search found ${result.urls.length} URLs for "${candidateName}" "${employer.name}"`);
         }
       } catch (error) {
-        console.log(`[Public Evidence] Direct search failed for ${employer.name}: ${error.message}`);
+        console.log(`[Public Evidence] Exact search failed for ${employer.name}: ${error.message}`);
+      }
+
+      // Also do broader company search
+      const companyPrompt = `Search for "${candidateName}" at "${employer.name}".
+
+Include any mention of this person working at, employed by, or associated with this company.
+
+Return all URLs.`;
+
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: companyPrompt,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              urls: { type: "array", items: { type: "string" } }
+            }
+          }
+        });
+        
+        if (result.urls && result.urls.length > 0) {
+          allUrls = allUrls.concat(result.urls);
+          console.log(`[Public Evidence] Broad search found ${result.urls.length} URLs for ${candidateName} + ${employer.name}`);
+        }
+      } catch (error) {
+        console.log(`[Public Evidence] Broad search failed for ${employer.name}: ${error.message}`);
       }
     }
 
