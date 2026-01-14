@@ -18,7 +18,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     try {
       const response = await base44.functions.invoke('employmentConfirmation', {
         candidateName,
-        employers: companyNames.map(name => ({ name, jobTitle: '' }))
+        unconfirmedEmployers: companyNames.map(name => ({ name, jobTitle: '' }))
       });
 
       if (response.data.success) {
@@ -182,14 +182,14 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                     {/* Status */}
                     <div className="flex items-center gap-1">
-                      {getStatusIcon(status)}
-                      <Badge className={`text-xs ${getStatusColor(status)}`}>
-                        {status}
+                      {getStatusIcon(result.status || status)}
+                      <Badge className={`text-xs ${getStatusColor(result.status || status)}`}>
+                        {result.status || status}
                       </Badge>
                     </div>
 
                     {/* Confidence */}
-                    <div className="text-white/70 text-xs">
+                    <div className="text-white/70 text-xs font-medium">
                       {result.confidence || 0}%
                     </div>
 
