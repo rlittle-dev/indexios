@@ -233,20 +233,31 @@ BE GENEROUS: If you see the name and company together, that's a FIND. Default to
         employer.name.toLowerCase().includes(c.company_name.toLowerCase())
       );
 
-      if (match && match.full_name_matched && match.sources && match.sources.length > 0) {
-        // Filter out social media
-        const validSources = match.sources.filter(s => 
-          !s.url.toLowerCase().includes('linkedin.com') &&
-          !s.url.toLowerCase().includes('twitter.com') &&
-          !s.url.toLowerCase().includes('facebook.com') &&
-          !s.url.toLowerCase().includes('instagram.com')
+      // LOWERED BAR: Accept if found=true OR has sources, don't require full_name_matched
+      if (match && (match.found || (match.sources && match.sources.length > 0))) {
+        // Filter out personal social media only
+        const validSources = (match.sources || []).filter(s => 
+          !s.url.toLowerCase().includes('linkedin.com/in/') &&
+          !s.url.toLowerCase().includes('twitter.com/') &&
+          !s.url.toLowerCase().includes('facebook.com/') &&
+          !s.url.toLowerCase().includes('instagram.com/')
         );
 
+        // If we have sources, boost confidence even if full_name_matched is false
+        const adjustedConfidence = validSources.length > 0 
+          ? Math.max(match.confidence || 0.5, 0.5) // Minimum 0.5 if we have sources
+          : (match.confidence || 0.3);
+
         evidenceByEmployer[employer.name] = {
-          found: match.found,
-          confidence: match.confidence,
-          sources: validSources,
-          reasoning: match.reasoning,
+          found: validSources.length > 0,
+          confidence: adjustedConfidence,
+          sources: validSources.map(s => ({
+            url: s.url,
+            description: s.snippet || s.type || 'Source found',
+            type: s.type,
+            quality: s.quality
+          })),
+          reasoning: match.reasoning || 'Employment mention found',
           roleMentioned: match.role_mentioned
         };
       } else {
@@ -254,7 +265,7 @@ BE GENEROUS: If you see the name and company together, that's a FIND. Default to
           found: false,
           confidence: 0.1,
           sources: [],
-          reasoning: match?.reasoning || `No full name match found for ${candidateName} at ${employer.name}`
+          reasoning: match?.reasoning || `No credible sources found for ${candidateName} at ${employer.name}`
         };
       }
     }
@@ -302,33 +313,40 @@ Deno.serve(async (req) => {
       const evidence = evidenceByEmployer[employer.name];
       const artifacts = [];
       
-      if (evidence.found && evidence.sources.length > 0) {
-        evidence.sources.forEach(source => {
+      console.log(`[Public Evidence] Building result for ${employer.name}:`);
+      console.log(`  Found: ${evidence.found}, Confidence: ${evidence.confidence}`);
+      console.log(`  Sources: ${evidence.sources?.length || 0}`);
+      
+      if (evidence.found && evidence.sources && evidence.sources.length > 0) {
+        evidence.sources.forEach((source, idx) => {
+          const label = source.description || `Source ${idx + 1}: ${source.type || 'web page'}`;
           artifacts.push(addArtifact(
-            `${source.quality.toUpperCase()} quality source: ${source.type}`,
+            label,
             'public_evidence',
-            source.url,
-            source.snippet
+            source.url || '',
+            evidence.reasoning
           ));
+          console.log(`    Source ${idx + 1}: ${source.url}`);
         });
       } else {
         artifacts.push(addArtifact(
-          'No strong public evidence found',
+          'No public evidence found',
           'public_evidence',
           '',
           evidence.reasoning
         ));
       }
 
-      // Determine outcome
+      // Determine outcome - LOWERED THRESHOLDS
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
       
-      if (evidence.found && hasCredibleSources && evidence.confidence >= 0.85) {
+      // 0.4+ with sources = verified
+      if (evidence.found && hasCredibleSources && evidence.confidence >= 0.4) {
         outcome = 'verified_public_evidence';
-        isVerified = true;
+        isVerified = evidence.confidence >= 0.7; // Only mark fully verified if 0.7+
         status = 'completed';
-      } else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.6) {
+      } else if (evidence.found) {
         outcome = 'policy_identified';
         isVerified = false;
         status = 'action_required';
@@ -347,6 +365,8 @@ Deno.serve(async (req) => {
         artifacts,
         reasoning: evidence.reasoning
       };
+      
+      console.log(`  Final outcome: ${outcome}, verified: ${isVerified}`);
     }
 
     return Response.json({
