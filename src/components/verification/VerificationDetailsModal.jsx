@@ -4,10 +4,12 @@ import { X, CheckCircle, AlertCircle, Clock, Network, Mail, Phone, FileSearch, B
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-export default function VerificationDetailsModal({ verification, onClose }) {
+export default function VerificationDetailsModal({ verification, onClose, user }) {
   const [showDebug, setShowDebug] = useState(false);
 
   if (!verification) return null;
+  
+  const isAdmin = user?.role === 'admin';
 
   const statusIcons = {
     not_started: <Clock className="w-4 h-4" />,
@@ -165,7 +167,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
                       <div key={idx} className="bg-zinc-800/50 rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-white/40 text-xs">#{step.priority || idx + 1}</span>
+                            <span className="text-white/40 text-xs">#{idx + 1}</span>
                             <span className="text-white text-sm">{step.label}</span>
                           </div>
                           <Badge variant={step.enabled ? "default" : "outline"} className="text-xs">
@@ -280,28 +282,30 @@ export default function VerificationDetailsModal({ verification, onClose }) {
               </div>
             )}
 
-            {/* Debug Toggle */}
-            <div className="pt-4 border-t border-zinc-800">
-              <button
-                onClick={() => setShowDebug(!showDebug)}
-                className="flex items-center gap-2 text-white/40 hover:text-white/60 text-sm transition-colors"
-              >
-                <Bug className="w-4 h-4" />
-                <span>{showDebug ? 'Hide' : 'Show'} debug info</span>
-              </button>
-
-              {showDebug && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-3 bg-black/30 rounded-lg p-4 overflow-x-auto"
+            {/* Debug Toggle - Admin Only */}
+            {isAdmin && (
+              <div className="pt-4 border-t border-zinc-800">
+                <button
+                  onClick={() => setShowDebug(!showDebug)}
+                  className="flex items-center gap-2 text-white/40 hover:text-white/60 text-sm transition-colors"
                 >
-                  <pre className="text-white/60 text-xs font-mono">
-                    {JSON.stringify(verification, null, 2)}
-                  </pre>
-                </motion.div>
-              )}
-            </div>
+                  <Bug className="w-4 h-4" />
+                  <span>{showDebug ? 'Hide' : 'Show'} debug info</span>
+                </button>
+
+                {showDebug && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-3 bg-black/30 rounded-lg p-4 overflow-x-auto"
+                  >
+                    <pre className="text-white/60 text-xs font-mono">
+                      {JSON.stringify(verification, null, 2)}
+                    </pre>
+                  </motion.div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
