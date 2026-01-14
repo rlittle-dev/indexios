@@ -225,12 +225,12 @@ export async function orchestrateVerification(base44, employerName, employerPhon
     stage = 'public_evidence_verification';
     stageHistory.push({ stage: 'public_evidence_verification', timestamp: new Date().toISOString() });
 
-    console.log(`[Orchestrator] Using public evidence result for ${employerName}`);
+    console.log(`[Orchestrator] Using public evidence result for ${employerName} (confidence: ${publicEvidenceResult.confidence})`);
 
     artifacts.push(...publicEvidenceResult.artifacts);
 
-    // If high confidence public evidence found, mark as verified
-    if (publicEvidenceResult.isVerified && publicEvidenceResult.confidence >= 0.85) {
+    // High confidence public evidence (>= 0.80) = VERIFIED
+    if (publicEvidenceResult.isVerified && publicEvidenceResult.confidence >= 0.80) {
       stage = 'completion';
       stageHistory.push({ stage: 'completion', timestamp: new Date().toISOString() });
 
@@ -244,13 +244,19 @@ export async function orchestrateVerification(base44, employerName, employerPhon
         method: 'public_evidence',
         confidence: publicEvidenceResult.confidence,
         isVerified: true,
-        nextSteps: [],
-        proofArtifacts: artifacts
+        nextSteps: [{
+          action: 'complete',
+          label: 'No further action needed - verified via public evidence',
+          enabled: false,
+          priority: 1
+        }],
+        proofArtifacts: artifacts,
+        verificationSummary: publicEvidenceResult.verificationSummary
       };
     }
 
-    // Medium confidence - public evidence helps but not conclusive
-    if (publicEvidenceResult.confidence >= 0.6) {
+    // Medium confidence (0.60-0.79) - public evidence helps but not conclusive
+    if (publicEvidenceResult.confidence >= 0.60) {
       console.log(`[Orchestrator] Partial public evidence found (${publicEvidenceResult.confidence})`);
       
       // If we also have a policy, combine them
@@ -277,7 +283,8 @@ export async function orchestrateVerification(base44, employerName, employerPhon
               priority: 2
             }
           ],
-          proofArtifacts: artifacts
+          proofArtifacts: artifacts,
+          verificationSummary: publicEvidenceResult.verificationSummary
         };
       }
     }

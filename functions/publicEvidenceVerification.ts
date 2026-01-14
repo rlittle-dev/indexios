@@ -16,6 +16,72 @@ function addArtifact(label, type, value = '', snippet = '') {
   };
 }
 
+/**
+ * Calculate confidence score for public evidence
+ * Rules:
+ * - Base 0.50 if any evidence exists
+ * - +0.30 for employer domain or SEC filing
+ * - +0.20 for second independent reputable source
+ * - +0.10 for exact role match in snippet
+ * - Cap at 0.95
+ */
+function calculateConfidence(sources, employerName, candidateName, roleMentioned) {
+  if (!sources || sources.length === 0) return 0.1;
+
+  let confidence = 0.50; // Base confidence
+
+  // Normalize employer domain for matching
+  const employerDomain = employerName.toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[.,&]/g, '')
+    .replace(/inc|corp|llc|ltd|limited|company|co$/g, '')
+    .trim();
+
+  // Check for primary source (employer domain or SEC)
+  const hasPrimarySource = sources.some(s => {
+    const url = s.url.toLowerCase();
+    return url.includes(employerDomain) || 
+           url.includes('sec.gov') ||
+           s.type.toLowerCase().includes('sec') ||
+           s.type.toLowerCase().includes('company website');
+  });
+
+  if (hasPrimarySource) {
+    confidence += 0.30;
+  }
+
+  // Check for independent reputable sources (news, Equilar, Bloomberg, Reuters, etc.)
+  const reputableDomains = ['equilar.com', 'bloomberg.com', 'reuters.com', 'wsj.com', 
+                             'forbes.com', 'businessinsider.com', 'marketwatch.com',
+                             'cnbc.com', 'ft.com'];
+  const hasIndependentSource = sources.some(s => 
+    reputableDomains.some(domain => s.url.toLowerCase().includes(domain)) ||
+    (s.quality === 'HIGH' && !s.url.toLowerCase().includes(employerDomain))
+  );
+
+  if (hasIndependentSource && sources.length >= 2) {
+    confidence += 0.20;
+  }
+
+  // Check for exact role match in snippets
+  if (roleMentioned) {
+    const roleInSnippet = sources.some(s => {
+      const snippet = s.snippet?.toLowerCase() || '';
+      const role = roleMentioned.toLowerCase();
+      const name = candidateName.toLowerCase();
+      // Check if snippet contains both name and role close together
+      return snippet.includes(name) && snippet.includes(role);
+    });
+    
+    if (roleInSnippet) {
+      confidence += 0.10;
+    }
+  }
+
+  // Cap at 0.95
+  return Math.min(confidence, 0.95);
+}
+
 async function searchPublicEvidenceMultiEmployer(base44, candidateName, employers) {
   console.log(`[Public Evidence] Searching for: ${candidateName} across ${employers.length} employers`);
 
@@ -117,7 +183,7 @@ Quality levels:
 
     console.log(`[Public Evidence] Validation complete for ${result.companies?.length || 0} companies`);
 
-    // Map results back to employer names
+    // Map results back to employer names with proper confidence scoring
     const evidenceByEmployer = {};
     
     for (const employer of employers) {
@@ -135,9 +201,12 @@ Quality levels:
           !s.url.toLowerCase().includes('instagram.com')
         );
 
+        // Calculate confidence using new rules
+        const confidence = calculateConfidence(validSources, employer.name, candidateName, match.role_mentioned);
+
         evidenceByEmployer[employer.name] = {
-          found: match.found,
-          confidence: match.confidence,
+          found: match.found && validSources.length > 0,
+          confidence: confidence,
           sources: validSources,
           reasoning: match.reasoning,
           roleMentioned: match.role_mentioned
@@ -195,6 +264,8 @@ Deno.serve(async (req) => {
       const evidence = evidenceByEmployer[employer.name];
       const artifacts = [];
       
+      let verificationSummary = '';
+      
       if (evidence.found && evidence.sources.length > 0) {
         evidence.sources.forEach(source => {
           artifacts.push(addArtifact(
@@ -204,6 +275,10 @@ Deno.serve(async (req) => {
             source.snippet
           ));
         });
+
+        // Build verification summary
+        const sourceTypes = [...new Set(evidence.sources.map(s => s.type))];
+        verificationSummary = `Verified via ${sourceTypes.join(' and ')} - ${evidence.sources.length} independent source${evidence.sources.length > 1 ? 's' : ''} confirm employment${evidence.roleMentioned ? ` as ${evidence.roleMentioned}` : ''}.`;
       } else {
         artifacts.push(addArtifact(
           'No strong public evidence found',
@@ -211,21 +286,28 @@ Deno.serve(async (req) => {
           '',
           evidence.reasoning
         ));
+        verificationSummary = 'No public evidence found - manual verification required.';
       }
 
-      // Determine outcome
+      // Determine outcome based on confidence thresholds
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
       
-      if (evidence.found && hasCredibleSources && evidence.confidence >= 0.85) {
+      // High confidence (>= 0.80) = verified
+      if (evidence.found && hasCredibleSources && evidence.confidence >= 0.80) {
         outcome = 'verified_public_evidence';
         isVerified = true;
         status = 'completed';
-      } else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.6) {
+      } 
+      // Medium confidence (0.60-0.79) = helpful but not conclusive
+      else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.60) {
         outcome = 'policy_identified';
         isVerified = false;
         status = 'action_required';
-      } else {
+        verificationSummary = `Partial evidence found (${Math.round(evidence.confidence * 100)}% confidence) - additional verification recommended.`;
+      } 
+      // Low confidence = didn't help
+      else {
         outcome = 'contact_identified';
         isVerified = false;
         status = 'action_required';
@@ -238,7 +320,8 @@ Deno.serve(async (req) => {
         isVerified,
         status,
         artifacts,
-        reasoning: evidence.reasoning
+        reasoning: evidence.reasoning,
+        verificationSummary
       };
     }
 

@@ -97,6 +97,13 @@ export default function VerificationDetailsModal({ verification, onClose }) {
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] space-y-6">
+            {/* Verification Summary */}
+            {verification.verificationSummary && (
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+                <p className="text-blue-200 text-sm leading-relaxed">{verification.verificationSummary}</p>
+              </div>
+            )}
+
             {/* Stage */}
             {verification.stage && (
               <div>
@@ -123,7 +130,12 @@ export default function VerificationDetailsModal({ verification, onClose }) {
                 <h3 className="text-white/60 text-sm font-medium mb-2">Verification Method</h3>
                 <div className="flex items-center gap-2 text-white">
                   {methodIcons[verification.method]}
-                  <span className="font-medium">{verification.method?.replace('_', ' ')}</span>
+                  <span className="font-medium">
+                    {verification.method === 'public_evidence' 
+                      ? 'Verified (Public evidence)'
+                      : verification.method?.replace('_', ' ')
+                    }
+                  </span>
                   {verification.method === 'phone_call' && (
                     <span className="text-white/40 text-xs">(coming soon)</span>
                   )}
