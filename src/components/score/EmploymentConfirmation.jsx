@@ -76,6 +76,7 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
       not_started: { icon: <Clock className="w-3 h-3" />, label: 'Not started', color: 'bg-zinc-700 text-zinc-300' },
       queued: { icon: <Clock className="w-3 h-3" />, label: 'Queued', color: 'bg-blue-900/40 text-blue-300' },
       in_progress: { icon: <Clock className="w-3 h-3 animate-spin" />, label: 'In progress', color: 'bg-yellow-900/40 text-yellow-300' },
+      action_required: { icon: <AlertCircle className="w-3 h-3" />, label: 'Action required', color: 'bg-orange-900/40 text-orange-300' },
       completed: { icon: <CheckCircle className="w-3 h-3" />, label: 'Completed', color: 'bg-green-900/40 text-green-300' },
       failed: { icon: <XCircle className="w-3 h-3" />, label: 'Failed', color: 'bg-red-900/40 text-red-300' }
     };
@@ -164,9 +165,14 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
             <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
             {verificationSummary && (
               <div className="flex items-center gap-2 ml-2">
-                {verificationSummary.completed > 0 && (
+                {verificationSummary.verified > 0 && (
                   <span className="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full font-medium">
-                    {verificationSummary.completed} verified
+                    {verificationSummary.verified} verified
+                  </span>
+                )}
+                {verificationSummary.action_required > 0 && (
+                  <span className="text-xs bg-orange-500/30 text-orange-300 px-2 py-0.5 rounded-full font-medium">
+                    {verificationSummary.action_required} action required
                   </span>
                 )}
                 {verificationSummary.in_progress > 0 && (
@@ -294,18 +300,43 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                       </div>
 
                       {/* Actions */}
-                      {verification && (
-                        <Button
-                          onClick={() => setSelectedVerification(verification)}
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs ml-2"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          Details
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-2 ml-2">
+                        {verification && (
+                          <Button
+                            onClick={() => setSelectedVerification(verification)}
+                            variant="outline"
+                            size="sm"
+                            className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-xs"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Details
+                          </Button>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Next Steps - show if action required */}
+                    {verification && verification.status === 'action_required' && verification.nextSteps && verification.nextSteps.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <p className="text-white/60 text-xs font-medium mb-2">Available Actions:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {verification.nextSteps.map((step, idx) => (
+                            <Button
+                              key={idx}
+                              size="sm"
+                              disabled={!step.enabled}
+                              className={step.enabled 
+                                ? "bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                : "bg-zinc-700 text-zinc-400 cursor-not-allowed text-xs"
+                              }
+                            >
+                              {step.label}
+                              {!step.enabled && <span className="ml-1 text-[10px]">(Coming soon)</span>}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {showDebug === companyName && debug && (
                       <motion.div

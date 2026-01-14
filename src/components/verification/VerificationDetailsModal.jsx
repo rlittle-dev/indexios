@@ -13,6 +13,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
     not_started: <Clock className="w-4 h-4" />,
     queued: <Clock className="w-4 h-4" />,
     in_progress: <Clock className="w-4 h-4 animate-spin" />,
+    action_required: <AlertCircle className="w-4 h-4" />,
     completed: <CheckCircle className="w-4 h-4" />,
     failed: <AlertCircle className="w-4 h-4" />
   };
@@ -30,6 +31,7 @@ export default function VerificationDetailsModal({ verification, onClose }) {
       not_started: 'bg-zinc-700 text-zinc-300',
       queued: 'bg-blue-900/40 text-blue-300',
       in_progress: 'bg-yellow-900/40 text-yellow-300',
+      action_required: 'bg-orange-900/40 text-orange-300',
       completed: 'bg-green-900/40 text-green-300',
       failed: 'bg-red-900/40 text-red-300'
     };
@@ -93,17 +95,59 @@ export default function VerificationDetailsModal({ verification, onClose }) {
 
           {/* Content */}
           <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] space-y-6">
-            {/* Method */}
-            <div>
-              <h3 className="text-white/60 text-sm font-medium mb-2">Verification Method</h3>
-              <div className="flex items-center gap-2 text-white">
-                {methodIcons[verification.method]}
-                <span className="font-medium">{verification.method?.replace('_', ' ')}</span>
-                {verification.method === 'phone_call' && (
-                  <span className="text-white/40 text-xs">(coming soon)</span>
-                )}
+            {/* Method & Confidence */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-white/60 text-sm font-medium mb-2">Verification Method</h3>
+                <div className="flex items-center gap-2 text-white">
+                  {methodIcons[verification.method]}
+                  <span className="font-medium">{verification.method?.replace('_', ' ')}</span>
+                  {verification.method === 'phone_call' && (
+                    <span className="text-white/40 text-xs">(coming soon)</span>
+                  )}
+                </div>
               </div>
+
+              {verification.confidence !== undefined && (
+                <div>
+                  <h3 className="text-white/60 text-sm font-medium mb-2">Confidence Score</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all"
+                        style={{ width: `${(verification.confidence || 0) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-white font-mono text-sm">
+                      {((verification.confidence || 0) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  {verification.isVerified && (
+                    <p className="text-green-400 text-xs mt-1 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      High-confidence verification complete
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
+            {/* Next Steps */}
+            {verification.nextSteps && verification.nextSteps.length > 0 && (
+              <div>
+                <h3 className="text-white/60 text-sm font-medium mb-2">Available Next Actions</h3>
+                <div className="space-y-2">
+                  {verification.nextSteps.map((step, idx) => (
+                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3 flex items-center justify-between">
+                      <span className="text-white text-sm">{step.label}</span>
+                      <Badge variant={step.enabled ? "default" : "outline"} className="text-xs">
+                        {step.enabled ? 'Available' : 'Coming soon'}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Verified Fields */}
             {verification.verifiedFields && Object.keys(verification.verifiedFields).length > 0 && (

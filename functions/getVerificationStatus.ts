@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
       not_started: 0,
       queued: 0,
       in_progress: 0,
+      action_required: 0,
       completed: 0,
       failed: 0,
       verified: 0,
