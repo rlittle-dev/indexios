@@ -17,119 +17,67 @@ function addArtifact(label, type, value = '', snippet = '') {
 }
 
 async function searchPublicEvidenceMultiEmployer(base44, candidateName, employers) {
-  console.log(`[Public Evidence] THOROUGH SEARCH for: ${candidateName} across ${employers.length} employers`);
+  console.log(`[Public Evidence] Searching for: ${candidateName} across ${employers.length} employers`);
 
   const employerNames = employers.map(e => e.name).join(', ');
-  const allUrls = new Set();
 
   try {
-    // STEP 1: Multiple comprehensive URL discovery passes
-    console.log('[Public Evidence] Starting multi-pass URL discovery...');
-    
-    // Pass 1: General career/employment search
-    const searchPrompts = [
-      `Search exhaustively for "${candidateName}" employment history and career information.
+    // STEP 1: Find relevant URLs
+    const searchPrompt = `Find web pages that mention "${candidateName}" and their work history.
 
-Find ALL pages mentioning their work at: ${employerNames}
+Look for pages that show employment at any of these companies: ${employerNames}
 
 Search for:
-1. Company websites: About, Leadership, Team, Board of Directors, Executives, Management
-2. SEC filings (10-K, 8-K, proxy statements, DEF 14A)
-3. Press releases from companies or PR Newswire
-4. News articles from: Bloomberg, Reuters, WSJ, Forbes, Business Insider, Fortune, CNBC
-5. Company annual reports and investor relations
-6. Industry publications and trade journals
-7. Professional association websites
-8. University/alumni pages if applicable
+- Company websites (about, leadership, team, executives, press releases)
+- News articles from business publications
+- SEC filings if these are public companies
+- Press releases and announcements
 
-Be thorough - return 15-20 URLs minimum.`,
+Return URLs that likely contain career/employment information.`;
 
-      `Find specific evidence of "${candidateName}" working at these companies: ${employerNames}
-
-Focus on:
-- Executive announcements and appointments
-- Company press releases about personnel
-- SEC proxy statements (executives and compensation)
-- Earnings calls transcripts mentioning leadership
-- Merger/acquisition announcements with leadership teams
-- Board member lists and bios
-- Company history/timeline pages
-
-Return all relevant URLs found.`,
-
-      `Search for "${candidateName}" in official company documentation:
-
-Companies: ${employerNames}
-
-Look for:
-- Official company biographies
-- Annual reports (PDF and web versions)
-- Investor presentations
-- Corporate governance documents
-- Press room archives
-- Leadership team pages
-- Historical company records
-
-Find as many sources as possible.`
-    ];
-
-    // Execute all search passes
-    for (let i = 0; i < searchPrompts.length; i++) {
-      console.log(`[Public Evidence] URL discovery pass ${i + 1}/${searchPrompts.length}...`);
-      try {
-        const searchResult = await base44.integrations.Core.InvokeLLM({
-          prompt: searchPrompts[i],
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              urls: { type: "array", items: { type: "string" } }
-            }
+    let searchUrls = [];
+    try {
+      const searchResult = await base44.integrations.Core.InvokeLLM({
+        prompt: searchPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            urls: { type: "array", items: { type: "string" } }
           }
-        });
-        (searchResult.urls || []).forEach(url => allUrls.add(url));
-        console.log(`[Public Evidence] Pass ${i + 1}: Found ${searchResult.urls?.length || 0} URLs (total unique: ${allUrls.size})`);
-      } catch (error) {
-        console.log(`[Public Evidence] Pass ${i + 1} failed: ${error.message}`);
-      }
+        }
+      });
+      searchUrls = searchResult.urls || [];
+      console.log(`[Public Evidence] Found ${searchUrls.length} candidate URLs`);
+    } catch (error) {
+      console.log(`[Public Evidence] URL search failed: ${error.message}`);
     }
 
-    const searchUrls = Array.from(allUrls);
-    console.log(`[Public Evidence] ✅ URL discovery complete: ${searchUrls.length} unique URLs found`);
+    // STEP 2: Validate employment at each company
+    const validationPrompt = `You are verifying employment history for "${candidateName}".
 
-    // STEP 2: Comprehensive validation with multiple evidence gathering passes
-    console.log('[Public Evidence] Starting thorough evidence validation...');
-    
-    const validationPrompt = `COMPREHENSIVE EMPLOYMENT VERIFICATION for "${candidateName}"
+CRITICAL RULES:
+1. Full name "${candidateName}" must appear (both first and last name together)
+2. Do NOT accept just last name matches
+3. EXCLUDE LinkedIn, Twitter, Facebook, Instagram, Wikipedia
+4. ONLY use: company websites, SEC filings, reputable news (Bloomberg, Reuters, WSJ, Forbes, Business Insider), press releases
 
-You have access to ${searchUrls.length} potential sources. Be EXTREMELY thorough.
+Companies to check: ${employerNames}
 
-CRITICAL VERIFICATION RULES:
-1. Full name "${candidateName}" MUST appear (first AND last name together)
-2. REJECT: LinkedIn, Twitter, Facebook, Instagram, Wikipedia, personal blogs
-3. ACCEPT ONLY: Company websites, SEC filings, reputable news outlets, official press releases
-4. CHECK EVERY SOURCE - don't stop at first match
+${searchUrls.length > 0 ? `Priority sources:\n${searchUrls.slice(0, 8).map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
-COMPANIES TO VERIFY: ${employerNames}
+For EACH company, determine:
+- Did you find the full name "${candidateName}" associated with this company?
+- What credible sources confirm this?
+- What was their role (if mentioned)?
 
-Priority sources (${Math.min(searchUrls.length, 20)} most relevant):
-${searchUrls.slice(0, 20).map((u, i) => `${i + 1}. ${u}`).join('\n')}
+Return results for each company separately, even if one source mentions multiple employers.
 
-For EACH company:
-1. Search ALL available sources thoroughly
-2. Verify full name appears with company association
-3. Extract job title/role if mentioned
-4. Note all credible sources found
-5. Assess overall confidence based on source quality and quantity
-
-CONFIDENCE SCORING:
-- 0.95-1.0: Multiple high-quality sources (SEC filings + company site, OR 3+ news articles)
-- 0.85-0.94: Company website OR SEC filing with clear mention, OR 2 news sources
-- 0.70-0.84: Single reputable news article with full name
-- 0.50-0.69: Weak single source or ambiguous mention
-- 0.0-0.49: No credible evidence found
-
-Return results for EACH company separately. If one source mentions multiple companies, list it for each relevant company.`;
+Quality levels:
+- HIGH (0.85-1.0): Company website/SEC filing with full name, OR 2+ news sources
+- MEDIUM (0.6-0.84): Single news article with full name
+- LOW (0.3-0.59): Weak/ambiguous sources
+- NONE (0-0.29): No full name matches`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
@@ -167,7 +115,7 @@ Return results for EACH company separately. If one source mentions multiple comp
       }
     });
 
-    console.log(`[Public Evidence] ✅ Validation complete for ${result.companies?.length || 0} companies`);
+    console.log(`[Public Evidence] Validation complete for ${result.companies?.length || 0} companies`);
 
     // Map results back to employer names
     const evidenceByEmployer = {};
