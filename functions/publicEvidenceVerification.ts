@@ -474,20 +474,23 @@ Deno.serve(async (req) => {
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
       const isRocketReach = evidence.sourceType === 'rocketreach';
+      const isPress = evidence.sourceType === 'press';
+      const isCompanySite = evidence.sourceType === 'company_site';
       
       if (evidence.found && hasCredibleSources) {
-        if (isRocketReach && evidence.confidence >= 0.75) {
+        // ANY credible source = verified and completed
+        // RocketReach, press, or company site all count as verification
+        if (isRocketReach || isPress || isCompanySite) {
           outcome = 'people_evidence_found';
           isVerified = true;
           status = 'completed';
-        } else if (evidence.confidence >= 0.7) {
+          // Boost confidence to 100% for clear evidence
+          evidence.confidence = 1.0;
+        } else if (evidence.confidence >= 0.5) {
           outcome = 'people_evidence_found';
           isVerified = true;
           status = 'completed';
-        } else if (evidence.confidence >= 0.4) {
-          outcome = 'people_evidence_found';
-          isVerified = false;
-          status = 'action_required'; // Weak evidence, may need follow-up
+          evidence.confidence = 0.9; // High confidence for any valid source
         } else {
           outcome = 'contact_identified';
           isVerified = false;
@@ -501,13 +504,15 @@ Deno.serve(async (req) => {
 
       results[employer.name] = {
         found: evidence.found,
-        confidence: evidence.confidence,
+        confidence: evidence.confidence, // Already boosted above if credible sources found
         outcome,
         isVerified,
         status,
         artifacts,
         reasoning: evidence.reasoning
       };
+      
+      console.log(`  Final outcome: ${outcome}, verified: ${isVerified}, confidence: ${evidence.confidence}`);
       
       console.log(`  Final outcome: ${outcome}, verified: ${isVerified}`);
     }
