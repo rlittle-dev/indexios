@@ -309,7 +309,29 @@ CRITICAL: Prioritize RocketReach results and extract specific role/dates from th
           !s.url.toLowerCase().includes('instagram.com/')
         );
 
-        const adjustedConfidence = match.confidence || (validSources.length > 0 ? 0.5 : 0.3);
+        // Boost confidence based on source type and quality
+        let adjustedConfidence = match.confidence || 0.5;
+        
+        if (validSources.length > 0) {
+          const sourceType = match.source_type || 'other';
+          
+          // RocketReach = high confidence (0.85)
+          if (sourceType === 'rocketreach') {
+            adjustedConfidence = Math.max(adjustedConfidence, 0.85);
+          }
+          // Company site = good confidence (0.75)
+          else if (sourceType === 'company_site') {
+            adjustedConfidence = Math.max(adjustedConfidence, 0.75);
+          }
+          // Press/news = decent confidence (0.65)
+          else if (sourceType === 'press') {
+            adjustedConfidence = Math.max(adjustedConfidence, 0.65);
+          }
+          // Other but with sources = minimum 0.5
+          else {
+            adjustedConfidence = Math.max(adjustedConfidence, 0.5);
+          }
+        }
 
         evidenceByEmployer[employer.name] = {
           found: validSources.length > 0,
