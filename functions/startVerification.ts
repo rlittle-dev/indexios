@@ -70,10 +70,7 @@ Deno.serve(async (req) => {
 
     for (const employer of employers) {
       const { name, phone, jobTitle } = employer;
-      if (!name || !name.trim()) {
-        console.log(`⚠️ Skipping employer with empty name`);
-        continue;
-      }
+      if (!name) continue;
 
       // Check if verification already exists
       const existing = await base44.entities.EmployerVerification.filter({

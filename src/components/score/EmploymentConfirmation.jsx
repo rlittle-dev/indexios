@@ -139,14 +139,14 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
   let companies = [];
   let totalCount = 0;
 
-  if (companiesWithPhone && Array.isArray(companiesWithPhone) && companiesWithPhone.length > 0) {
+  if (companiesWithPhone && companiesWithPhone.length > 0) {
     // NEW format: array of {name, phone, phone_debug}
-    companies = companiesWithPhone.filter(c => c && c.name); // Ensure valid entries
+    companies = companiesWithPhone;
     // Count companies that have a valid phone (either e164 or display)
     totalCount = companies.filter(c => c.phone && (c.phone.e164 || c.phone.display)).length;
-  } else if (allCompanies && Array.isArray(allCompanies) && allCompanies.length > 0) {
+  } else if (allCompanies && allCompanies.length > 0) {
     // Fallback: Use allCompanies array (company names without phone data yet)
-    companies = allCompanies.filter(name => name && name.trim()).map(name => ({
+    companies = allCompanies.map(name => ({
       name,
       phone: null,
       phone_debug: phoneDebug?.[name],
@@ -155,7 +155,7 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
   } else if (phoneNumbers && typeof phoneNumbers === 'object' && !Array.isArray(phoneNumbers)) {
     // LEGACY format: map of company -> phone string
     const companiesMap = phoneNumbers;
-    companies = Object.keys(companiesMap).filter(name => name && name.trim()).map(name => ({
+    companies = Object.keys(companiesMap).map(name => ({
       name,
       phone: companiesMap[name] ? { display: companiesMap[name] } : null,
       phone_debug: phoneDebug[name],
@@ -165,15 +165,6 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
     companies = [];
     totalCount = 0;
   }
-
-  // Deduplicate companies by name
-  const uniqueCompanies = {};
-  companies.forEach(c => {
-    if (!uniqueCompanies[c.name] || (c.phone && !uniqueCompanies[c.name].phone)) {
-      uniqueCompanies[c.name] = c;
-    }
-  });
-  companies = Object.values(uniqueCompanies);
 
   console.log('EmploymentConfirmation props:', { 
     companiesWithPhone, 
