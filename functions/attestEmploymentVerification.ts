@@ -2,61 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { EAS, SchemaEncoder } from 'npm:@ethereum-attestation-service/eas-sdk@2.5.0';
 import { ethers } from 'npm:ethers@6.10.0';
 
-// Employment verification schema definition
-const SCHEMA_STRING = 'bytes32 subjectIdHash,bytes32 companyIdHash,string verificationId,string result,uint8 confidence,bytes32 evidenceHash,uint64 validUntil';
-
-async function createAttestation(subjectIdHash, companyIdHash, verificationId, result, confidence, evidenceHash, validUntil) {
-  const rpcUrl = Deno.env.get('EVM_RPC_URL');
-  const privateKey = Deno.env.get('ATTESTER_PRIVATE_KEY');
-  const easAddress = Deno.env.get('EAS_CONTRACT_ADDRESS');
-  const schemaUID = Deno.env.get('EMPLOYMENT_SCHEMA_UID');
-
-  if (!rpcUrl || !privateKey || !easAddress || !schemaUID) {
-    throw new Error('Missing required environment variables');
-  }
-
-  // Initialize provider and signer
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const signer = new ethers.Wallet(privateKey, provider);
-
-  // Initialize EAS
-  const eas = new EAS(easAddress);
-  eas.connect(signer);
-
-  // Encode attestation data
-  const schemaEncoder = new SchemaEncoder(SCHEMA_STRING);
-  const encodedData = schemaEncoder.encodeData([
-    { name: 'subjectIdHash', value: subjectIdHash, type: 'bytes32' },
-    { name: 'companyIdHash', value: companyIdHash, type: 'bytes32' },
-    { name: 'verificationId', value: verificationId, type: 'string' },
-    { name: 'result', value: result, type: 'string' },
-    { name: 'confidence', value: confidence, type: 'uint8' },
-    { name: 'evidenceHash', value: evidenceHash, type: 'bytes32' },
-    { name: 'validUntil', value: validUntil, type: 'uint64' }
-  ]);
-
-  // Create attestation - recipient is derived from subjectIdHash or can be zero address
-  const tx = await eas.attest({
-    schema: schemaUID,
-    data: {
-      recipient: ethers.ZeroAddress, // Privacy: no recipient address needed
-      expirationTime: BigInt(0), // No expiration
-      revocable: true, // Allow revocation if needed
-      data: encodedData,
-    },
-  });
-
-  const attestationUID = await tx.wait();
-
-  return {
-    txHash: tx.tx.hash,
-    attestationUID: attestationUID,
-  };
-}
-
-function hashString(str) {
-  return ethers.keccak256(ethers.toUtf8Bytes(str));
-}
+// Schema: bytes32 candidateHash,string companyDomain,string verificationType,bool verificationResult,uint64 verifiedAt
+const SCHEMA_STRING = 'bytes32 candidateHash,string companyDomain,string verificationType,bool verificationResult,uint64 verifiedAt';
 
 Deno.serve(async (req) => {
   try {
@@ -69,78 +16,95 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { 
-      subjectId, 
-      companyId, 
-      verificationId, 
-      result, 
-      confidence = 100, 
-      evidenceData = {},
-      validUntilTimestamp 
+      candidateHash,
+      companyDomain,
+      verificationType = 'PHONE',
+      verificationResult,
+      verifiedAt
     } = body;
 
-    if (!subjectId || !companyId || !verificationId || !result) {
+    // Validate inputs
+    if (!candidateHash || !companyDomain || verificationResult === undefined || !verifiedAt) {
       return Response.json({ 
-        error: 'Missing required fields: subjectId, companyId, verificationId, result' 
+        error: 'Missing required fields: candidateHash, companyDomain, verificationResult, verifiedAt' 
       }, { status: 400 });
     }
 
-    // Validate result enum
-    if (!['YES', 'NO', 'UNABLE'].includes(result)) {
-      return Response.json({ 
-        error: 'Invalid result. Must be YES, NO, or UNABLE' 
-      }, { status: 400 });
+    // Validate candidateHash is bytes32
+    if (!candidateHash.startsWith('0x') || candidateHash.length !== 66) {
+      return Response.json({ error: 'candidateHash must be a valid bytes32 (0x...)' }, { status: 400 });
     }
 
-    // Hash PII for on-chain privacy
-    const subjectIdHash = hashString(subjectId);
-    const companyIdHash = hashString(companyId);
-    const evidenceHash = hashString(JSON.stringify(evidenceData));
+    // Get environment variables
+    const rpcUrl = Deno.env.get('EVM_RPC_URL');
+    const privateKey = Deno.env.get('ATTESTER_PRIVATE_KEY');
+    const easAddress = Deno.env.get('EAS_CONTRACT_ADDRESS');
+    const schemaUID = Deno.env.get('EMPLOYMENT_SCHEMA_UID');
 
-    // Default valid until: 2 years from now
-    const validUntil = validUntilTimestamp || Math.floor(Date.now() / 1000) + (2 * 365 * 24 * 60 * 60);
+    if (!rpcUrl || !privateKey || !easAddress || !schemaUID) {
+      throw new Error('Missing required environment variables (EVM_RPC_URL, ATTESTER_PRIVATE_KEY, EAS_CONTRACT_ADDRESS, EMPLOYMENT_SCHEMA_UID)');
+    }
 
     console.log('Creating attestation:', {
-      subjectIdHash,
-      companyIdHash,
-      verificationId,
-      result,
-      confidence,
-      validUntil
+      candidateHash,
+      companyDomain,
+      verificationType,
+      verificationResult,
+      verifiedAt,
+      schemaUID
     });
 
-    const attestationResult = await createAttestation(
-      subjectIdHash,
-      companyIdHash,
-      verificationId,
-      result,
-      confidence,
-      evidenceHash,
-      BigInt(validUntil)
-    );
+    // Initialize provider and signer
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const signer = new ethers.Wallet(privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`, provider);
 
-    // Store attestation reference in verification record
-    try {
-      const verifications = await base44.asServiceRole.entities.Verification.filter({ 
-        id: verificationId 
-      });
-      
-      if (verifications.length > 0) {
-        await base44.asServiceRole.entities.Verification.update(verificationId, {
-          attestation_uid: attestationResult.attestationUID,
-          attestation_tx_hash: attestationResult.txHash
-        });
-      }
-    } catch (err) {
-      console.warn('Failed to update verification with attestation data:', err);
-    }
+    // Initialize EAS
+    const eas = new EAS(easAddress);
+    eas.connect(signer);
+
+    // Encode attestation data
+    const schemaEncoder = new SchemaEncoder(SCHEMA_STRING);
+    const encodedData = schemaEncoder.encodeData([
+      { name: 'candidateHash', value: candidateHash, type: 'bytes32' },
+      { name: 'companyDomain', value: companyDomain, type: 'string' },
+      { name: 'verificationType', value: verificationType, type: 'string' },
+      { name: 'verificationResult', value: verificationResult, type: 'bool' },
+      { name: 'verifiedAt', value: BigInt(verifiedAt), type: 'uint64' }
+    ]);
+
+    console.log('Encoded attestation data, submitting to Base Sepolia...');
+
+    // Create attestation on-chain
+    const tx = await eas.attest({
+      schema: schemaUID,
+      data: {
+        recipient: ethers.ZeroAddress, // Privacy: no recipient address
+        expirationTime: BigInt(0), // No expiration
+        revocable: true, // Allow revocation if needed
+        data: encodedData,
+      },
+    });
+
+    console.log('Transaction submitted:', tx.tx.hash);
+
+    const newAttestationUID = await tx.wait();
+    
+    // Get block number from receipt
+    const receipt = await provider.getTransactionReceipt(tx.tx.hash);
+    const blockNumber = receipt ? receipt.blockNumber : null;
+
+    console.log('Attestation created:', {
+      attestationUID: newAttestationUID,
+      txHash: tx.tx.hash,
+      blockNumber
+    });
 
     return Response.json({
       success: true,
-      txHash: attestationResult.txHash,
-      attestationUID: attestationResult.attestationUID,
-      subjectIdHash,
-      companyIdHash,
-      evidenceHash
+      attestationUID: newAttestationUID,
+      txHash: tx.tx.hash,
+      blockNumber,
+      explorerUrl: `https://base-sepolia.blockscout.com/tx/${tx.tx.hash}`
     });
 
   } catch (error) {

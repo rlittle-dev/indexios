@@ -1,4 +1,55 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { ethers } from 'npm:ethers@6.10.0';
+
+// Helper to hash candidate for on-chain privacy
+function hashCandidate(candidateEmail, candidateName = '') {
+  const normalizedEmail = candidateEmail.toLowerCase().trim();
+  const normalizedName = candidateName.toLowerCase().trim();
+  const input = `${normalizedEmail}|${normalizedName}`;
+  return ethers.keccak256(ethers.toUtf8Bytes(input));
+}
+
+// Helper to normalize company domain
+function normalizeCompanyDomain(companyName) {
+  return companyName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, '')
+    .substring(0, 50);
+}
+
+// Create on-chain attestation (non-blocking)
+async function createAttestation(verification, verificationType, verificationResult) {
+  try {
+    const candidateHash = hashCandidate(verification.candidateEmail, verification.candidateName);
+    const companyDomain = normalizeCompanyDomain(verification.companyName);
+    const verifiedAt = Math.floor(Date.now() / 1000);
+
+    const base44 = createClientFromRequest(new Request('https://dummy.com'));
+    
+    const attestationResponse = await base44.asServiceRole.functions.invoke('attestEmploymentVerification', {
+      candidateHash,
+      companyDomain,
+      verificationType,
+      verificationResult,
+      verifiedAt
+    });
+
+    if (attestationResponse.data.success) {
+      console.log('Attestation created:', attestationResponse.data);
+      
+      // Update verification with attestation data
+      await base44.asServiceRole.entities.Verification.update(verification.id, {
+        attestationUID: attestationResponse.data.attestationUID,
+        attestationTxHash: attestationResponse.data.txHash,
+        attestationBlockNumber: attestationResponse.data.blockNumber
+      });
+    }
+  } catch (error) {
+    console.error('Failed to create attestation:', error);
+    throw error;
+  }
+}
 
 Deno.serve(async (req) => {
   try {
@@ -118,6 +169,13 @@ Return your analysis.`,
           finalResult: 'YES',
           finalReason: 'PHONE_YES'
         });
+
+        // Create on-chain attestation (non-blocking)
+        try {
+          await createAttestation(verif, 'PHONE', true);
+        } catch (err) {
+          console.error('Attestation failed (non-blocking):', err);
+        }
       } else {
         // Failed - mark phone completed and trigger email fallback
         await base44.asServiceRole.entities.Verification.update(verif.id, {
@@ -139,6 +197,13 @@ Return your analysis.`,
             finalResult: 'NO',
             finalReason: `PHONE_${failureReason}`
           });
+
+          // Create on-chain attestation for NO result (non-blocking)
+          try {
+            await createAttestation(verif, 'PHONE', false);
+          } catch (err) {
+            console.error('Attestation failed (non-blocking):', err);
+          }
         }
       }
     }
