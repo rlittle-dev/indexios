@@ -117,43 +117,51 @@ Deno.serve(async (req) => {
 
     console.log(`[EmploymentConfirmation] Starting for ${candidateName}, ${employers.length} employers`);
 
-    // STEP 1: Collect RocketReach evidence
-    let rrEvidence = [];
-    try {
-      const rrResponse = await base44.functions.invoke('rocketReachEvidence', { candidateName });
-      rrEvidence = rrResponse.data.evidence_pool || [];
-      console.log(`✅ [EmploymentConfirmation] RocketReach: ${rrEvidence.length} evidence item(s)`);
-    } catch (error) {
-      console.error('[EmploymentConfirmation] RocketReach error:', error.message);
+    // STEP 1 & 2: Collect RocketReach + Web evidence in parallel
+    const [rrResponse, webResponse] = await Promise.all([
+      base44.functions.invoke('rocketReachEvidence', { candidateName })
+        .catch(e => {
+          console.error('[EmploymentConfirmation] RocketReach error:', e.message);
+          return { data: { evidence_pool: [] } };
+        }),
+      base44.functions.invoke('webEvidenceEmployer', { candidateName })
+        .catch(e => {
+          console.error('[EmploymentConfirmation] Web error:', e.message);
+          return { data: { evidence_pool: [] } };
+        })
+    ]);
+
+    const rrEvidence = rrResponse?.data?.evidence_pool || [];
+    const webEvidence = webResponse?.data?.evidence_pool || [];
+
+    // Build single global evidence pool
+    const candidateEvidence = [...rrEvidence, ...webEvidence];
+
+    // DEBUG LOGGING
+    console.log(`[EmploymentConfirmation DEBUG] candidateEvidence.length: ${candidateEvidence.length}`);
+    if (candidateEvidence.length > 0) {
+      const firstText = (candidateEvidence[0].full_text || candidateEvidence[0].text || '').substring(0, 200);
+      console.log(`[EmploymentConfirmation DEBUG] first evidence text (200 chars): "${firstText}"`);
     }
+    const normalizedEmployers = employers.map(e => normalize(e.name));
+    console.log(`[EmploymentConfirmation DEBUG] normalized employers: ${JSON.stringify(normalizedEmployers)}`);
 
-    // STEP 2: Collect web evidence
-    let webEvidence = [];
-    try {
-      const webResponse = await base44.functions.invoke('webEvidenceEmployer', { candidateName });
-      webEvidence = webResponse.data.evidence_pool || [];
-      console.log(`✅ [EmploymentConfirmation] Web: ${webEvidence.length} evidence item(s)`);
-    } catch (error) {
-      console.error('[EmploymentConfirmation] Web error:', error.message);
-    }
+    console.log(`[EmploymentConfirmation] RocketReach: ${rrEvidence.length}, Web: ${webEvidence.length}, Total: ${candidateEvidence.length}`);
 
-    // Combine evidence pool
-    const allEvidence = [...rrEvidence, ...webEvidence];
-    console.log(`[EmploymentConfirmation] Total evidence: ${allEvidence.length} item(s)`);
-
-    // STEP 3: Verify each employer against evidence pool
+    // STEP 3: Verify each employer against global evidence pool
     const results = {};
 
     for (const employer of employers) {
-      const snippets = extractSnippets(candidateName, employer.name, allEvidence);
+      const snippets = extractSnippets(candidateName, employer.name, candidateEvidence);
       
       results[employer.name] = {
         status: snippets.length > 0 ? 'verified' : 'not_found',
         evidence_count: snippets.length,
         sources: snippets,
         debug: snippets.length > 0 
-          ? `${snippets.length} source(s) match name + employer`
-          : 'No evidence found'
+          ? `${snippets.length} source(s) matched`
+          : (candidateEvidence.length === 0 ? 'No evidence collected' : 'No match in evidence'),
+        has_evidence: candidateEvidence.length > 0
       };
     }
 
@@ -163,6 +171,11 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       results,
+      evidence_summary: {
+        rocketreach_count: rrEvidence.length,
+        web_count: webEvidence.length,
+        total_evidence: candidateEvidence.length
+      },
       summary: {
         verified_count: verifiedCount,
         total_count: employers.length

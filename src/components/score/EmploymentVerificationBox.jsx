@@ -54,6 +54,10 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     ? Object.values(results).filter(r => r.status === 'verified').length
     : 0;
 
+  const hasEvidence = results
+    ? Object.values(results).some(r => r.has_evidence)
+    : false;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -66,15 +70,24 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-blue-500/20">
-          <Phone className="w-4 h-4 text-blue-400" />
-        </div>
-        <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
-        {results && verifiedCount > 0 && (
-          <span className="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full font-medium ml-2">
-            {verifiedCount} verified
-          </span>
-        )}
+          <div className="p-2 rounded-lg bg-blue-500/20">
+            <Phone className="w-4 h-4 text-blue-400" />
+          </div>
+          <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
+          {results && (
+            <>
+              {verifiedCount > 0 && (
+                <span className="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded-full font-medium ml-2">
+                  {verifiedCount} verified
+                </span>
+              )}
+              {!hasEvidence && (
+                <span className="text-xs bg-red-500/30 text-red-300 px-2 py-0.5 rounded-full font-medium ml-2">
+                  No evidence found
+                </span>
+              )}
+            </>
+          )}
         </div>
         <ChevronDown
           className={`w-5 h-5 text-blue-400 transition-transform duration-300 ${
@@ -104,12 +117,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               {isRunning ? (
                 <>
                   <Play className="w-3 h-3 mr-1 animate-pulse" />
-                  Verifying...
+                  Fetching evidence...
                 </>
               ) : results ? (
                 <>
                   <Play className="w-3 h-3 mr-1" />
-                  Verification Complete
+                  {hasEvidence ? 'Verification Complete' : 'Evidence Not Found'}
                 </>
               ) : (
                 <>
@@ -130,6 +143,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               </Button>
             )}
           </div>
+
+          {!results && companyNames.length > 0 && (
+            <p className="text-white/60 text-xs italic pt-3 border-t border-blue-500/20">
+              Click "Run Verification" to fetch RocketReach + web evidence
+            </p>
+          )}
 
           {/* Results Table */}
           {results && (
