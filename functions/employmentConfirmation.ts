@@ -33,86 +33,138 @@ function cleanSnippet(text) {
     .substring(0, 300);
 }
 
-/**
- * Collect global web evidence pool using LLM web search
- * Multiple query patterns to maximize coverage
- */
-async function collectWebEvidence(base44, candidateName) {
-  console.log(`[EmploymentConfirmation:Web] Collecting evidence for "${candidateName}"`);
+function getDomain(urlStr) {
+  try {
+    return new URL(urlStr).hostname;
+  } catch {
+    return '';
+  }
+}
 
-  const queries = [
-    `"${candidateName}"`,
-    `${candidateName} career experience`,
-    `${candidateName} professional background`,
-    `${candidateName} appointed`,
-    `${candidateName} joined`,
-    `${candidateName} executive`,
+function isDomainPreferred(domain) {
+  const preferred = [
+    'prnewswire.com',
+    'globenewswire.com',
+    'businesswire.com',
+    'sec.gov',
   ];
+  return preferred.some(p => domain.includes(p));
+}
 
-  const allSources = [];
-  const seenUrls = new Set();
-  const webQueryResults = [];
+/**
+ * Run a single web search query via LLM
+ */
+async function runWebQuery(base44, query) {
+  try {
+    console.log(`[EmploymentConfirmation:Web] Query: "${query}"`);
 
-  for (const query of queries) {
-    try {
-      console.log(`[EmploymentConfirmation:Web] Running query: "${query}"`);
-
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find webpages about "${candidateName}". 
-Search for professional background, career history, company associations.
-Return top 3–5 URLs with clean snippets (max 2 sentences each).
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Search for webpages related to: "${query}"
+Return professional sources: company pages, press releases, news, executive bios.
+Extract clean snippets (max 2–3 sentences).
 Format: JSON {results: [{url, title, snippet}]}`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: 'object',
-          properties: {
-            results: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  url: { type: 'string' },
-                  title: { type: 'string' },
-                  snippet: { type: 'string' }
-                }
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          results: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                url: { type: 'string' },
+                title: { type: 'string' },
+                snippet: { type: 'string' }
               }
             }
           }
         }
-      });
+      }
+    });
 
-      if (result?.results && Array.isArray(result.results)) {
-        console.log(`[EmploymentConfirmation:Web] Query returned ${result.results.length} result(s)`);
-        webQueryResults.push(query);
+    if (result?.results && Array.isArray(result.results)) {
+      console.log(`[EmploymentConfirmation:Web] Query returned ${result.results.length} result(s)`);
+      return result.results;
+    }
 
-        for (const item of result.results) {
-          if (!item.url || seenUrls.has(item.url)) continue;
-          seenUrls.add(item.url);
+    return [];
 
-          allSources.push({
-            type: 'web',
-            url: item.url,
-            title: item.title || '',
-            text: cleanSnippet(item.snippet || ''),
-            full_text: item.snippet || '',
-            source: new URL(item.url).hostname
-          });
+  } catch (error) {
+    console.error(`[EmploymentConfirmation:Web] Query error: ${error.message}`);
+    return [];
+  }
+}
 
-          console.log(`✅ [EmploymentConfirmation:Web] Added: ${item.url}`);
-        }
-      } else {
-        console.log(`[EmploymentConfirmation:Web] Query returned no results or unexpected format`);
+/**
+ * Collect global web evidence pool using generic + employer-specific queries
+ */
+async function collectWebEvidence(base44, candidateName, employers) {
+  console.log(`[EmploymentConfirmation:Web] Collecting evidence for "${candidateName}"`);
+
+  const allSources = [];
+  const seenUrls = new Set();
+  const queriesRun = [];
+  const domainCounts = {};
+
+  // GENERIC QUERIES
+  const genericQueries = [
+    `"${candidateName}"`,
+    `${candidateName} career`,
+    `${candidateName} executive`,
+  ];
+
+  // EMPLOYER-SPECIFIC QUERIES
+  const employerQueries = [];
+  for (const employer of employers) {
+    employerQueries.push(
+      `"${candidateName}" "${employer.name}"`,
+      `${candidateName} ${employer.name}`,
+      `${candidateName} ${employer.name} press release`,
+      `${candidateName} joined ${employer.name}`,
+      `${candidateName} appointed ${employer.name}`
+    );
+  }
+
+  const allQueries = [...genericQueries, ...employerQueries];
+
+  for (const query of allQueries) {
+    const results = await runWebQuery(base44, query);
+    
+    if (results && results.length > 0) {
+      queriesRun.push(query);
+
+      for (const item of results) {
+        if (!item.url || seenUrls.has(item.url)) continue;
+        seenUrls.add(item.url);
+
+        const domain = getDomain(item.url);
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+
+        allSources.push({
+          type: 'web',
+          url: item.url,
+          title: item.title || '',
+          text: cleanSnippet(item.snippet || ''),
+          full_text: item.snippet || '',
+          source: domain
+        });
+
+        console.log(`✅ [EmploymentConfirmation:Web] Added: ${item.url}`);
+
+        // Stop if we have enough evidence
+        if (allSources.length >= 25) break;
       }
 
-    } catch (error) {
-      console.error(`[EmploymentConfirmation:Web] Query error: ${error.message}`);
+      if (allSources.length >= 25) break;
     }
   }
 
-  console.log(`[EmploymentConfirmation:Web] Total sources collected: ${allSources.length}`);
+  console.log(`[EmploymentConfirmation:Web] Total sources: ${allSources.length}`);
+
   return {
     sources: allSources,
-    queries_run: webQueryResults,
+    queries_run: queriesRun,
+    domain_counts: domainCounts,
     error: allSources.length === 0 ? 'Web evidence collection returned empty' : null
   };
 }
@@ -183,12 +235,12 @@ Deno.serve(async (req) => {
 
     console.log(`[EmploymentConfirmation] Starting for ${candidateName}, ${employers.length} employers`);
 
-    // Collect global web evidence pool
-    const webResult = await collectWebEvidence(base44, candidateName);
+    // Collect global web evidence pool (generic + employer-specific)
+    const webResult = await collectWebEvidence(base44, candidateName, employers);
     const webSources = webResult.sources || [];
     const webError = webResult.error;
 
-    console.log(`[EmploymentConfirmation] Web sources: ${webSources.length}, error: ${webError || 'none'}`);
+    console.log(`[EmploymentConfirmation] Web sources: ${webSources.length}, queries: ${webResult.queries_run.length}`);
 
     // If no evidence and error exists, return early
     if (webSources.length === 0 && webError) {
@@ -199,7 +251,8 @@ Deno.serve(async (req) => {
         debug_global: {
           web_queries_run: webResult.queries_run || [],
           urls_returned: 0,
-          snippets_returned: 0
+          snippets_returned: 0,
+          top_domains: {}
         }
       });
     }
@@ -225,8 +278,8 @@ Deno.serve(async (req) => {
         sources: snippets,
         has_evidence: webSources.length > 0,
         debug: snippets.length > 0 
-          ? `${snippets.length} source(s) matched`
-          : (webSources.length === 0 ? 'No evidence collected' : 'No match in evidence')
+          ? `matched on ${snippets.length} source(s)`
+          : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
       };
     }
 
@@ -239,7 +292,8 @@ Deno.serve(async (req) => {
       debug_global: {
         web_queries_run: webResult.queries_run || [],
         urls_returned: webSources.length,
-        snippets_returned: webSources.length
+        snippets_returned: webSources.length,
+        top_domains: webResult.domain_counts || {}
       },
       summary: {
         verified_count: verifiedCount,
