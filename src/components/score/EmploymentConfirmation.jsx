@@ -452,11 +452,11 @@ import VerificationDetailsModal from '@/components/verification/VerificationDeta
                 </p>
               )}
             </>
-          ) : (
+          ) : !isLocked ? (
             <p className="text-white/60 text-sm py-2">
               No companies found in work experience. Add employment history to extract contact information.
             </p>
-          )}
+          ) : null}
         </div>
       </motion.div>
       </motion.div>
