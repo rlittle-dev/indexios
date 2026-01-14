@@ -4,13 +4,14 @@ function normalizeEmployerDomain(name) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
 }
 
-async function orchestrateVerificationFlow(base44, employerName, employerPhone, candidateName = '', jobTitle = '') {
-  // Call the verification orchestrator
+async function orchestrateVerificationFlow(base44, employerName, employerPhone, candidateName = '', jobTitle = '', publicEvidenceResult = null) {
+  // Call the verification orchestrator with pre-computed evidence
   const response = await base44.functions.invoke('verificationOrchestrator', {
     employerName,
     employerPhone,
     candidateName,
-    jobTitle
+    jobTitle,
+    publicEvidenceResult
   });
 
   if (!response.data.success) {
@@ -44,6 +45,27 @@ Deno.serve(async (req) => {
     const candidate = candidates.length > 0 ? candidates[0] : null;
     const candidateName = candidate?.name || '';
 
+    // STEP 1: Run public evidence verification ONCE for ALL employers
+    let publicEvidenceResults = {};
+    if (candidateName && employers.length > 0) {
+      console.log(`🔍 Running batch public evidence verification for ${candidateName} across ${employers.length} employers`);
+      
+      try {
+        const evidenceResponse = await base44.functions.invoke('publicEvidenceVerification', {
+          candidateName,
+          employers: employers.map(e => ({ name: e.name, jobTitle: e.jobTitle }))
+        });
+
+        if (evidenceResponse.data.success) {
+          publicEvidenceResults = evidenceResponse.data.results;
+          console.log(`✅ Public evidence batch complete - found evidence for ${Object.keys(publicEvidenceResults).length} employers`);
+        }
+      } catch (error) {
+        console.error('⚠️ Public evidence batch failed:', error);
+      }
+    }
+
+    // STEP 2: Create verification records for each employer
     const verificationRecords = [];
 
     for (const employer of employers) {
@@ -62,8 +84,11 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Run orchestrator with candidate info for public evidence
-      const result = await orchestrateVerificationFlow(base44, name, phone, candidateName, jobTitle);
+      // Get pre-computed public evidence for this employer
+      const publicEvidence = publicEvidenceResults[name] || null;
+
+      // Run orchestrator with pre-computed evidence
+      const result = await orchestrateVerificationFlow(base44, name, phone, candidateName, jobTitle, publicEvidence);
 
       // Create verification record
       const verificationData = {
