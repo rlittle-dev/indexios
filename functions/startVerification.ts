@@ -84,16 +84,20 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Get pre-computed public evidence for this employer
-      const publicEvidence = publicEvidenceResults[name] || null;
+      // Get pre-computed public evidence for this employer (deep copy to avoid mutations)
+      const publicEvidence = publicEvidenceResults[name] 
+        ? JSON.parse(JSON.stringify(publicEvidenceResults[name])) 
+        : null;
+
+      console.log(`[Verification] Evidence for ${name}: found=${publicEvidence?.found}, confidence=${publicEvidence?.confidence}`);
 
       // Run orchestrator with pre-computed evidence
       const result = await orchestrateVerificationFlow(base44, name, phone, candidateName, jobTitle, publicEvidence);
 
-      // Create verification record
+      // Create verification record (deep copy artifacts to ensure isolation)
       const verificationData = {
         candidateId,
-        employerName: name,
+        employerName: name, // SCOPING: Unique key with candidateId
         employerDomain: normalizeEmployerDomain(name),
         employerPhone: phone || '',
         candidateName,
@@ -106,7 +110,7 @@ Deno.serve(async (req) => {
         confidence: result.confidence,
         isVerified: result.isVerified,
         nextSteps: result.nextSteps,
-        proofArtifacts: result.proofArtifacts
+        proofArtifacts: JSON.parse(JSON.stringify(result.proofArtifacts || [])) // Deep copy
       };
 
       // Only set completedAt if status is completed
