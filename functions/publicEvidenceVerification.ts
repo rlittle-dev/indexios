@@ -20,41 +20,75 @@ async function searchPublicEvidence(base44, candidateName, employerName, jobTitl
   console.log(`[Public Evidence] Searching for: ${candidateName} at ${employerName} as ${jobTitle || 'employee'}`);
 
   try {
-    // Use LLM with web context to find and validate evidence
-    const prompt = `You are a rigorous fact-checking assistant. Validate this EXACT employment claim:
+    // STEP 1: First, do a targeted search to find relevant pages
+    const searchPrompt = `Find web pages that mention "${candidateName}" working at "${employerName}"${jobTitle ? ` as ${jobTitle}` : ''}.
 
-CRITICAL NAME MATCHING RULE: The person's FULL NAME must match EXACTLY. Do NOT accept partial name matches (e.g., if searching for "Rod Little", "John Little" or "Little Company" does NOT count).
+Search specifically for:
+- Company website pages (about, leadership, team, executives)
+- Press releases from the company
+- News articles from business publications
+- SEC filings if this is a public company
 
-Person: ${candidateName} (FULL NAME REQUIRED)
+Return URLs of pages that likely contain employment verification information.`;
+
+    let searchUrls = [];
+    try {
+      const searchResult = await base44.integrations.Core.InvokeLLM({
+        prompt: searchPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            urls: {
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        }
+      });
+      searchUrls = searchResult.urls || [];
+      console.log(`[Public Evidence] Found ${searchUrls.length} candidate URLs`);
+    } catch (error) {
+      console.log(`[Public Evidence] URL search failed: ${error.message}`);
+    }
+
+    // STEP 2: Now validate with the full name and strict criteria
+    const validationPrompt = `You are a rigorous fact-checking assistant. Validate this EXACT employment claim:
+
+CRITICAL NAME MATCHING RULE: The person's FULL NAME must match EXACTLY. Do NOT accept partial name matches.
+- If searching for "Rod Little", then "John Little" or "Little & Associates" does NOT count
+- BOTH first name AND last name must appear together in the source
+
+Person: ${candidateName} (FULL NAME REQUIRED - both "${candidateName.split(' ')[0]}" and "${candidateName.split(' ').slice(-1)[0]}" must appear)
 Company: ${employerName}
 ${jobTitle ? `Title/Role: ${jobTitle}` : ''}
 
+${searchUrls.length > 0 ? `Priority URLs to check:\n${searchUrls.slice(0, 5).map(u => `- ${u}`).join('\n')}\n\n` : ''}
+
 Search for evidence from CREDIBLE sources ONLY:
-1. ✅ Official company website (leadership pages, team pages, about us, executive bios)
-2. ✅ Company press releases / investor relations / news room
-3. ✅ SEC filings (10-K, 8-K, proxy statements, DEF 14A) - excellent for executives
-4. ✅ Reputable news articles (Bloomberg, Reuters, WSJ, Forbes, industry publications)
-5. ✅ Company blog posts or official announcements
-6. ❌ EXCLUDE LinkedIn - people can fabricate profiles
-7. ❌ EXCLUDE social media (Twitter, Facebook, Instagram) - unreliable
-8. ❌ EXCLUDE Wikipedia - can be edited by anyone
+1. ✅ Official company website (leadership, team, about, executive bios, press releases)
+2. ✅ SEC filings (10-K, 8-K, proxy statements, DEF 14A) - search for executive compensation tables
+3. ✅ Reputable news (Bloomberg, Reuters, WSJ, Forbes, Business Insider, industry trade publications)
+4. ✅ Company investor relations / annual reports
+5. ❌ EXCLUDE LinkedIn - people fabricate profiles
+6. ❌ EXCLUDE Twitter/Facebook/Instagram - unreliable
+7. ❌ EXCLUDE Wikipedia - can be edited
 
-VALIDATION CHECKLIST:
-- Does the source mention the FULL name "${candidateName}" (not just last name)?
-- Does it clearly associate this person with "${employerName}"?
-- Is the source from an official/credible channel?
-${jobTitle ? `- Does it mention their role as "${jobTitle}" or similar?` : ''}
+STRICT VALIDATION RULES:
+1. Full name "${candidateName}" must appear in the source (not just last name)
+2. The source must clearly link this person to "${employerName}"
+3. If no sources mention the full name, return found=false with confidence=0.1
 
-Evidence Quality Scoring:
-- HIGH (0.85-1.0): Official company source + full name match, OR multiple reputable news sources, OR SEC filing with full name
-- MEDIUM (0.6-0.84): Single reputable news article with full name, OR company source with partial role match
-- LOW (0.3-0.59): Weak sources, partial matches, or ambiguous references
-- REJECT (0-0.29): Only last name matches, LinkedIn/social media, or no credible sources
+Evidence Quality:
+- HIGH (0.85-1.0): Company website/SEC filing shows full name, OR 2+ news articles with full name
+- MEDIUM (0.6-0.84): Single reputable news article with full name matching role
+- LOW (0.3-0.59): Ambiguous or weak source
+- NONE (0-0.29): No full name matches found
 
-Return your findings:`;
+Be honest: if you cannot find the full name "${candidateName}" in credible sources, say found=false.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
+      prompt: validationPrompt,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
@@ -168,14 +202,17 @@ Deno.serve(async (req) => {
     }
 
     // Determine outcome based on evidence quality
+    // CRITICAL: Only verify if we actually found credible sources
     let outcome, isVerified, status;
     
-    if (evidence.confidence >= 0.85) {
+    const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
+    
+    if (evidence.found && hasCredibleSources && evidence.confidence >= 0.85) {
       // High confidence public evidence = verified
       outcome = 'verified_public_evidence';
       isVerified = true;
       status = 'completed';
-    } else if (evidence.confidence >= 0.6) {
+    } else if (evidence.found && hasCredibleSources && evidence.confidence >= 0.6) {
       // Medium confidence = helpful but not conclusive
       outcome = 'policy_identified';
       isVerified = false;
