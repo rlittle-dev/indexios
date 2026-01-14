@@ -151,39 +151,40 @@ Return URLs to:
     
     const employerNames = employers.map(e => e.name).join(', ');
     
-    const validationPrompt = `CRITICAL MISSION: Find employment evidence for "${candidateName}".
+    const validationPrompt = `YOU ARE A GENEROUS EMPLOYMENT VERIFIER. Find evidence for "${candidateName}" at these companies.
 
-TARGET COMPANIES: ${employerNames}
+COMPANIES: ${employerNames}
 
-YOU HAVE ${searchUrls.length} URLS TO ANALYZE. Your job is to find ANY mention of "${candidateName}" working at these companies.
+${searchUrls.length > 0 ? `ANALYZE ALL ${searchUrls.length} URLS:\n${searchUrls.map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
-${searchUrls.length > 0 ? `URLS TO CHECK:\n${searchUrls.map(u => `- ${u}`).join('\n')}\n\n` : ''}
+ACCEPTANCE CRITERIA (VERY LOW BAR):
+✅ ACCEPT ANY OF THESE:
+- Full name "${candidateName}" anywhere on company website or in article
+- First name OR last name on company team/about page
+- Name variation (Jan, Janet, J. Little, etc.) with company context
+- Company website mentioning them as staff/employee/founder/owner
+- Any article mentioning them with the company
+- Bio, profile, or description linking them to company
+- Press release, announcement, or news with their name + company
 
-SEARCH RULES (VERY FLEXIBLE):
-✅ ACCEPT if you find:
-- Full name "${candidateName}" + company name together
-- First and last name separately on same page with company context
-- Last name + clear job title at the company
-- Any name variation (nicknames, shortened names) with company
-- Professional bio mentioning the company
-- Company page listing them as employee/team member
-- Any article mentioning them in context of the company
+❌ ONLY REJECT IF:
+- Zero mention of the name at all
+- Clearly a different person (wrong gender, age, location if stated)
 
-❌ ONLY REJECT if:
-- Completely different person (wrong industry/location/context)
-- No connection to the company at all
+CONFIDENCE SCORING (BE GENEROUS):
+- 0.85-1.0 = Company website lists them OR 2+ sources
+- 0.6-0.84 = Any article mentions them OR single company page mention  
+- 0.4-0.59 = Partial name match with reasonable context
+- 0.3-0.39 = Very weak/ambiguous mention
+- 0.0-0.29 = Nothing found
 
-For EACH company, you MUST:
-1. Check ALL provided URLs thoroughly
-2. Use the company website domain if found in URLs
-3. Report EVERYTHING you find, even weak/ambiguous mentions
-4. If found on company website = HIGH confidence (0.85+)
-5. If found in any article = MEDIUM confidence (0.65+)
-6. If partial/unclear = LOW confidence (0.4+)
+For EACH company, return:
+- found: true/false
+- confidence: 0.0 to 1.0
+- sources: array of {url, description}
+- reasoning: what you found and why confidence level
 
-RESPOND WITH: For each company, state found/not found, list sources with URLs, and assign confidence.
-
-IF YOU DON'T FIND ANYTHING: Double-check you analyzed all URLs. This person likely HAS public information.`;
+BE GENEROUS: If you see the name and company together, that's a FIND. Default to found=true unless you're certain it's wrong.`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,

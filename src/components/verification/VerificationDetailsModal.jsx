@@ -220,38 +220,66 @@ export default function VerificationDetailsModal({ verification, onClose }) {
               <div>
                 <h3 className="text-white/60 text-sm font-medium mb-2">Evidence & Audit Trail</h3>
                 <div className="space-y-2">
-                  {verification.proofArtifacts.map((artifact, idx) => (
-                    <div key={idx} className="bg-zinc-800/50 rounded-lg p-3 border-l-2 border-blue-500/30">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="flex-1">
-                          <p className="text-white/80 text-sm font-medium">{artifact.label}</p>
-                          {artifact.timestamp && (
-                            <p className="text-white/30 text-xs mt-0.5">
-                              {new Date(artifact.timestamp).toLocaleString()}
+                  {verification.proofArtifacts.map((artifact, idx) => {
+                    const isPositiveEvidence = artifact.type === 'public_evidence' && 
+                      artifact.label && 
+                      !artifact.label.toLowerCase().includes('no') &&
+                      !artifact.label.toLowerCase().includes('weak');
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`bg-zinc-800/50 rounded-lg p-3 border-l-2 ${
+                          isPositiveEvidence ? 'border-green-500/50' : 'border-blue-500/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1">
+                            <p className={`text-sm font-medium ${
+                              isPositiveEvidence ? 'text-green-300' : 'text-white/80'
+                            }`}>
+                              {artifact.label}
                             </p>
-                          )}
+                            {artifact.timestamp && (
+                              <p className="text-white/30 text-xs mt-0.5">
+                                {new Date(artifact.timestamp).toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              isPositiveEvidence 
+                                ? 'border-green-500/40 text-green-300' 
+                                : 'border-blue-500/30 text-blue-300'
+                            }`}
+                          >
+                            {artifact.type.replace('_', ' ')}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
-                          {artifact.type}
-                        </Badge>
+                        {artifact.value && artifact.value.startsWith('http') && (
+                          <a 
+                            href={artifact.value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-400 hover:text-blue-300 text-xs break-all font-mono bg-black/20 rounded p-2 block hover:bg-black/30 transition-colors"
+                          >
+                            🔗 {artifact.value}
+                          </a>
+                        )}
+                        {artifact.value && !artifact.value.startsWith('http') && artifact.value.trim() && (
+                          <p className="text-white/60 text-xs mt-2 font-mono bg-black/20 rounded p-2">
+                            {artifact.value}
+                          </p>
+                        )}
+                        {artifact.snippet && (
+                          <p className="text-white/50 text-xs italic mt-2 border-l-2 border-white/10 pl-2">
+                            {artifact.snippet}
+                          </p>
+                        )}
                       </div>
-                      {artifact.value && (
-                        <a 
-                          href={artifact.value}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 text-xs break-all font-mono bg-black/20 rounded p-2 block hover:bg-black/30 transition-colors"
-                        >
-                          {artifact.value}
-                        </a>
-                      )}
-                      {artifact.snippet && (
-                        <p className="text-white/50 text-xs italic mt-2 border-l-2 border-white/10 pl-2">
-                          "{artifact.snippet}"
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
