@@ -45,15 +45,44 @@ Deno.serve(async (req) => {
     const candidate = candidates.length > 0 ? candidates[0] : null;
     const candidateName = candidate?.name || '';
 
-    // STEP 1: Run public evidence verification ONCE for ALL employers
+    // STEP 1: Check cache for each employer FIRST
+    const cachedVerifications = [];
+    const employersNeedingVerification = [];
+    
+    for (const employer of employers) {
+      if (!employer.name) continue;
+      
+      // Look for existing verification with this candidate name + employer name (global cache)
+      const existingVerifications = await base44.entities.EmployerVerification.filter({
+        candidateName,
+        employerName: employer.name
+      });
+
+      // Find cached verification with public evidence
+      const cachedVerification = existingVerifications.find(v => 
+        v.outcome === 'verified_public_evidence' && 
+        v.confidence >= 0.4 &&
+        v.proofArtifacts && 
+        v.proofArtifacts.some(a => a.type === 'public_evidence' && a.value)
+      );
+
+      if (cachedVerification) {
+        console.log(`✅ CACHE HIT: ${employer.name} (confidence: ${cachedVerification.confidence})`);
+        cachedVerifications.push({ employer, cachedVerification });
+      } else {
+        employersNeedingVerification.push(employer);
+      }
+    }
+
+    // STEP 2: Run public evidence verification ONLY for uncached employers
     let publicEvidenceResults = {};
-    if (candidateName && employers.length > 0) {
-      console.log(`🔍 Running batch public evidence verification for ${candidateName} across ${employers.length} employers`);
+    if (candidateName && employersNeedingVerification.length > 0) {
+      console.log(`🔍 Running batch public evidence verification for ${candidateName} across ${employersNeedingVerification.length} employers (${cachedVerifications.length} cached)`);
       
       try {
         const evidenceResponse = await base44.functions.invoke('publicEvidenceVerification', {
           candidateName,
-          employers: employers.map(e => ({ name: e.name, jobTitle: e.jobTitle }))
+          employers: employersNeedingVerification.map(e => ({ name: e.name, jobTitle: e.jobTitle }))
         });
 
         if (evidenceResponse.data.success) {
@@ -65,21 +94,60 @@ Deno.serve(async (req) => {
       }
     }
 
-    // STEP 2: Create verification records for each employer
+    // STEP 3: Process cached verifications first
     const verificationRecords = [];
+    
+    for (const { employer, cachedVerification } of cachedVerifications) {
+      // Check if verification already exists for THIS candidate scan
+      const existing = await base44.entities.EmployerVerification.filter({
+        candidateId,
+        employerName: employer.name
+      });
 
-    for (const employer of employers) {
+      if (existing.length > 0) {
+        console.log(`Verification already exists for this scan: ${employer.name}, skipping`);
+        verificationRecords.push(existing[0]);
+        continue;
+      }
+
+      // Create new record with cached data
+      const verificationData = {
+        candidateId,
+        employerName: employer.name,
+        employerDomain: normalizeEmployerDomain(employer.name),
+        employerPhone: employer.phone || cachedVerification.employerPhone || '',
+        candidateName,
+        candidateJobTitle: employer.jobTitle || cachedVerification.candidateJobTitle || '',
+        stage: cachedVerification.stage,
+        stageHistory: cachedVerification.stageHistory,
+        status: cachedVerification.status,
+        outcome: cachedVerification.outcome,
+        method: cachedVerification.method,
+        confidence: cachedVerification.confidence,
+        isVerified: cachedVerification.isVerified,
+        nextSteps: cachedVerification.nextSteps || [],
+        proofArtifacts: cachedVerification.proofArtifacts || [],
+        completedAt: cachedVerification.completedAt
+      };
+
+      const verification = await base44.entities.EmployerVerification.create(verificationData);
+      console.log(`✅ CACHED: ${employer.name} (confidence: ${cachedVerification.confidence})`);
+      verificationRecords.push(verification);
+    }
+
+    // STEP 4: Create verification records for uncached employers
+    for (const employer of employersNeedingVerification) {
       const { name, phone, jobTitle } = employer;
       if (!name) continue;
 
-      // Check if verification already exists
+      // Check if verification already exists for THIS candidate scan
       const existing = await base44.entities.EmployerVerification.filter({
         candidateId,
         employerName: name
       });
 
       if (existing.length > 0) {
-        console.log(`Verification already exists for ${name}, skipping`);
+        console.log(`Verification already exists for this scan: ${name}, skipping`);
         verificationRecords.push(existing[0]);
         continue;
       }
@@ -116,7 +184,7 @@ Deno.serve(async (req) => {
 
       const verification = await base44.entities.EmployerVerification.create(verificationData);
 
-      console.log(`✅ ${name}: stage=${result.stage}, status=${result.status}, outcome=${result.outcome}`);
+      console.log(`✅ NEW: ${name}: stage=${result.stage}, status=${result.status}, outcome=${result.outcome}`);
       verificationRecords.push(verification);
     }
 
