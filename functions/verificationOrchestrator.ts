@@ -229,24 +229,23 @@ export async function orchestrateVerification(base44, employerName, employerPhon
 
     artifacts.push(...publicEvidenceResult.artifacts);
 
-    console.log(`[Orchestrator] Public evidence: found=${publicEvidenceResult.found}, confidence=${publicEvidenceResult.confidence}, isVerified=${publicEvidenceResult.isVerified}`);
+    console.log(`[Orchestrator] People evidence: found=${publicEvidenceResult.found}, confidence=${publicEvidenceResult.confidence}, outcome=${publicEvidenceResult.outcome}`);
 
-    // LOWERED THRESHOLD: Accept 0.4+ as sufficient evidence
-    if (publicEvidenceResult.found && publicEvidenceResult.confidence >= 0.4) {
+    // Check if people evidence was found
+    if (publicEvidenceResult.outcome === 'people_evidence_found') {
       stage = 'completion';
       stageHistory.push({ stage: 'completion', timestamp: new Date().toISOString() });
 
-      // Mark fully verified only if 0.7+
-      const isFullyVerified = publicEvidenceResult.confidence >= 0.7;
+      const isFullyVerified = publicEvidenceResult.isVerified;
 
-      console.log(`[Orchestrator] ✅ Public evidence accepted (confidence: ${publicEvidenceResult.confidence}, fully verified: ${isFullyVerified})`);
+      console.log(`[Orchestrator] ✅ People evidence found (confidence: ${publicEvidenceResult.confidence}, verified: ${isFullyVerified})`);
 
       return {
         stage,
         stageHistory,
         status: 'completed',
-        outcome: 'verified_public_evidence',
-        method: 'public_evidence',
+        outcome: 'people_evidence_found',
+        method: 'people_evidence',
         confidence: publicEvidenceResult.confidence,
         isVerified: isFullyVerified,
         nextSteps: isFullyVerified ? [] : [
@@ -255,36 +254,6 @@ export async function orchestrateVerification(base44, employerName, employerPhon
             label: 'Review evidence details',
             enabled: true,
             priority: 1
-          }
-        ],
-        proofArtifacts: artifacts
-      };
-    }
-
-    // Low confidence but something found
-    if (publicEvidenceResult.found && publicEvidenceResult.confidence >= 0.3) {
-      console.log(`[Orchestrator] Weak public evidence found (${publicEvidenceResult.confidence})`);
-      
-      return {
-        stage,
-        stageHistory,
-        status: 'action_required',
-        outcome: 'policy_identified',
-        method: 'public_evidence',
-        confidence: publicEvidenceResult.confidence,
-        isVerified: false,
-        nextSteps: [
-          {
-            action: 'review_evidence',
-            label: 'Review weak evidence',
-            enabled: true,
-            priority: 1
-          },
-          {
-            action: 'start_ai_policy_call',
-            label: 'Run AI call for additional verification',
-            enabled: false,
-            priority: 2
           }
         ],
         proofArtifacts: artifacts

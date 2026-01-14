@@ -532,8 +532,13 @@ Deno.serve(async (req) => {
           console.log(`⚠️  WARN: ${url} very small (${fetchResult.raw_html_length} bytes)`);
         }
         
-        // Add filtered candidates to official candidates
-        officialCandidates.push(...extraction.filtered);
+        // Add filtered candidates with source URL
+        const candidatesWithSource = extraction.filtered.map(c => ({
+          ...c,
+          source_url: url
+        }));
+        
+        officialCandidates.push(...candidatesWithSource);
         
         // Track ALL extracted (for debug)
         allExtractedCandidates.push(...extraction.all);
@@ -542,7 +547,8 @@ Deno.serve(async (req) => {
         const lastResult = debug.fetch_results[debug.fetch_results.length - 1];
         lastResult.candidates_found = extraction.filtered.length;
         
-        console.log(`✅ EXTRACTED: ${url}`);
+        const isContactPage = url.toLowerCase().includes('/contact');
+        console.log(`✅ EXTRACTED: ${url}${isContactPage ? ' (CONTACT PAGE - HIGH PRIORITY)' : ''}`);
         console.log(`   Total extracted: ${extraction.total}, After filtering: ${extraction.filtered.length}`);
         if (extraction.filtered.length > 0) {
           console.log(`   Best phone: ${extraction.filtered[0].raw} (source: ${extraction.filtered[0].source})`);

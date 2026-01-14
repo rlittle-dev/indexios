@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * Public Evidence Verification - Multi-Employer
- * Searches for public evidence across ALL employers for a candidate
+ * People Evidence Verification - Multi-Employer
+ * Confirms PERSON ↔ COMPANY ↔ ROLE links using credible sources
+ * Priority: 1) RocketReach, 2) Company site, 3) Press/News
  * Returns evidence mapped to each employer
  */
 
@@ -23,13 +24,14 @@ async function searchPublicEvidenceMultiEmployer(base44, candidateName, employer
     // STEP 1: Multi-round comprehensive search
     let allUrls = [];
     
-    // Round 0: RocketReach profile search (HIGHEST PRIORITY - career summaries)
-    console.log(`[Public Evidence] Round 0: RocketReach profile search (PRIMARY SOURCE)...`);
-    const rocketReachPrompt = `Search for: "${candidateName} rocketreach"
+    // Round 0: RocketReach profile search (HIGHEST PRIORITY)
+    console.log(`[People Evidence] Round 0: RocketReach profile search (PRIMARY SOURCE)...`);
+    const employerList = employers.map(e => e.name).join(' OR ');
+    const rocketReachPrompt = `Search Google for: "${candidateName} RocketReach ${employerList}"
 
-Find the RocketReach profile page for this person. RocketReach shows complete career history and past roles.
+Find the RocketReach profile page (rocketreach.co) for this person that shows their career history.
 
-Return the RocketReach profile URL.`;
+Return ONLY the RocketReach profile URL (must contain rocketreach.co).`;
 
     try {
       const result = await base44.integrations.Core.InvokeLLM({
@@ -44,13 +46,16 @@ Return the RocketReach profile URL.`;
       });
       
       if (result.urls && result.urls.length > 0) {
-        allUrls = allUrls.concat(result.urls);
-        console.log(`[Public Evidence] 🚀 RocketReach: ${result.urls.length} URLs found`);
+        const rocketReachUrls = result.urls.filter(u => u.includes('rocketreach.co'));
+        if (rocketReachUrls.length > 0) {
+          allUrls = allUrls.concat(rocketReachUrls);
+          console.log(`[People Evidence] 🚀 RocketReach: ${rocketReachUrls.length} profile(s) found`);
+        }
       } else {
-        console.log(`[Public Evidence] ⚠️ No RocketReach profile found`);
+        console.log(`[People Evidence] ⚠️ No RocketReach profile found`);
       }
     } catch (error) {
-      console.log(`[Public Evidence] RocketReach search failed: ${error.message}`);
+      console.log(`[People Evidence] RocketReach search failed: ${error.message}`);
     }
     
     // Round 1: Direct searches for each employer individually
@@ -207,45 +212,43 @@ Return URLs to:
     
     const employerNames = employers.map(e => e.name).join(', ');
     
-    const validationPrompt = `YOU ARE A GENEROUS EMPLOYMENT VERIFIER. Find evidence for "${candidateName}" at these companies.
+    const validationPrompt = `YOU ARE A PEOPLE EVIDENCE VERIFIER. Confirm employment for "${candidateName}" at these companies.
 
 COMPANIES: ${employerNames}
 
 ${searchUrls.length > 0 ? `ANALYZE ALL ${searchUrls.length} URLS:\n${searchUrls.map(u => `- ${u}`).join('\n')}\n\n` : ''}
 
-ACCEPTANCE CRITERIA (VERY LOW BAR):
-✅ ACCEPT ANY OF THESE (prioritize in this order):
-1. ROCKETREACH PROFILE - If you find a rocketreach.co URL, check career history for the company name
-   - RocketReach shows "Current" and "Past" positions
-   - Accept if company appears anywhere in work history
-   - HIGH confidence (0.8+) for RocketReach matches
-2. Full name "${candidateName}" anywhere on company website or in article
-3. First name OR last name on company team/about page
-4. Name variation (Jan, Janet, J. Little, etc.) with company context
-5. Bio, profile, or description linking them to company
-6. Any article mentioning them with the company
-7. Press release, announcement, or news with their name + company
+SOURCE PRIORITY (analyze in this order):
+1. **ROCKETREACH** (rocketreach.co) - Shows current/past positions and career history
+   - If found: extract role, company, time period from the profile
+   - Confidence 0.85+ if company matches
+   - Return snippet: "{role} at {company} (dates if shown)"
+2. **Company website** - Staff directory, team page, about page
+   - Confidence 0.8+ if name appears on company site
+3. **Press/News** - Articles mentioning the person's role at the company
+   - Confidence 0.6+ for credible news sources
 
-❌ ONLY REJECT IF:
-- Zero mention of the name at all
-- Clearly a different person (wrong gender, age, location if stated)
+ACCEPTANCE RULES:
+✅ ACCEPT if:
+- RocketReach shows company in current or past positions
+- Company website lists them as staff/employee
+- News article mentions their role at the company
+- Name appears with role/title connected to company
 
-CONFIDENCE SCORING (BE GENEROUS):
-- 0.85-1.0 = RocketReach profile with company OR company website listing them OR 2+ sources
-- 0.6-0.84 = Any article mentions them OR single company page mention  
-- 0.4-0.59 = Partial name match with reasonable context
-- 0.3-0.39 = Very weak/ambiguous mention
-- 0.0-0.29 = Nothing found
-
-CRITICAL: If you find a rocketreach.co URL in the list, PRIORITIZE analyzing it first!
+❌ REJECT if:
+- No mention at all
+- Different person (wrong industry/location)
+- Personal social media only (LinkedIn/Twitter/Facebook profiles)
 
 For EACH company, return:
 - found: true/false
 - confidence: 0.0 to 1.0
-- sources: array of {url, description}
-- reasoning: what you found and why confidence level
+- source_type: "rocketreach" | "company_site" | "press" | "other"
+- sources: array of {url, description, snippet}
+  - snippet should be 1-2 lines showing the match (e.g., "Software Engineer at Company X (2020-2023)")
+- reasoning: brief explanation
 
-BE GENEROUS: If you see the name and company together, that's a FIND. Default to found=true unless you're certain it's wrong.`;
+CRITICAL: Prioritize RocketReach results and extract specific role/dates from the profile!`;
 
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: validationPrompt,
@@ -261,16 +264,19 @@ BE GENEROUS: If you see the name and company together, that's a FIND. Default to
                 company_name: { type: "string" },
                 found: { type: "boolean" },
                 confidence: { type: "number" },
-                full_name_matched: { type: "boolean" },
+                source_type: { 
+                  type: "string",
+                  enum: ["rocketreach", "company_site", "press", "other"]
+                },
                 role_mentioned: { type: "string" },
+                time_period: { type: "string" },
                 sources: {
                   type: "array",
                   items: {
                     type: "object",
                     properties: {
                       url: { type: "string" },
-                      type: { type: "string" },
-                      quality: { type: "string" },
+                      description: { type: "string" },
                       snippet: { type: "string" }
                     }
                   }
@@ -294,9 +300,8 @@ BE GENEROUS: If you see the name and company together, that's a FIND. Default to
         employer.name.toLowerCase().includes(c.company_name.toLowerCase())
       );
 
-      // LOWERED BAR: Accept if found=true OR has sources, don't require full_name_matched
       if (match && (match.found || (match.sources && match.sources.length > 0))) {
-        // Filter out personal social media only
+        // Filter out personal social media
         const validSources = (match.sources || []).filter(s => 
           !s.url.toLowerCase().includes('linkedin.com/in/') &&
           !s.url.toLowerCase().includes('twitter.com/') &&
@@ -304,27 +309,26 @@ BE GENEROUS: If you see the name and company together, that's a FIND. Default to
           !s.url.toLowerCase().includes('instagram.com/')
         );
 
-        // If we have sources, boost confidence even if full_name_matched is false
-        const adjustedConfidence = validSources.length > 0 
-          ? Math.max(match.confidence || 0.5, 0.5) // Minimum 0.5 if we have sources
-          : (match.confidence || 0.3);
+        const adjustedConfidence = match.confidence || (validSources.length > 0 ? 0.5 : 0.3);
 
         evidenceByEmployer[employer.name] = {
           found: validSources.length > 0,
           confidence: adjustedConfidence,
+          sourceType: match.source_type || 'other',
           sources: validSources.map(s => ({
             url: s.url,
-            description: s.snippet || s.type || 'Source found',
-            type: s.type,
-            quality: s.quality
+            description: s.description || s.snippet || 'Source found',
+            snippet: s.snippet || ''
           })),
-          reasoning: match.reasoning || 'Employment mention found',
-          roleMentioned: match.role_mentioned
+          reasoning: match.reasoning || 'Employment evidence found',
+          roleMentioned: match.role_mentioned,
+          timePeriod: match.time_period
         };
       } else {
         evidenceByEmployer[employer.name] = {
           found: false,
           confidence: 0.1,
+          sourceType: 'none',
           sources: [],
           reasoning: match?.reasoning || `No credible sources found for ${candidateName} at ${employer.name}`
         };
@@ -422,37 +426,51 @@ Deno.serve(async (req) => {
       
       if (evidence.found && evidence.sources && evidence.sources.length > 0) {
         evidence.sources.forEach((source, idx) => {
-          const label = source.description || `Source ${idx + 1}: ${source.type || 'web page'}`;
+          const isRocketReach = evidence.sourceType === 'rocketreach';
+          const label = isRocketReach 
+            ? `RocketReach: ${evidence.roleMentioned || 'Employment'} at ${employer.name}${evidence.timePeriod ? ` (${evidence.timePeriod})` : ''}`
+            : (source.description || `Source ${idx + 1}: ${evidence.sourceType}`);
+          
           artifacts.push(addArtifact(
             label,
-            'public_evidence',
+            'people_evidence',
             source.url || '',
-            evidence.reasoning
+            source.snippet || evidence.reasoning
           ));
-          console.log(`    Source ${idx + 1}: ${source.url}`);
+          console.log(`    [${evidence.sourceType}] ${source.url}`);
         });
       } else {
         artifacts.push(addArtifact(
-          'No public evidence found',
-          'public_evidence',
+          'No people evidence found',
+          'people_evidence',
           '',
           evidence.reasoning
         ));
       }
 
-      // Determine outcome - LOWERED THRESHOLDS
+      // Determine outcome based on evidence type and confidence
       let outcome, isVerified, status;
       const hasCredibleSources = evidence.sources && evidence.sources.length > 0;
+      const isRocketReach = evidence.sourceType === 'rocketreach';
       
-      // 0.4+ with sources = verified
-      if (evidence.found && hasCredibleSources && evidence.confidence >= 0.4) {
-        outcome = 'verified_public_evidence';
-        isVerified = evidence.confidence >= 0.7; // Only mark fully verified if 0.7+
-        status = 'completed';
-      } else if (evidence.found) {
-        outcome = 'policy_identified';
-        isVerified = false;
-        status = 'action_required';
+      if (evidence.found && hasCredibleSources) {
+        if (isRocketReach && evidence.confidence >= 0.75) {
+          outcome = 'people_evidence_found';
+          isVerified = true;
+          status = 'completed';
+        } else if (evidence.confidence >= 0.7) {
+          outcome = 'people_evidence_found';
+          isVerified = true;
+          status = 'completed';
+        } else if (evidence.confidence >= 0.4) {
+          outcome = 'people_evidence_found';
+          isVerified = false;
+          status = 'action_required'; // Weak evidence, may need follow-up
+        } else {
+          outcome = 'contact_identified';
+          isVerified = false;
+          status = 'action_required';
+        }
       } else {
         outcome = 'contact_identified';
         isVerified = false;

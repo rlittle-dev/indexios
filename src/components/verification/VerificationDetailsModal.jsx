@@ -221,21 +221,29 @@ export default function VerificationDetailsModal({ verification, onClose }) {
                 <h3 className="text-white/60 text-sm font-medium mb-2">Evidence & Audit Trail</h3>
                 <div className="space-y-2">
                   {verification.proofArtifacts.map((artifact, idx) => {
-                    const isPositiveEvidence = artifact.type === 'public_evidence' && 
+                    const isPeopleEvidence = artifact.type === 'people_evidence' && 
                       artifact.label && 
-                      !artifact.label.toLowerCase().includes('no') &&
-                      !artifact.label.toLowerCase().includes('weak');
+                      !artifact.label.toLowerCase().includes('no');
+                    const isRocketReach = artifact.label?.includes('RocketReach');
+                    const isPositiveEvidence = isPeopleEvidence;
 
                     return (
                       <div 
                         key={idx} 
                         className={`bg-zinc-800/50 rounded-lg p-3 border-l-2 ${
+                          isRocketReach ? 'border-purple-500/60' :
                           isPositiveEvidence ? 'border-green-500/50' : 'border-blue-500/30'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1">
+                            {isRocketReach && (
+                              <div className="mb-1">
+                                <span className="text-purple-400 text-xs font-bold">🚀 ROCKETREACH</span>
+                              </div>
+                            )}
                             <p className={`text-sm font-medium ${
+                              isRocketReach ? 'text-purple-300' :
                               isPositiveEvidence ? 'text-green-300' : 'text-white/80'
                             }`}>
                               {artifact.label}
