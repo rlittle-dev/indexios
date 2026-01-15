@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -71,7 +71,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       >
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-blue-500/20">
-            <Phone className="w-4 h-4 text-blue-400" />
+            <CheckCircle className="w-4 h-4 text-blue-400" />
           </div>
           <h3 className="text-blue-400 font-semibold">Employment Verification</h3>
           {results && (
@@ -146,7 +146,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
           {!results && companyNames.length > 0 && (
             <p className="text-white/60 text-xs italic pt-3 border-t border-blue-500/20">
-              Click "Run Verification" to fetch RocketReach + web evidence
+              Click "Run Verification" to fetch web evidence for employment history
             </p>
           )}
 
@@ -202,7 +202,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
           {!results && companyNames.length > 0 && (
             <p className="text-white/60 text-xs italic pt-2">
-              Click "Run Verification" to verify employment claims
+              Verifies employment using web evidence and public records
             </p>
           )}
         </div>

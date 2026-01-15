@@ -235,56 +235,108 @@ Deno.serve(async (req) => {
 
     console.log(`[EmploymentConfirmation] Starting for ${candidateName}, ${employers.length} employers`);
 
-    // Collect global web evidence pool (generic + employer-specific)
-    const webResult = await collectWebEvidence(base44, candidateName, employers);
-    const webSources = webResult.sources || [];
-    const webError = webResult.error;
-
-    console.log(`[EmploymentConfirmation] Web sources: ${webSources.length}, queries: ${webResult.queries_run.length}`);
-
-    // If no evidence and error exists, return early
-    if (webSources.length === 0 && webError) {
-      console.error(`[EmploymentConfirmation] ${webError}`);
-      return Response.json({
-        success: false,
-        error: webError,
-        debug_global: {
-          web_queries_run: webResult.queries_run || [],
-          urls_returned: 0,
-          snippets_returned: 0,
-          top_domains: {}
-        }
-      });
-    }
-
-    // DEBUG LOGGING
-    console.log(`[EmploymentConfirmation DEBUG] webSources.length: ${webSources.length}`);
-    if (webSources.length > 0) {
-      const firstSnippet = (webSources[0].full_text || webSources[0].text || '').substring(0, 200);
-      console.log(`[EmploymentConfirmation DEBUG] first web snippet (200 chars): "${firstSnippet}"`);
-    }
-    const normalizedEmployers = employers.map(e => normalize(e.name));
-    console.log(`[EmploymentConfirmation DEBUG] normalized employers: ${JSON.stringify(normalizedEmployers)}`);
-
-    // Verify each employer against web sources
+    const candidateNorm = normalize(candidateName);
     const results = {};
+    const employersToVerify = [];
+    let cachedCount = 0;
 
+    // Check database for previously verified employment
     for (const employer of employers) {
-      const snippets = extractSnippets(candidateName, employer.name, webSources);
+      const employerNorm = normalize(employer.name);
       
-      results[employer.name] = {
-        status: snippets.length > 0 ? 'verified' : 'not_found',
-        evidence_count: snippets.length,
-        sources: snippets,
-        has_evidence: webSources.length > 0,
-        debug: snippets.length > 0 
-          ? `matched on ${snippets.length} source(s)`
-          : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
-      };
+      try {
+        const existing = await base44.asServiceRole.entities.VerifiedEmployment.filter({
+          candidate_name_normalized: candidateNorm,
+          employer_name_normalized: employerNorm
+        });
+
+        if (existing && existing.length > 0) {
+          const cached = existing[0];
+          console.log(`[EmploymentConfirmation] Cache HIT: ${employer.name}`);
+          
+          results[employer.name] = {
+            status: cached.status,
+            evidence_count: cached.sources?.length || 0,
+            sources: cached.sources || [],
+            has_evidence: true,
+            cached: true,
+            debug: `cached from ${cached.verified_date}`
+          };
+          cachedCount++;
+        } else {
+          employersToVerify.push(employer);
+        }
+      } catch (error) {
+        console.error(`[EmploymentConfirmation] Cache check error for ${employer.name}:`, error.message);
+        employersToVerify.push(employer);
+      }
+    }
+
+    console.log(`[EmploymentConfirmation] Cached: ${cachedCount}, To verify: ${employersToVerify.length}`);
+
+    // Only run web evidence collection if we have employers to verify
+    let webSources = [];
+    let webResult = { queries_run: [], domain_counts: {} };
+
+    if (employersToVerify.length > 0) {
+      webResult = await collectWebEvidence(base44, candidateName, employersToVerify);
+      webSources = webResult.sources || [];
+      const webError = webResult.error;
+
+      console.log(`[EmploymentConfirmation] Web sources: ${webSources.length}, queries: ${webResult.queries_run.length}`);
+
+      // If no evidence and error exists, return early
+      if (webSources.length === 0 && webError) {
+        console.error(`[EmploymentConfirmation] ${webError}`);
+        return Response.json({
+          success: false,
+          error: webError,
+          debug_global: {
+            web_queries_run: webResult.queries_run || [],
+            urls_returned: 0,
+            snippets_returned: 0,
+            top_domains: {},
+            cached_count: cachedCount
+          }
+        });
+      }
+
+      // Verify each employer against web sources
+      for (const employer of employersToVerify) {
+        const snippets = extractSnippets(candidateName, employer.name, webSources);
+        const status = snippets.length > 0 ? 'verified' : 'not_found';
+        
+        results[employer.name] = {
+          status,
+          evidence_count: snippets.length,
+          sources: snippets,
+          has_evidence: webSources.length > 0,
+          cached: false,
+          debug: snippets.length > 0 
+            ? `matched on ${snippets.length} source(s)`
+            : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
+        };
+
+        // Save to database for future use
+        try {
+          await base44.asServiceRole.entities.VerifiedEmployment.create({
+            candidate_name: candidateName,
+            candidate_name_normalized: normalize(candidateName),
+            employer_name: employer.name,
+            employer_name_normalized: normalize(employer.name),
+            status,
+            sources: snippets,
+            verified_date: new Date().toISOString()
+          });
+          console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
+        } catch (error) {
+          console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
+        }
+      }
     }
 
     const verifiedCount = Object.values(results).filter(r => r.status === 'verified').length;
-    console.log(`[EmploymentConfirmation] Final: ${verifiedCount}/${employers.length} verified`);
+    console.log(`[EmploymentConfirmation] Final: ${verifiedCount}/${employers.length} verified (${cachedCount} from cache)`);
 
     return Response.json({
       success: true,
@@ -293,11 +345,13 @@ Deno.serve(async (req) => {
         web_queries_run: webResult.queries_run || [],
         urls_returned: webSources.length,
         snippets_returned: webSources.length,
-        top_domains: webResult.domain_counts || {}
+        top_domains: webResult.domain_counts || {},
+        cached_count: cachedCount
       },
       summary: {
         verified_count: verifiedCount,
-        total_count: employers.length
+        total_count: employers.length,
+        cached_count: cachedCount
       }
     });
 
