@@ -171,22 +171,6 @@ export default function SharedReport() {
                   delay={0.1}
                   isBasic={candidate.analysis.is_basic}
                 />
-                <AnalysisCard
-                  title="Education"
-                  score={candidate.analysis.education_verification || 0}
-                  details={candidate.analysis.education_details}
-                  icon={GraduationCap}
-                  delay={0.2}
-                  isBasic={candidate.analysis.is_basic}
-                />
-                <AnalysisCard
-                  title="Skills Alignment"
-                  score={candidate.analysis.skills_alignment || 0}
-                  details={candidate.analysis.skills_details}
-                  icon={Sparkles}
-                  delay={0.3}
-                  isBasic={candidate.analysis.is_basic}
-                />
               </div>
 
               <FlagsList
