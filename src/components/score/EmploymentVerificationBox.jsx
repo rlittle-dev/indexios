@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -193,6 +193,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                 const result = results[company] || {};
                 const status = result.status || 'not_found';
                 const hasEvidence = result.sources && result.sources.length > 0;
+                const hasPhone = result.phone?.number;
 
                 return (
                   <motion.div
@@ -200,35 +201,50 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-zinc-800/50 rounded-lg p-3 grid grid-cols-4 gap-2 items-center text-sm"
+                    className="bg-zinc-800/50 rounded-lg p-3 space-y-2"
                   >
-                    {/* Employer */}
-                    <div className="text-white font-medium truncate">{company}</div>
+                    <div className="grid grid-cols-4 gap-2 items-center text-sm">
+                      {/* Employer */}
+                      <div className="text-white font-medium truncate">{company}</div>
 
-                    {/* Status */}
-                    <div className="flex items-center gap-1">
-                      {getStatusIcon(status)}
-                      <Badge className={`text-xs ${getStatusColor(status)}`}>
-                        {status === 'verified' ? 'Verified' : 'Not found'}
-                      </Badge>
+                      {/* Status */}
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(status)}
+                        <Badge className={`text-xs ${getStatusColor(status)}`}>
+                          {status === 'verified' ? 'Verified' : 'Not found'}
+                        </Badge>
+                      </div>
+
+                      {/* Evidence Count */}
+                      <div className="text-white/70 text-xs">
+                        {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
+                      </div>
+
+                      {/* Evidence Button */}
+                      {hasEvidence && (
+                        <Button
+                          onClick={() => setSelectedEvidence({ company, result })}
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      )}
                     </div>
 
-                    {/* Evidence Count */}
-                    <div className="text-white/70 text-xs">
-                      {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
-                    </div>
-
-                    {/* Evidence Button */}
-                    {hasEvidence && (
-                      <Button
-                        onClick={() => setSelectedEvidence({ company, result })}
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
+                    {/* HR Phone Number */}
+                    {hasPhone && (
+                      <div className="flex items-start gap-2 pt-2 border-t border-zinc-700/50">
+                        <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                        <div className="text-xs">
+                          <p className="text-green-300 font-medium">{result.phone.number}</p>
+                          <p className="text-white/60 text-[10px] mt-0.5">
+                            {result.phone.notes || 'Employment verification contact'}
+                          </p>
+                        </div>
+                      </div>
                     )}
                   </motion.div>
                 );

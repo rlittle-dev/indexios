@@ -170,6 +170,50 @@ async function collectWebEvidence(base44, candidateName, employers) {
 }
 
 /**
+ * Get company HR or employment verification phone number
+ */
+async function getCompanyPhone(base44, companyName) {
+  try {
+    console.log(`[EmploymentConfirmation:Phone] Looking up phone for ${companyName}`);
+    
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find the HR department or employment verification phone number for ${companyName}.
+Look for:
+- HR contact number
+- Employment verification hotline
+- Main corporate number for HR inquiries
+- Third-party verification service number (e.g., The Work Number)
+
+Return ONLY valid phone numbers found. If none found, return null.
+Format: JSON {phone_number: string or null, source: string, notes: string}`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          phone_number: { type: ['string', 'null'] },
+          source: { type: 'string' },
+          notes: { type: 'string' }
+        }
+      }
+    });
+
+    if (result?.phone_number) {
+      console.log(`[EmploymentConfirmation:Phone] Found: ${result.phone_number}`);
+      return {
+        number: result.phone_number,
+        source: result.source || 'Web search',
+        notes: result.notes || ''
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error(`[EmploymentConfirmation:Phone] Error for ${companyName}:`, error.message);
+    return null;
+  }
+}
+
+/**
  * Extract evidence snippets matching candidate + employer
  */
 function extractSnippets(candidateName, employerName, webSources) {
@@ -331,23 +375,27 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Verify each employer against web sources
+      // Verify each employer against web sources and get phone numbers
       for (const employer of employersToVerify) {
         const snippets = extractSnippets(candidateName, employer.name, webSources);
         const status = snippets.length > 0 ? 'verified' : 'not_found';
+
+        // Get HR/verification phone number
+        const phoneInfo = await getCompanyPhone(base44, employer.name);
 
         results[employer.name] = {
           status,
           evidence_count: snippets.length,
           sources: snippets,
           has_evidence: webSources.length > 0,
+          phone: phoneInfo,
           cached: false,
           debug: snippets.length > 0 
             ? `matched on ${snippets.length} source(s)`
             : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
         };
 
-        // Save to database for future use
+        // Save to database for future use (including phone info)
         try {
           await base44.asServiceRole.entities.VerifiedEmployment.create({
             candidate_name: candidateName,
@@ -356,6 +404,7 @@ Deno.serve(async (req) => {
             employer_name_normalized: normalize(employer.name),
             status,
             sources: snippets,
+            phone: phoneInfo,
             verified_date: new Date().toISOString()
           });
           console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
