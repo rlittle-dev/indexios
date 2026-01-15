@@ -24,7 +24,6 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       if (response.data?.success) {
         setResults(response.data.results);
         console.log('✅ Verification complete:', response.data.summary);
-        console.log('📧 Results with contact info:', JSON.stringify(response.data.results, null, 2));
       } else {
         console.error('Verification failed:', response.data);
       }
@@ -199,29 +198,21 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                     </div>
 
                     {/* Contact Info for Not Found */}
-                    {status === 'not_found' && result.contact && (
+                    {status === 'not_found' && result.contact && (result.contact.phone || result.contact.email) && (
                       <div className="mt-2 pt-2 border-t border-zinc-700/50 space-y-1">
-                        <p className="text-white/50 text-xs font-medium mb-1.5">Company Contact Info:</p>
-                        
-                        {/* Phone */}
-                        <div className="text-white/90 text-xs flex items-center gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
-                          <Phone className="w-3.5 h-3.5 text-blue-400" />
-                          {result.contact.phone && result.contact.phone !== 'null' ? (
-                            <span>{result.contact.phone}</span>
-                          ) : (
-                            <span className="text-white/40 italic">Phone could not be found</span>
-                          )}
-                        </div>
-
-                        {/* Email */}
-                        <div className="text-white/90 text-xs flex items-center gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
-                          <Mail className="w-3.5 h-3.5 text-blue-400" />
-                          {result.contact.email && result.contact.email !== 'null' ? (
-                            <span>{result.contact.email}</span>
-                          ) : (
-                            <span className="text-white/40 italic">Email could not be found</span>
-                          )}
-                        </div>
+                        <p className="text-white/50 text-xs mb-1">Company Contact:</p>
+                        {result.contact.phone && (
+                          <p className="text-white/80 text-xs flex items-center gap-2">
+                            <Phone className="w-3 h-3" />
+                            {result.contact.phone}
+                          </p>
+                        )}
+                        {result.contact.email && (
+                          <p className="text-white/80 text-xs flex items-center gap-2">
+                            <Mail className="w-3 h-3" />
+                            {result.contact.email}
+                          </p>
+                        )}
                       </div>
                     )}
                   </motion.div>
