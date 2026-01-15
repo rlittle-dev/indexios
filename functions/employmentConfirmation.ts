@@ -302,7 +302,16 @@ Deno.serve(async (req) => {
       if (result.status === 'not_found') {
         try {
           const contactInfo = await base44.integrations.Core.InvokeLLM({
-            prompt: `Find contact information for "${employer.name}". Look for official phone number and/or email address from their website or reliable sources. Return null if not found.`,
+            prompt: `Find OFFICIAL contact information for the company "${employer.name}".
+
+STRICT REQUIREMENTS:
+- Phone: ONLY return if you find it on the company's official website, verified business listings (Google Business, LinkedIn company page), or authoritative sources
+- Email: ONLY return if it's a general company email (info@, contact@, hr@) from the official domain, NOT personal emails or unverified addresses
+- Return null for phone if: generic numbers, unverified sources, personal numbers, or low confidence
+- Return null for email if: personal emails, unverified addresses, invalid domains, or low confidence
+- ONLY include information with 95%+ confidence of accuracy
+
+Return JSON with phone and email fields (use null if not found with high confidence).`,
             add_context_from_internet: true,
             response_json_schema: {
               type: "object",
@@ -314,12 +323,12 @@ Deno.serve(async (req) => {
           });
           
           result.contact = {
-            phone: contactInfo.phone || null,
-            email: contactInfo.email || null
+            phone: (contactInfo.phone && contactInfo.phone !== 'null' && contactInfo.phone.trim() !== '') ? contactInfo.phone : null,
+            email: (contactInfo.email && contactInfo.email !== 'null' && contactInfo.email.trim() !== '') ? contactInfo.email : null
           };
         } catch (error) {
           console.error(`Failed to fetch contact for ${employer.name}:`, error);
-          result.contact = null;
+          result.contact = { phone: null, email: null };
         }
       }
 
