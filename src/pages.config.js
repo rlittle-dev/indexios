@@ -11,6 +11,8 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
+import VerificationTimeline from './pages/VerificationTimeline';
+import VerificationConsent from './pages/VerificationConsent';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +30,8 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
+    "VerificationTimeline": VerificationTimeline,
+    "VerificationConsent": VerificationConsent,
 }
 
 export const pagesConfig = {
