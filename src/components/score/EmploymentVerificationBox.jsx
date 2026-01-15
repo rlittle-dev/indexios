@@ -11,6 +11,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [results, setResults] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
   const [sendingVerification, setSendingVerification] = useState(null);
+  const [sendingPhoneVerification, setSendingPhoneVerification] = useState(null);
 
   const handleRunVerification = async () => {
     if (!candidateName || companyNames.length === 0) return;
@@ -62,6 +63,35 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       alert('Failed to send verification email');
     } finally {
       setSendingVerification(null);
+    }
+  };
+
+  const handleSendPhoneVerification = async (companyName, companyPhone) => {
+    if (!candidateEmail) {
+      alert('Candidate email not found');
+      return;
+    }
+
+    setSendingPhoneVerification(companyName);
+    try {
+      const response = await base44.functions.invoke('sendCandidatePhoneVerification', {
+        candidateId,
+        candidateEmail,
+        candidateName,
+        companyName,
+        companyPhone
+      });
+
+      if (response.data?.success) {
+        alert(`Phone verification consent email sent to ${candidateEmail}`);
+      } else {
+        alert('Failed to send phone verification email');
+      }
+    } catch (error) {
+      console.error('Send phone verification error:', error);
+      alert('Failed to send phone verification email');
+    } finally {
+      setSendingPhoneVerification(null);
     }
   };
 
@@ -234,12 +264,24 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                         <p className="text-white/50 text-xs font-medium mb-1.5">Company Contact Info:</p>
                         
                         {/* Phone */}
-                        <div className="text-white/90 text-xs flex items-center gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
-                          <Phone className="w-3.5 h-3.5 text-blue-400" />
-                          {result.contact.phone && result.contact.phone !== 'null' ? (
-                            <span>{result.contact.phone}</span>
-                          ) : (
-                            <span className="text-white/40 italic">Phone could not be found</span>
+                        <div className="text-white/90 text-xs flex items-center justify-between gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-3.5 h-3.5 text-blue-400" />
+                            {result.contact.phone && result.contact.phone !== 'null' ? (
+                              <span>{result.contact.phone}</span>
+                            ) : (
+                              <span className="text-white/40 italic">Phone could not be found</span>
+                            )}
+                          </div>
+                          {result.contact.phone && result.contact.phone !== 'null' && candidateEmail && (
+                            <Button
+                              onClick={() => handleSendPhoneVerification(company, result.contact.phone)}
+                              disabled={sendingPhoneVerification === company}
+                              size="sm"
+                              className="h-6 text-[10px] bg-green-500 hover:bg-green-400 text-white px-2"
+                            >
+                              {sendingPhoneVerification === company ? 'Sending...' : 'Call Verification'}
+                            </Button>
                           )}
                         </div>
 
