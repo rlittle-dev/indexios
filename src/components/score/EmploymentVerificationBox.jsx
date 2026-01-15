@@ -5,13 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 
-export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName }) {
+export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName, userTier = 'free' }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
 
+  const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
+
   const handleRunVerification = async () => {
+    if (isLocked) {
+      alert('Employment Verification is available for Professional and Enterprise plans only. Please upgrade to access this feature.');
+      return;
+    }
+
     if (!candidateName || companyNames.length === 0) return;
 
     setIsRunning(true);
@@ -106,7 +113,29 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         className="overflow-hidden"
       >
         <div className="px-5 pb-5 border-t border-blue-500/20 space-y-4">
+          {/* Locked State for Free/Starter */}
+          {isLocked && (
+            <div className="pt-3 pb-2">
+              <div className="bg-purple-900/40 border border-purple-500/30 rounded-lg p-4 text-center">
+                <p className="text-purple-300 text-sm font-medium mb-2">
+                  🔒 Employment Verification is a Professional+ feature
+                </p>
+                <p className="text-white/60 text-xs mb-3">
+                  Verify employment history using web evidence and public records
+                </p>
+                <Button
+                  size="sm"
+                  className="bg-white hover:bg-gray-100 text-black font-medium"
+                  onClick={() => window.location.href = '/Pricing'}
+                >
+                  Upgrade to Professional
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Run Button */}
+          {!isLocked && (
           <div className="flex items-center gap-2 pt-3">
             <Button
               onClick={handleRunVerification}
@@ -142,16 +171,17 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                 Reset
               </Button>
             )}
-          </div>
+            </div>
+            )}
 
-          {!results && companyNames.length > 0 && (
+            {!isLocked && !results && companyNames.length > 0 && (
             <p className="text-white/60 text-xs italic pt-3 border-t border-blue-500/20">
               Click "Run Verification" to fetch web evidence for employment history
             </p>
           )}
 
           {/* Results Table */}
-          {results && (
+          {!isLocked && results && (
             <div className="space-y-2">
               {companyNames.map((company, idx) => {
                 const result = results[company] || {};

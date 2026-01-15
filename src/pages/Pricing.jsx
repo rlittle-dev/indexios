@@ -45,6 +45,7 @@ const TIERS = [
             '200 resume scans per month',
             'Next steps recommendations',
             'Interview question generation',
+            'Employment verification',
             'Save candidates to folders',
             'API access'
           ]
@@ -57,6 +58,7 @@ const TIERS = [
           features: [
             'All Professional features, plus:',
             'Unlimited resume scans',
+            'Employment verification',
             'Bulk upload',
             'Team collaboration (up to 5 members)',
             'Dedicated support',
@@ -214,6 +216,13 @@ export default function Pricing() {
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Next Steps & Questions</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Employment Verification</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-purple-400">✓</td>
