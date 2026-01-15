@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
     for (const employer of employers) {
       const snippets = extractSnippets(candidateName, employer.name, webSources);
       
-      results[employer.name] = {
+      const result = {
         status: snippets.length > 0 ? 'verified' : 'not_found',
         evidence_count: snippets.length,
         sources: snippets,
@@ -297,6 +297,33 @@ Deno.serve(async (req) => {
           ? `matched on ${snippets.length} source(s)`
           : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
       };
+
+      // If not found, scrape for company contact information
+      if (result.status === 'not_found') {
+        try {
+          const contactInfo = await base44.integrations.Core.InvokeLLM({
+            prompt: `Find contact information for "${employer.name}". Look for official phone number and/or email address from their website or reliable sources. Return null if not found.`,
+            add_context_from_internet: true,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                phone: { type: "string" },
+                email: { type: "string" }
+              }
+            }
+          });
+          
+          result.contact = {
+            phone: contactInfo.phone || null,
+            email: contactInfo.email || null
+          };
+        } catch (error) {
+          console.error(`Failed to fetch contact for ${employer.name}:`, error);
+          result.contact = null;
+        }
+      }
+
+      results[employer.name] = result;
     }
 
     const verifiedCount = Object.values(results).filter(r => r.status === 'verified').length;
