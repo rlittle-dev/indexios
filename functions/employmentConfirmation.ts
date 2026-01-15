@@ -326,11 +326,17 @@ Return JSON with phone and email fields (use null if not found with high confide
             phone: (contactInfo.phone && contactInfo.phone !== 'null' && contactInfo.phone.trim() !== '') ? contactInfo.phone : null,
             email: (contactInfo.email && contactInfo.email !== 'null' && contactInfo.email.trim() !== '') ? contactInfo.email : null
           };
-        } catch (error) {
+
+          // If company email was found, trigger candidate verification email
+          if (result.contact.email) {
+            console.log(`[EmploymentConfirmation] Company email found for ${employer.name}, will trigger candidate verification`);
+            result.candidate_verification_available = true;
+          }
+          } catch (error) {
           console.error(`Failed to fetch contact for ${employer.name}:`, error);
           result.contact = { phone: null, email: null };
-        }
-      }
+          }
+          }
 
       results[employer.name] = result;
     }

@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 
-export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName }) {
+export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName, candidateEmail }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [sendingVerification, setSendingVerification] = useState(null);
 
   const handleRunVerification = async () => {
     if (!candidateName || companyNames.length === 0) return;
@@ -32,6 +33,35 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       console.error('Verification error:', error);
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleSendVerificationEmail = async (companyName, companyEmail) => {
+    if (!candidateEmail) {
+      alert('Candidate email not found');
+      return;
+    }
+
+    setSendingVerification(companyName);
+    try {
+      const response = await base44.functions.invoke('sendCandidateVerificationEmail', {
+        candidateId,
+        candidateEmail,
+        candidateName,
+        companyName,
+        companyEmail
+      });
+
+      if (response.data?.success) {
+        alert(`Verification email sent to ${candidateEmail}`);
+      } else {
+        alert('Failed to send verification email');
+      }
+    } catch (error) {
+      console.error('Send verification error:', error);
+      alert('Failed to send verification email');
+    } finally {
+      setSendingVerification(null);
     }
   };
 
@@ -214,12 +244,24 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                         </div>
 
                         {/* Email */}
-                        <div className="text-white/90 text-xs flex items-center gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
-                          <Mail className="w-3.5 h-3.5 text-blue-400" />
-                          {result.contact.email && result.contact.email !== 'null' ? (
-                            <span>{result.contact.email}</span>
-                          ) : (
-                            <span className="text-white/40 italic">Email could not be found</span>
+                        <div className="text-white/90 text-xs flex items-center justify-between gap-2 bg-zinc-700/30 px-2 py-1.5 rounded">
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-3.5 h-3.5 text-blue-400" />
+                            {result.contact.email && result.contact.email !== 'null' ? (
+                              <span>{result.contact.email}</span>
+                            ) : (
+                              <span className="text-white/40 italic">Email could not be found</span>
+                            )}
+                          </div>
+                          {result.contact.email && result.contact.email !== 'null' && candidateEmail && (
+                            <Button
+                              onClick={() => handleSendVerificationEmail(company, result.contact.email)}
+                              disabled={sendingVerification === company}
+                              size="sm"
+                              className="h-6 text-[10px] bg-blue-500 hover:bg-blue-400 text-white px-2"
+                            >
+                              {sendingVerification === company ? 'Sending...' : 'Request Verification'}
+                            </Button>
                           )}
                         </div>
                       </div>
