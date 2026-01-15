@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Phone, ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Phone, ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -164,35 +164,56 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
-                    className="bg-zinc-800/50 rounded-lg p-3 grid grid-cols-4 gap-2 items-center text-sm"
+                    className="bg-zinc-800/50 rounded-lg p-3"
                   >
-                    {/* Employer */}
-                    <div className="text-white font-medium truncate">{company}</div>
+                    <div className="grid grid-cols-4 gap-2 items-center text-sm">
+                      {/* Employer */}
+                      <div className="text-white font-medium truncate">{company}</div>
 
-                    {/* Status */}
-                    <div className="flex items-center gap-1">
-                      {getStatusIcon(status)}
-                      <Badge className={`text-xs ${getStatusColor(status)}`}>
-                        {status === 'verified' ? 'Verified' : 'Not found'}
-                      </Badge>
+                      {/* Status */}
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(status)}
+                        <Badge className={`text-xs ${getStatusColor(status)}`}>
+                          {status === 'verified' ? 'Verified' : 'Not found'}
+                        </Badge>
+                      </div>
+
+                      {/* Evidence Count */}
+                      <div className="text-white/70 text-xs">
+                        {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
+                      </div>
+
+                      {/* Evidence Button */}
+                      {hasEvidence && (
+                        <Button
+                          onClick={() => setSelectedEvidence({ company, result })}
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      )}
                     </div>
 
-                    {/* Evidence Count */}
-                    <div className="text-white/70 text-xs">
-                      {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
-                    </div>
-
-                    {/* Evidence Button */}
-                    {hasEvidence && (
-                      <Button
-                        onClick={() => setSelectedEvidence({ company, result })}
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
+                    {/* Contact Info for Not Found */}
+                    {status === 'not_found' && result.contact && (result.contact.phone || result.contact.email) && (
+                      <div className="mt-2 pt-2 border-t border-zinc-700/50 space-y-1">
+                        <p className="text-white/50 text-xs mb-1">Company Contact:</p>
+                        {result.contact.phone && (
+                          <p className="text-white/80 text-xs flex items-center gap-2">
+                            <Phone className="w-3 h-3" />
+                            {result.contact.phone}
+                          </p>
+                        )}
+                        {result.contact.email && (
+                          <p className="text-white/80 text-xs flex items-center gap-2">
+                            <Mail className="w-3 h-3" />
+                            {result.contact.email}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </motion.div>
                 );
