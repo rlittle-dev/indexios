@@ -405,16 +405,9 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
     } catch (error) {
        console.error('Analysis error:', error);
        setIsUploading(false);
-       
-       // Show detailed error message
-       const errorMessage = error.response?.data?.error || error.message || 'Unknown error occurred';
        toast.error('Analysis failed', {
-         description: errorMessage,
-         duration: 5000
+         description: 'Please check your resume and try again'
        });
-       
-       // Also alert for visibility
-       alert(`Upload failed: ${errorMessage}\n\nPlease check the console for more details.`);
      }
   };
 
