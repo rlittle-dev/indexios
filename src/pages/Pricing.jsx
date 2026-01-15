@@ -45,7 +45,7 @@ const TIERS = [
             '200 resume scans per month',
             'Next steps recommendations',
             'Interview question generation',
-            'Employment verification',
+            '15 employment verifications/month',
             'Save candidates to folders',
             'API access'
           ]
@@ -58,7 +58,7 @@ const TIERS = [
           features: [
             'All Professional features, plus:',
             'Unlimited resume scans',
-            'Employment verification',
+            'Unlimited employment verifications',
             'Bulk upload',
             'Team collaboration (up to 5 members)',
             'Dedicated support',
@@ -225,8 +225,8 @@ export default function Pricing() {
                     <td className="px-6 py-3 text-white/80">Employment Verification</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
                     <td className="text-center px-6 py-3 text-white/50">—</td>
-                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
-                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">15/month</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>
                   </tr>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Scan History</td>

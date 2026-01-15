@@ -227,6 +227,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check tier access
+    const userTier = user.subscription_tier || 'free';
+    if (userTier !== 'professional' && userTier !== 'enterprise') {
+      return Response.json({ 
+        error: 'Employment Verification requires Professional or Enterprise plan' 
+      }, { status: 403 });
+    }
+
+    // Check usage limits for Professional tier
+    const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+    const resetMonth = user.employment_verifications_reset_month;
+    let verificationsUsed = user.employment_verifications_used || 0;
+
+    // Reset counter if new month
+    if (resetMonth !== currentMonth) {
+      verificationsUsed = 0;
+      await base44.auth.updateMe({
+        employment_verifications_used: 0,
+        employment_verifications_reset_month: currentMonth
+      });
+    }
+
+    // Professional tier has 15 monthly limit, Enterprise is unlimited
+    if (userTier === 'professional' && verificationsUsed >= 15) {
+      return Response.json({
+        error: 'Monthly employment verification limit reached (15/15 used). Upgrade to Enterprise for unlimited verifications.',
+        limit_reached: true
+      }, { status: 429 });
+    }
+
     const { candidateName, employers } = await req.json();
 
     if (!candidateName || !Array.isArray(employers)) {
@@ -337,6 +367,12 @@ Deno.serve(async (req) => {
 
     const verifiedCount = Object.values(results).filter(r => r.status === 'verified').length;
     console.log(`[EmploymentConfirmation] Final: ${verifiedCount}/${employers.length} verified (${cachedCount} from cache)`);
+
+    // Increment usage counter
+    await base44.auth.updateMe({
+      employment_verifications_used: verificationsUsed + 1,
+      employment_verifications_reset_month: currentMonth
+    });
 
     return Response.json({
       success: true,

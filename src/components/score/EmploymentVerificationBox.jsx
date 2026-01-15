@@ -31,11 +31,17 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       if (response.data?.success) {
         setResults(response.data.results);
         console.log('✅ Verification complete:', response.data.summary);
+      } else if (response.data?.limit_reached) {
+        alert(response.data.error);
       } else {
         console.error('Verification failed:', response.data);
       }
     } catch (error) {
-      console.error('Verification error:', error);
+      if (error.response?.status === 429) {
+        alert(error.response.data?.error || 'Monthly verification limit reached');
+      } else {
+        console.error('Verification error:', error);
+      }
     } finally {
       setIsRunning(false);
     }
