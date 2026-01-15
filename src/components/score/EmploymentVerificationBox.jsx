@@ -234,6 +234,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                       )}
                     </div>
 
+<<<<<<< HEAD
                     {/* HR Phone Number */}
                     {hasPhone && (
                       <div className="flex items-start gap-2 pt-2 border-t border-zinc-700/50">
@@ -245,6 +246,34 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                           </p>
                         </div>
                       </div>
+=======
+                    {/* Evidence Count */}
+                    <div className="text-white/70 text-xs">
+                      {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
+                    </div>
+
+                    {/* Evidence Button or AI Verify Option */}
+                    {hasEvidence ? (
+                      <Button
+                        onClick={() => setSelectedEvidence({ company, result })}
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {/* TODO: Implement AI verification */}}
+                        variant="ghost"
+                        size="sm"
+                        className="text-purple-300 hover:text-purple-200 hover:bg-purple-500/10 text-xs h-8"
+                      >
+                        <Phone className="w-3 h-3 mr-1" />
+                        Verify with AI?
+                      </Button>
+>>>>>>> 26d7154 (Apply Claude Code suggested changes)
                     )}
                   </motion.div>
                 );
