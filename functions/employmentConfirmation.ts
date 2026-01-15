@@ -18,8 +18,24 @@ function normalize(text) {
     .replace(/\s+/g, ' ')
     .trim();
   
+  // Strip trailing connector words only if ≥2 tokens remain
+  const tokens = norm.split(' ');
+  if (tokens.length >= 2) {
+    const lastToken = tokens[tokens.length - 1];
+    if (['and', 'the'].includes(lastToken)) {
+      tokens.pop();
+      norm = tokens.join(' ');
+    }
+  }
+  
   return norm;
 }
+
+// Test cases:
+// "Victoria's Secret & Co." → "victorias secret" ✓
+// "Barnes and Noble" → "barnes and noble" ✓ (and in middle)
+// "AT&T" → "atandt" ✓ (no trailing removal)
+// "Procter & Gamble" → "procter and gamble" ✓ (and in middle)
 
 function cleanSnippet(text) {
   if (!text) return '';
