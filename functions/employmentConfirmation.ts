@@ -351,7 +351,8 @@ Deno.serve(async (req) => {
             evidence_count: cached.sources?.length || 0,
             sources: cached.sources || [],
             has_evidence: true,
-            phone: cached.phone,
+            phone: cached.phone || null,
+            email: cached.email || null,
             cached: true,
             debug: `cached from ${cached.verified_date}`
           };
