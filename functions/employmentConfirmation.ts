@@ -176,27 +176,51 @@ async function getCompanyContact(base44, companyName) {
   try {
     console.log(`[EmploymentConfirmation:Contact] Looking up phone & email for ${companyName}`);
     
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Find the HR department or employment verification contact information for ${companyName}.
+    // First search for phone
+    const phoneResult = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find the HR department or employment verification PHONE NUMBER for ${companyName}.
 
-Look for:
-- HR contact phone number
-- Employment verification hotline
-- Third-party verification service number (e.g., The Work Number)
-- HR email address
-- Employment verification email
-- Past employment inquiry email
-- Background check or verification email
+Search for:
+- HR department phone number
+- Employment verification hotline  
+- Third-party verification service (e.g., The Work Number, Equifax Workforce Solutions)
+- Human Resources contact line
+- Corporate HR phone
 
-Return any valid contact info found. If none found, return null for that field.
-Format: JSON {phone_number: string or null, phone_source: string, phone_notes: string, email: string or null, email_source: string, email_notes: string}`,
+Return the most relevant phone number for verifying past employment.
+Format: JSON {phone_number: string or null, phone_source: string, phone_notes: string}`,
       add_context_from_internet: true,
       response_json_schema: {
         type: 'object',
         properties: {
           phone_number: { type: ['string', 'null'] },
           phone_source: { type: 'string' },
-          phone_notes: { type: 'string' },
+          phone_notes: { type: 'string' }
+        }
+      }
+    });
+
+    // Second search specifically for email
+    const emailResult = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find the HR or employment verification EMAIL ADDRESS for ${companyName}.
+
+Search specifically for:
+- HR department email (e.g., hr@company.com, humanresources@company.com)
+- Employment verification email (e.g., employment.verification@company.com, verification@company.com)
+- Background check email (e.g., backgroundcheck@company.com)
+- Recruiting/talent email (e.g., careers@company.com, recruiting@company.com, talent@company.com)
+- General corporate contact email that could handle HR inquiries
+- Any publicly listed email for the company's HR or people operations team
+
+Many companies list HR emails on their careers page, contact page, or in job postings.
+Check ${companyName}'s official website, LinkedIn company page, and job boards.
+
+Return the best email address found for contacting HR about employment verification.
+Format: JSON {email: string or null, email_source: string, email_notes: string}`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
           email: { type: ['string', 'null'] },
           email_source: { type: 'string' },
           email_notes: { type: 'string' }
@@ -206,21 +230,21 @@ Format: JSON {phone_number: string or null, phone_source: string, phone_notes: s
 
     const contactInfo = {};
     
-    if (result?.phone_number) {
-      console.log(`[EmploymentConfirmation:Contact] Found phone: ${result.phone_number}`);
+    if (phoneResult?.phone_number) {
+      console.log(`[EmploymentConfirmation:Contact] Found phone: ${phoneResult.phone_number}`);
       contactInfo.phone = {
-        number: result.phone_number,
-        source: result.phone_source || 'Web search',
-        notes: result.phone_notes || ''
+        number: phoneResult.phone_number,
+        source: phoneResult.phone_source || 'Web search',
+        notes: phoneResult.phone_notes || ''
       };
     }
     
-    if (result?.email) {
-      console.log(`[EmploymentConfirmation:Contact] Found email: ${result.email}`);
+    if (emailResult?.email) {
+      console.log(`[EmploymentConfirmation:Contact] Found email: ${emailResult.email}`);
       contactInfo.email = {
-        address: result.email,
-        source: result.email_source || 'Web search',
-        notes: result.email_notes || ''
+        address: emailResult.email,
+        source: emailResult.email_source || 'Web search',
+        notes: emailResult.email_notes || ''
       };
     }
     
