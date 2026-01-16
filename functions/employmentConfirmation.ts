@@ -440,20 +440,54 @@ Deno.serve(async (req) => {
                       : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
                   };
 
-        // Save to database for future use (including phone and email info)
-                      try {
-                        await base44.asServiceRole.entities.VerifiedEmployment.create({
-                          candidate_name: candidateName,
-                          candidate_name_normalized: normalize(candidateName),
-                          employer_name: employer.name,
-                          employer_name_normalized: normalize(employer.name),
-                          status,
-                          sources: snippets,
-                          phone: contactInfo?.phone || null,
-                          email: contactInfo?.email || null,
-                          verified_date: new Date().toISOString()
-                        });
-          console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
+        // Save to VerifiedEmployment cache
+                    try {
+                      await base44.asServiceRole.entities.VerifiedEmployment.create({
+                        candidate_name: candidateName,
+                        candidate_name_normalized: normalize(candidateName),
+                        employer_name: employer.name,
+                        employer_name_normalized: normalize(employer.name),
+                        status,
+                        sources: snippets,
+                        phone: contactInfo?.phone || null,
+                        email: contactInfo?.email || null,
+                        verified_date: new Date().toISOString()
+                      });
+            console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
+
+            // Also update UniqueCandidate with verified employer
+            try {
+              const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+              const matchingCandidate = existingCandidates.find(c => 
+                normalize(c.name) === normalize(candidateName)
+              );
+
+              if (matchingCandidate) {
+                const existingEmployers = matchingCandidate.verified_employers || [];
+                const employerExists = existingEmployers.some(e => 
+                  normalize(e.employer_name) === normalize(employer.name)
+                );
+
+                if (!employerExists) {
+                  const updatedEmployers = [...existingEmployers, {
+                    employer_name: employer.name,
+                    status,
+                    evidence_count: snippets.length,
+                    phone: contactInfo?.phone || null,
+                    email: contactInfo?.email || null,
+                    verified_date: new Date().toISOString()
+                  }];
+
+                  await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
+                    verified_employers: updatedEmployers,
+                    total_verifications: updatedEmployers.filter(e => e.status === 'verified').length
+                  });
+                  console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with employer ${employer.name}`);
+                }
+              }
+            } catch (ucError) {
+              console.error(`[EmploymentConfirmation] UniqueCandidate update error:`, ucError.message);
+            }
         } catch (error) {
           console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
         }
