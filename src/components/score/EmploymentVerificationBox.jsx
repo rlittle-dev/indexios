@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2 } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -302,43 +302,68 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                       )}
                     </div>
 
-                    {/* HR Phone Number */}
-                    {hasPhone && (
-                      <div className="flex items-start justify-between gap-2 pt-2 border-t border-zinc-700/50">
-                        <div className="flex items-start gap-2">
-                          <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
-                          <div className="text-xs">
-                            <p className="text-green-300 font-medium">{result.phone.number}</p>
-                            <p className="text-white/60 text-[10px] mt-0.5">
-                              {result.phone.notes || 'Employment verification contact'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {/* Call Button & Result */}
-                        <div className="flex items-center gap-2">
-                          {callResults[company] ? (
-                            <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
-                              {callResults[company].result.replace(/_/g, ' ')}
-                            </Badge>
-                          ) : callingCompany === company ? (
-                            <div className="flex items-center gap-1 text-xs text-blue-300">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              Calling...
-                            </div>
-                          ) : (
-                            <Button
-                              onClick={() => handleCallCompany(company, result.phone.number)}
-                              size="sm"
-                              className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
-                            >
-                              <PhoneCall className="w-3 h-3 mr-1" />
-                              Begin Call Verification
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    {/* HR Contact Info */}
+                                              {(hasPhone || result.email?.address) && (
+                                                <div className="pt-2 border-t border-zinc-700/50 space-y-2">
+                                                  {/* Phone Number */}
+                                                  {hasPhone && (
+                                                    <div className="flex items-start justify-between gap-2">
+                                                      <div className="flex items-start gap-2">
+                                                        <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                                                        <div className="text-xs">
+                                                          <p className="text-green-300 font-medium">{result.phone.number}</p>
+                                                          <p className="text-white/60 text-[10px] mt-0.5">
+                                                            {result.phone.notes || 'Employment verification contact'}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+
+                                                      {/* Call Button & Result */}
+                                                      <div className="flex items-center gap-2">
+                                                        {callResults[company] ? (
+                                                          <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
+                                                            {callResults[company].result.replace(/_/g, ' ')}
+                                                          </Badge>
+                                                        ) : callingCompany === company ? (
+                                                          <div className="flex items-center gap-1 text-xs text-blue-300">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                            Calling...
+                                                          </div>
+                                                        ) : (
+                                                          <Button
+                                                            onClick={() => handleCallCompany(company, result.phone.number)}
+                                                            size="sm"
+                                                            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
+                                                          >
+                                                            <PhoneCall className="w-3 h-3 mr-1" />
+                                                            Begin Call Verification
+                                                          </Button>
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* Email Address */}
+                                                  {result.email?.address && (
+                                                    <div className="flex items-start justify-between gap-2">
+                                                      <div className="flex items-start gap-2">
+                                                        <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
+                                                        <div className="text-xs">
+                                                          <a 
+                                                            href={`mailto:${result.email.address}`}
+                                                            className="text-blue-300 font-medium hover:text-blue-200 underline"
+                                                          >
+                                                            {result.email.address}
+                                                          </a>
+                                                          <p className="text-white/60 text-[10px] mt-0.5">
+                                                            {result.email.notes || 'HR/Employment verification email'}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
                   </motion.div>
                 );
               })}
