@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -10,8 +10,76 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [callingCompany, setCallingCompany] = useState(null);
+  const [callResults, setCallResults] = useState({});
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
+
+  const handleCallCompany = async (company, phoneNumber) => {
+    if (!phoneNumber) return;
+    
+    setCallingCompany(company);
+    try {
+      // Initiate the call
+      const initResponse = await base44.functions.invoke('vapiEmploymentCall', {
+        phoneNumber,
+        companyName: company,
+        candidateName
+      });
+
+      if (!initResponse.data?.success) {
+        throw new Error(initResponse.data?.error || 'Failed to initiate call');
+      }
+
+      const callId = initResponse.data.callId;
+      
+      // Poll for call status
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max
+      
+      const pollStatus = async () => {
+        attempts++;
+        const statusResponse = await base44.functions.invoke('vapiCallStatus', { callId });
+        
+        if (statusResponse.data?.status === 'ended' || attempts >= maxAttempts) {
+          setCallResults(prev => ({
+            ...prev,
+            [company]: {
+              result: statusResponse.data?.verificationResult || 'INCONCLUSIVE',
+              summary: statusResponse.data?.summary,
+              transcript: statusResponse.data?.transcript
+            }
+          }));
+          setCallingCompany(null);
+        } else {
+          // Poll again in 5 seconds
+          setTimeout(pollStatus, 5000);
+        }
+      };
+
+      // Start polling after a short delay
+      setTimeout(pollStatus, 3000);
+
+    } catch (error) {
+      console.error('Call error:', error);
+      setCallResults(prev => ({
+        ...prev,
+        [company]: { result: 'ERROR', error: error.message }
+      }));
+      setCallingCompany(null);
+    }
+  };
+
+  const getCallResultBadge = (result) => {
+    const styles = {
+      YES: 'bg-green-900/40 text-green-300',
+      NO: 'bg-red-900/40 text-red-300',
+      INCONCLUSIVE: 'bg-yellow-900/40 text-yellow-300',
+      REFUSE_TO_DISCLOSE: 'bg-orange-900/40 text-orange-300',
+      ERROR: 'bg-red-900/40 text-red-300'
+    };
+    return styles[result] || 'bg-zinc-700 text-white/70';
+  };
 
   const handleRunVerification = async () => {
     if (isLocked) {
@@ -236,13 +304,38 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                     {/* HR Phone Number */}
                     {hasPhone && (
-                      <div className="flex items-start gap-2 pt-2 border-t border-zinc-700/50">
-                        <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
-                        <div className="text-xs">
-                          <p className="text-green-300 font-medium">{result.phone.number}</p>
-                          <p className="text-white/60 text-[10px] mt-0.5">
-                            {result.phone.notes || 'Employment verification contact'}
-                          </p>
+                      <div className="flex items-start justify-between gap-2 pt-2 border-t border-zinc-700/50">
+                        <div className="flex items-start gap-2">
+                          <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs">
+                            <p className="text-green-300 font-medium">{result.phone.number}</p>
+                            <p className="text-white/60 text-[10px] mt-0.5">
+                              {result.phone.notes || 'Employment verification contact'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Call Button & Result */}
+                        <div className="flex items-center gap-2">
+                          {callResults[company] ? (
+                            <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
+                              {callResults[company].result.replace(/_/g, ' ')}
+                            </Badge>
+                          ) : callingCompany === company ? (
+                            <div className="flex items-center gap-1 text-xs text-blue-300">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Calling...
+                            </div>
+                          ) : (
+                            <Button
+                              onClick={() => handleCallCompany(company, result.phone.number)}
+                              size="sm"
+                              className="h-6 px-2 text-xs bg-green-600 hover:bg-green-500 text-white"
+                            >
+                              <PhoneCall className="w-3 h-3 mr-1" />
+                              Call
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )}
