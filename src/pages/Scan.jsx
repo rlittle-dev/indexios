@@ -402,6 +402,13 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
          description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`,
          icon: <CheckCircle2 className="w-4 h-4" />
        });
+
+       // Link scan to UniqueCandidate and Resume entities (async, don't block UI)
+       if (isAuthenticated && updatedCandidate.id && !updatedCandidate.id.startsWith('temp-')) {
+         base44.functions.invoke('linkCandidateScan', { candidateId: updatedCandidate.id })
+           .then(res => console.log('[Scan] Linked to database:', res.data))
+           .catch(err => console.error('[Scan] Link error:', err));
+       }
     } catch (error) {
        console.error('Analysis error:', error);
        setIsUploading(false);
