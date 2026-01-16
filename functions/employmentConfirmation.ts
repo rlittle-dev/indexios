@@ -170,45 +170,63 @@ async function collectWebEvidence(base44, candidateName, employers) {
 }
 
 /**
- * Get company HR or employment verification phone number
+ * Get company HR or employment verification phone number and email
  */
-async function getCompanyPhone(base44, companyName) {
+async function getCompanyContact(base44, companyName) {
   try {
-    console.log(`[EmploymentConfirmation:Phone] Looking up phone for ${companyName}`);
+    console.log(`[EmploymentConfirmation:Contact] Looking up phone & email for ${companyName}`);
     
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Find the HR department or employment verification phone number for ${companyName}.
-Look for:
-- HR contact number
-- Employment verification hotline
-- Main corporate number for HR inquiries
-- Third-party verification service number (e.g., The Work Number)
+      prompt: `Find the HR department or employment verification contact information for ${companyName}.
 
-Return ONLY valid phone numbers found. If none found, return null.
-Format: JSON {phone_number: string or null, source: string, notes: string}`,
+Look for:
+- HR contact phone number
+- Employment verification hotline
+- Third-party verification service number (e.g., The Work Number)
+- HR email address
+- Employment verification email
+- Past employment inquiry email
+- Background check or verification email
+
+Return any valid contact info found. If none found, return null for that field.
+Format: JSON {phone_number: string or null, phone_source: string, phone_notes: string, email: string or null, email_source: string, email_notes: string}`,
       add_context_from_internet: true,
       response_json_schema: {
         type: 'object',
         properties: {
           phone_number: { type: ['string', 'null'] },
-          source: { type: 'string' },
-          notes: { type: 'string' }
+          phone_source: { type: 'string' },
+          phone_notes: { type: 'string' },
+          email: { type: ['string', 'null'] },
+          email_source: { type: 'string' },
+          email_notes: { type: 'string' }
         }
       }
     });
 
+    const contactInfo = {};
+    
     if (result?.phone_number) {
-      console.log(`[EmploymentConfirmation:Phone] Found: ${result.phone_number}`);
-      return {
+      console.log(`[EmploymentConfirmation:Contact] Found phone: ${result.phone_number}`);
+      contactInfo.phone = {
         number: result.phone_number,
-        source: result.source || 'Web search',
-        notes: result.notes || ''
+        source: result.phone_source || 'Web search',
+        notes: result.phone_notes || ''
       };
     }
     
-    return null;
+    if (result?.email) {
+      console.log(`[EmploymentConfirmation:Contact] Found email: ${result.email}`);
+      contactInfo.email = {
+        address: result.email,
+        source: result.email_source || 'Web search',
+        notes: result.email_notes || ''
+      };
+    }
+    
+    return Object.keys(contactInfo).length > 0 ? contactInfo : null;
   } catch (error) {
-    console.error(`[EmploymentConfirmation:Phone] Error for ${companyName}:`, error.message);
+    console.error(`[EmploymentConfirmation:Contact] Error for ${companyName}:`, error.message);
     return null;
   }
 }
@@ -381,33 +399,35 @@ Deno.serve(async (req) => {
         const snippets = extractSnippets(candidateName, employer.name, webSources);
         const status = snippets.length > 0 ? 'verified' : 'not_found';
 
-        // Get HR/verification phone number
-        const phoneInfo = await getCompanyPhone(base44, employer.name);
+        // Get HR/verification phone number and email
+                  const contactInfo = await getCompanyContact(base44, employer.name);
 
-        results[employer.name] = {
-          status,
-          evidence_count: snippets.length,
-          sources: snippets,
-          has_evidence: webSources.length > 0,
-          phone: phoneInfo,
-          cached: false,
-          debug: snippets.length > 0 
-            ? `matched on ${snippets.length} source(s)`
-            : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
-        };
+                  results[employer.name] = {
+                    status,
+                    evidence_count: snippets.length,
+                    sources: snippets,
+                    has_evidence: webSources.length > 0,
+                    phone: contactInfo?.phone || null,
+                    email: contactInfo?.email || null,
+                    cached: false,
+                    debug: snippets.length > 0 
+                      ? `matched on ${snippets.length} source(s)`
+                      : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
+                  };
 
-        // Save to database for future use (including phone info)
-        try {
-          await base44.asServiceRole.entities.VerifiedEmployment.create({
-            candidate_name: candidateName,
-            candidate_name_normalized: normalize(candidateName),
-            employer_name: employer.name,
-            employer_name_normalized: normalize(employer.name),
-            status,
-            sources: snippets,
-            phone: phoneInfo,
-            verified_date: new Date().toISOString()
-          });
+        // Save to database for future use (including phone and email info)
+                      try {
+                        await base44.asServiceRole.entities.VerifiedEmployment.create({
+                          candidate_name: candidateName,
+                          candidate_name_normalized: normalize(candidateName),
+                          employer_name: employer.name,
+                          employer_name_normalized: normalize(employer.name),
+                          status,
+                          sources: snippets,
+                          phone: contactInfo?.phone || null,
+                          email: contactInfo?.email || null,
+                          verified_date: new Date().toISOString()
+                        });
           console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
         } catch (error) {
           console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
