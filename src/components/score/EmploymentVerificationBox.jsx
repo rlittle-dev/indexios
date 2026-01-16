@@ -330,10 +330,10 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                             <Button
                               onClick={() => handleCallCompany(company, result.phone.number)}
                               size="sm"
-                              className="h-6 px-2 text-xs bg-green-600 hover:bg-green-500 text-white"
+                              className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
                             >
                               <PhoneCall className="w-3 h-3 mr-1" />
-                              Call
+                              Begin Call Verification
                             </Button>
                           )}
                         </div>
