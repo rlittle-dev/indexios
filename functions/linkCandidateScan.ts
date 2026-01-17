@@ -73,6 +73,20 @@ Deno.serve(async (req) => {
     
     console.log(`[LinkScan] Linked scan ${candidateId} -> UniqueCandidate ${uniqueCandidate.id}`);
     
+    // If no attestation exists, ensure all employers have call_verification_status = 'not_called'
+    if (!uniqueCandidate.attestation_uid && uniqueCandidate.employers && uniqueCandidate.employers.length > 0) {
+      const updatedEmployers = uniqueCandidate.employers.map(emp => ({
+        ...emp,
+        call_verification_status: 'not_called',
+        call_verified_date: null
+      }));
+      
+      await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, {
+        employers: updatedEmployers
+      });
+      console.log(`[LinkScan] Reset call_verification_status to not_called for ${updatedEmployers.length} employers (no attestation)`);
+    }
+    
     return Response.json({
       success: true,
       uniqueCandidateId: uniqueCandidate.id,
