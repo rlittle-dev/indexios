@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
         assistantOverrides: {
           variableValues: {
             candidateName: candidateName,
-            companyName: companyName
+            companyName: companyName,
+            uniqueCandidateId: uniqueCandidateId || ''
           },
           firstMessage: `Hello, I'm calling to verify employment for ${candidateName}. Can you confirm if they were employed at ${companyName}?`
         }
