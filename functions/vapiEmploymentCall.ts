@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
 const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');
+const VAPI_PHONE_NUMBER_ID = Deno.env.get('VAPI_PHONE_NUMBER_ID');
 
 Deno.serve(async (req) => {
   try {
@@ -30,6 +31,14 @@ Deno.serve(async (req) => {
 
     console.log(`[VapiCall] Initiating call to ${phoneNumber} for ${candidateName} at ${companyName}`);
 
+    // Validate Vapi configuration
+    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
+      console.error('[VapiCall] Missing Vapi configuration');
+      return Response.json({ 
+        error: 'Vapi not configured properly' 
+      }, { status: 500 });
+    }
+
     // Create outbound call via VAPI
     const response = await fetch('https://api.vapi.ai/call/phone', {
       method: 'POST',
@@ -39,7 +48,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         assistantId: VAPI_ASSISTANT_ID,
-        phoneNumberId: phoneNumber,
+        phoneNumberId: VAPI_PHONE_NUMBER_ID,
         customer: {
           number: phoneNumber
         },
