@@ -92,6 +92,39 @@ Deno.serve(async (req) => {
           });
           console.log(`[VapiWebhook] Updated VerifiedEmployment record for ${normalizedData.candidateName} at ${normalizedData.companyName}`);
         }
+
+        // Also update UniqueCandidate with call verification result
+        const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+        const matchingCandidate = existingCandidates.find(c => 
+          c.name?.toLowerCase().trim() === candidateNorm
+        );
+        
+        if (matchingCandidate) {
+          const existingEmployers = matchingCandidate.employers || [];
+          const employerIndex = existingEmployers.findIndex(e => 
+            e.employer_name?.toLowerCase().trim() === companyNorm
+          );
+          
+          if (employerIndex >= 0) {
+            // Map verification result to call status
+            let callStatus = 'inconclusive';
+            if (normalizedData.verificationResult === 'YES') callStatus = 'yes';
+            else if (normalizedData.verificationResult === 'NO') callStatus = 'no';
+            else if (normalizedData.verificationResult === 'REFUSE_TO_DISCLOSE') callStatus = 'refused_to_disclose';
+            
+            const updatedEmployers = [...existingEmployers];
+            updatedEmployers[employerIndex] = {
+              ...updatedEmployers[employerIndex],
+              call_verification_status: callStatus,
+              call_verified_date: normalizedData.receivedAt
+            };
+            
+            await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
+              employers: updatedEmployers
+            });
+            console.log(`[VapiWebhook] Updated UniqueCandidate call verification for ${normalizedData.candidateName} at ${normalizedData.companyName}: ${callStatus}`);
+          }
+        }
       } catch (dbError) {
         console.error('[VapiWebhook] Database update error:', dbError.message);
         // Continue - don't fail webhook because of DB error
