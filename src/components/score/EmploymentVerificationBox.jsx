@@ -354,8 +354,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                       )}
                     </div>
 
-                    {/* HR Contact Info */}
-                                              {(hasPhone || result.email?.address) && (
+                    {/* HR Contact Info - Only show if we have contact info */}
+                                                                      {(hasPhone || result.email?.address) && (
                                                 <div className="pt-2 border-t border-zinc-700/50 space-y-2">
                                                   {/* Phone Number */}
                                                   {hasPhone && (
@@ -463,7 +463,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                             <Loader2 className="w-3 h-3 animate-spin" />
                                                             Calling...
                                                           </div>
-                                                        ) : (
+                                                        ) : hasPhone ? (
                                                           <Button
                                                                 onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
                                                                 size="sm"
@@ -473,7 +473,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                 <PhoneCall className="w-3 h-3 mr-1" />
                                                                 Auto-Verify
                                                               </Button>
-                                                        )}
+                                                        ) : null}
                                                       </div>
                                                     </div>
                                                   )}
