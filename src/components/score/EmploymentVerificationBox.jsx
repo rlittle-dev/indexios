@@ -372,7 +372,18 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                                                       {/* Call Button & Result */}
                                                       <div className="flex items-center gap-2">
-                                                        {callResults[company] ? (
+                                                        {/* Check for existing attestation first */}
+                                                        {existingAttestations[company] ? (
+                                                          <div className="flex items-center gap-2">
+                                                            <Badge className={`text-xs ${getCallResultBadge(existingAttestations[company].result)}`}>
+                                                              Call: {existingAttestations[company].result.replace(/_/g, ' ')}
+                                                            </Badge>
+                                                            <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
+                                                              <Link2 className="w-3 h-3" />
+                                                              On-Chain ✓
+                                                            </Badge>
+                                                          </div>
+                                                        ) : callResults[company] ? (
                                                           <div className="flex items-center gap-2">
                                                               <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
                                                                 {callResults[company].result.replace(/_/g, ' ')}
