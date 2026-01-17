@@ -15,7 +15,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
 
-  const handleCallCompany = async (company, phoneNumber) => {
+  const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
     if (!phoneNumber) return;
     
     setCallingCompany(company);
@@ -24,7 +24,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       const initResponse = await base44.functions.invoke('vapiEmploymentCall', {
         phoneNumber,
         companyName: company,
-        candidateName
+        candidateName,
+        uniqueCandidateId
       });
 
       if (!initResponse.data?.success) {
@@ -47,7 +48,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
             [company]: {
               result: statusResponse.data?.verificationResult || 'INCONCLUSIVE',
               summary: statusResponse.data?.summary,
-              transcript: statusResponse.data?.transcript
+              transcript: statusResponse.data?.transcript,
+              attestationCreated: statusResponse.data?.attestationCreated
             }
           }));
           setCallingCompany(null);
