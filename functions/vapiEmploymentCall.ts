@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    const { phoneNumber, companyName, candidateName } = await req.json();
+    const { phoneNumber, companyName, candidateName, uniqueCandidateId } = await req.json();
 
     if (!phoneNumber || !companyName || !candidateName) {
       return Response.json({ 
