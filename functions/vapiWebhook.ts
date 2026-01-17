@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
       verificationResult: verification_result || verificationResult || 'INCONCLUSIVE',
       summary: summary || '',
       phoneNumber: phone_number || phoneNumber,
+      uniqueCandidateId: unique_candidate_id || uniqueCandidateId,
       receivedAt: new Date().toISOString()
     };
 
