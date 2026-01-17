@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -12,8 +12,58 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [selectedEvidence, setSelectedEvidence] = useState(null);
   const [callingCompany, setCallingCompany] = useState(null);
   const [callResults, setCallResults] = useState({});
+  const [existingAttestations, setExistingAttestations] = useState({}); // company -> attestation data
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
+
+  // Check for existing attestations when uniqueCandidateId is available
+  useEffect(() => {
+    const checkExistingAttestations = async () => {
+      if (!uniqueCandidateId || companyNames.length === 0) return;
+      
+      try {
+        // Fetch the UniqueCandidate to check for existing call verifications
+        const candidates = await base44.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+        if (candidates && candidates.length > 0) {
+          const candidate = candidates[0];
+          const attestations = {};
+          
+          // Check each employer for call verification status
+          if (candidate.employers && Array.isArray(candidate.employers)) {
+            for (const employer of candidate.employers) {
+              // Normalize company names for comparison
+              const employerNorm = employer.employer_name?.toLowerCase().trim();
+              
+              for (const companyName of companyNames) {
+                const companyNorm = companyName.toLowerCase().trim();
+                
+                if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
+                  // Check if this employer has call verification
+                  if (employer.call_verification_status && employer.call_verification_status !== 'not_called' && employer.call_verification_status !== 'pending') {
+                    attestations[companyName] = {
+                      result: employer.call_verification_status.toUpperCase(),
+                      verifiedDate: employer.call_verified_date,
+                      attestationUID: candidate.attestation_uid,
+                      attestationDate: candidate.attestation_date
+                    };
+                  }
+                }
+              }
+            }
+          }
+          
+          if (Object.keys(attestations).length > 0) {
+            console.log('[EmploymentVerification] Found existing attestations:', attestations);
+            setExistingAttestations(attestations);
+          }
+        }
+      } catch (error) {
+        console.error('[EmploymentVerification] Error checking attestations:', error);
+      }
+    };
+    
+    checkExistingAttestations();
+  }, [uniqueCandidateId, companyNames]);
 
   const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
     if (!phoneNumber) return;
