@@ -134,11 +134,45 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Create blockchain attestation if we have enough data
+    let attestationResult = null;
+    if (normalizedData.uniqueCandidateId && normalizedData.companyName && normalizedData.verificationResult !== 'INCONCLUSIVE') {
+      try {
+        // Map verification result to outcome code
+        let verificationOutcome = 0; // inconclusive
+        if (normalizedData.verificationResult === 'YES') verificationOutcome = 1;
+        else if (normalizedData.verificationResult === 'NO') verificationOutcome = 2;
+        else if (normalizedData.verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
+
+        // Extract company domain from company name
+        const companyDomain = normalizedData.companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+
+        const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
+          uniqueCandidateId: normalizedData.uniqueCandidateId,
+          companyDomain: companyDomain,
+          verificationType: 'phone_call',
+          verificationOutcome: verificationOutcome,
+          verificationReason: normalizedData.summary || `Phone verification result: ${normalizedData.verificationResult}`
+        });
+
+        if (attestationResponse.data?.attestationUID) {
+          attestationResult = {
+            attestationUID: attestationResponse.data.attestationUID,
+            transactionHash: attestationResponse.data.transactionHash
+          };
+          console.log(`[VapiWebhook] Created attestation: ${attestationResult.attestationUID}`);
+        }
+      } catch (attestError) {
+        console.error('[VapiWebhook] Attestation error:', attestError.message);
+      }
+    }
+
     // Return success with processed data (Make.com can use this response)
     return Response.json({
       success: true,
       message: 'Webhook received successfully',
-      data: normalizedData
+      data: normalizedData,
+      attestation: attestationResult
     });
 
   } catch (error) {
