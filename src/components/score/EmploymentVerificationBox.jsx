@@ -323,9 +323,16 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                       {/* Call Button & Result */}
                                                       <div className="flex items-center gap-2">
                                                         {callResults[company] ? (
-                                                          <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
-                                                            {callResults[company].result.replace(/_/g, ' ')}
-                                                          </Badge>
+                                                          <div className="flex items-center gap-2">
+                                                              <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
+                                                                {callResults[company].result.replace(/_/g, ' ')}
+                                                              </Badge>
+                                                              {callResults[company].attestationCreated && (
+                                                                <Badge className="text-xs bg-purple-900/40 text-purple-300">
+                                                                  On-Chain ✓
+                                                                </Badge>
+                                                              )}
+                                                            </div>
                                                         ) : callingCompany === company ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
