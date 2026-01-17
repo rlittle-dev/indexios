@@ -66,8 +66,8 @@ Deno.serve(async (req) => {
     const wallet = new ethers.Wallet(privateKey, provider);
     const easContract = new ethers.Contract(EAS_CONTRACT_ADDRESS, EAS_ABI, wallet);
 
-    // Generate candidate hash
-    const candidateHash = generateCandidateHash(candidateName, candidateEmail);
+    // Generate candidate hash from UniqueCandidate ID
+    const candidateHash = generateCandidateHash(uniqueCandidateId);
     const verifiedAt = BigInt(Math.floor(Date.now() / 1000));
 
     // Encode attestation data
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       verifiedAt
     );
 
-    console.log(`[Attestation] Creating attestation for ${candidateName} at ${companyDomain}`);
+    console.log(`[Attestation] Creating attestation for UniqueCandidate ${uniqueCandidateId} at ${companyDomain}`);
     console.log(`[Attestation] Candidate hash: ${candidateHash}`);
     console.log(`[Attestation] Outcome: ${verificationOutcome}, Type: ${verificationType}`);
 
