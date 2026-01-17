@@ -465,7 +465,7 @@ Deno.serve(async (req) => {
             const employerRecord = {
             employer_name: employer.name,
             web_evidence_status: status === 'verified' ? 'yes' : 'no',
-            call_verification_status: 'inconclusive',
+            call_verification_status: 'not_called',
             evidence_count: snippets.length,
             hr_phone: contactInfo?.phone || null,
             hr_email: contactInfo?.email || null,

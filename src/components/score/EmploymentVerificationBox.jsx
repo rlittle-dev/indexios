@@ -38,15 +38,15 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                 const companyNorm = companyName.toLowerCase().trim();
                 
                 if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
-                  // Check if this employer has call verification
-                  if (employer.call_verification_status && employer.call_verification_status !== 'not_called' && employer.call_verification_status !== 'pending') {
-                    attestations[companyName] = {
-                      result: employer.call_verification_status.toUpperCase(),
-                      verifiedDate: employer.call_verified_date,
-                      attestationUID: candidate.attestation_uid,
-                      attestationDate: candidate.attestation_date
-                    };
-                  }
+                  // Only show attestation if there's actually an attestation_uid on the candidate
+                          if (candidate.attestation_uid && employer.call_verification_status && employer.call_verification_status !== 'not_called' && employer.call_verification_status !== 'pending') {
+                            attestations[companyName] = {
+                              result: employer.call_verification_status.toUpperCase(),
+                              verifiedDate: employer.call_verified_date,
+                              attestationUID: candidate.attestation_uid,
+                              attestationDate: candidate.attestation_date
+                            };
+                          }
                 }
               }
             }
