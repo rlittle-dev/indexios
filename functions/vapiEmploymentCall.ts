@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
         assistantId: VAPI_ASSISTANT_ID,
         phoneNumberId: VAPI_PHONE_NUMBER_ID,
         customer: {
-          number: phoneNumber
+          number: phoneNumber  // This is the company's HR phone number to dial
         },
         assistantOverrides: {
           variableValues: {
