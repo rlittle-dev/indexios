@@ -112,20 +112,11 @@ Deno.serve(async (req) => {
     // Update UniqueCandidate with attestation info
     if (attestationUID) {
       try {
-        const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
-        const normalizedName = candidateName.toLowerCase().trim();
-        const matchingCandidate = existingCandidates.find(c => 
-          c.name?.toLowerCase().trim() === normalizedName ||
-          (candidateEmail && c.email?.toLowerCase().trim() === candidateEmail.toLowerCase().trim())
-        );
-
-        if (matchingCandidate) {
-          await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
-            attestation_uid: attestationUID,
-            attestation_date: new Date().toISOString()
-          });
-          console.log(`[Attestation] Updated UniqueCandidate ${matchingCandidate.id} with attestation`);
-        }
+        await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
+          attestation_uid: attestationUID,
+          attestation_date: new Date().toISOString()
+        });
+        console.log(`[Attestation] Updated UniqueCandidate ${uniqueCandidateId} with attestation`);
       } catch (updateError) {
         console.error(`[Attestation] UniqueCandidate update error:`, updateError.message);
       }
