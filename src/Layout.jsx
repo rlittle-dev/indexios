@@ -85,7 +85,10 @@ export default function Layout({ children }) {
         <meta name="description" content="Indexios is an advanced resume verification platform that helps hiring teams detect fraudulent resumes, verify credentials, and make confident hiring decisions with legitimacy scoring and detailed candidate analysis." />
         <meta property="og:title" content="Indexios - Resume Verification Platform" />
         <meta property="og:description" content="Verify resume legitimacy with advanced fraud detection and credential verification tools." />
-        <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/aceec58d7_favicon.png" />
+        <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/78c68ad53_favicon.png" sizes="any" />
+            <link rel="icon" type="image/png" sizes="32x32" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/78c68ad53_favicon.png" />
+            <link rel="icon" type="image/png" sizes="48x48" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/78c68ad53_favicon.png" />
+            <link rel="apple-touch-icon" sizes="180x180" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/78c68ad53_favicon.png" />
         <link rel="canonical" href="https://indexios.me/" />
         <meta name="robots" content="index,follow" />
         <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
