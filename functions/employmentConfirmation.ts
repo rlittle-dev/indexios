@@ -455,50 +455,57 @@ Deno.serve(async (req) => {
                       });
             console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
 
-            // Also update UniqueCandidate with employer verification
+            // Also update or create UniqueCandidate with employer verification
             try {
-              const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
-              const matchingCandidate = existingCandidates.find(c => 
-                normalize(c.name) === normalize(candidateName)
-              );
+            const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+            let matchingCandidate = existingCandidates.find(c => 
+            normalize(c.name) === normalize(candidateName)
+            );
 
-              if (matchingCandidate) {
-                const existingEmployers = matchingCandidate.employers || [];
-                const employerIndex = existingEmployers.findIndex(e => 
-                  normalize(e.employer_name) === normalize(employer.name)
-                );
+            const employerRecord = {
+            employer_name: employer.name,
+            web_evidence_status: status === 'verified' ? 'yes' : 'no',
+            call_verification_status: 'inconclusive',
+            evidence_count: snippets.length,
+            hr_phone: contactInfo?.phone || null,
+            hr_email: contactInfo?.email || null,
+            web_verified_date: new Date().toISOString(),
+            call_verified_date: null
+            };
 
-                const employerRecord = {
-                  employer_name: employer.name,
-                  web_evidence_status: status === 'verified' ? 'yes' : 'no',
-                  call_verification_status: 'not_called',
-                  evidence_count: snippets.length,
-                  hr_phone: contactInfo?.phone || null,
-                  hr_email: contactInfo?.email || null,
-                  web_verified_date: new Date().toISOString(),
-                  call_verified_date: null
-                };
+            if (matchingCandidate) {
+            const existingEmployers = matchingCandidate.employers || [];
+            const employerIndex = existingEmployers.findIndex(e => 
+              normalize(e.employer_name) === normalize(employer.name)
+            );
 
-                let updatedEmployers;
-                if (employerIndex >= 0) {
-                  // Update existing employer record
-                  updatedEmployers = [...existingEmployers];
-                  updatedEmployers[employerIndex] = {
-                    ...updatedEmployers[employerIndex],
-                    ...employerRecord
-                  };
-                } else {
-                  // Add new employer record
-                  updatedEmployers = [...existingEmployers, employerRecord];
-                }
+            let updatedEmployers;
+            if (employerIndex >= 0) {
+              // Update existing employer record
+              updatedEmployers = [...existingEmployers];
+              updatedEmployers[employerIndex] = {
+                ...updatedEmployers[employerIndex],
+                ...employerRecord
+              };
+            } else {
+              // Add new employer record
+              updatedEmployers = [...existingEmployers, employerRecord];
+            }
 
-                await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
-                  employers: updatedEmployers
-                });
-                console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with employer ${employer.name}`);
-              }
+            await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
+              employers: updatedEmployers
+            });
+            console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with employer ${employer.name}`);
+            } else {
+            // Create new UniqueCandidate with this employer
+            const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
+              name: candidateName,
+              employers: [employerRecord]
+            });
+            console.log(`[EmploymentConfirmation] Created UniqueCandidate ${newCandidate.id} for ${candidateName} with employer ${employer.name}`);
+            }
             } catch (ucError) {
-              console.error(`[EmploymentConfirmation] UniqueCandidate update error:`, ucError.message);
+            console.error(`[EmploymentConfirmation] UniqueCandidate update error:`, ucError.message);
             }
         } catch (error) {
           console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
