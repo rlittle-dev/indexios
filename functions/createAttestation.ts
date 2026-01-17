@@ -19,10 +19,9 @@ function encodeAttestationData(candidateHash, companyDomain, verificationType, v
   );
 }
 
-// Generate a deterministic hash for a candidate (email or name-based)
-function generateCandidateHash(candidateName, candidateEmail) {
-  const identifier = candidateEmail || candidateName;
-  return ethers.keccak256(ethers.toUtf8Bytes(identifier.toLowerCase().trim()));
+// Generate a deterministic hash from UniqueCandidate ID
+function generateCandidateHash(uniqueCandidateId) {
+  return ethers.keccak256(ethers.toUtf8Bytes(uniqueCandidateId));
 }
 
 Deno.serve(async (req) => {
