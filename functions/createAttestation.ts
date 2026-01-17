@@ -42,17 +42,16 @@ Deno.serve(async (req) => {
     }
 
     const { 
-      candidateName, 
-      candidateEmail,
+      uniqueCandidateId,
       companyDomain,
       verificationType, // 'web_evidence' or 'phone_call'
       verificationOutcome, // 0=inconclusive, 1=yes, 2=no, 3=refused_to_disclose
       verificationReason
     } = await req.json();
 
-    if (!candidateName || !companyDomain || verificationType === undefined || verificationOutcome === undefined) {
+    if (!uniqueCandidateId || !companyDomain || verificationType === undefined || verificationOutcome === undefined) {
       return Response.json({ 
-        error: 'Missing required fields: candidateName, companyDomain, verificationType, verificationOutcome' 
+        error: 'Missing required fields: uniqueCandidateId, companyDomain, verificationType, verificationOutcome' 
       }, { status: 400 });
     }
 
