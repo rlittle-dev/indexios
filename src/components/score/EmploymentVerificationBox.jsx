@@ -375,10 +375,18 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                         {/* Check for existing attestation first */}
                                                         {existingAttestations[company] ? (
                                                           <div className="flex flex-col gap-2">
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                               {existingAttestations[company].result === 'NO' ? (
                                                                 <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
                                                                   ⚠️ Company Denies Employment
+                                                                </Badge>
+                                                              ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' ? (
+                                                                <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700">
+                                                                  Company Refuses to Verify or Deny
+                                                                </Badge>
+                                                              ) : existingAttestations[company].result === 'INCONCLUSIVE' ? (
+                                                                <Badge className="text-xs bg-zinc-700 text-zinc-300">
+                                                                  Inconclusive Call Result
                                                                 </Badge>
                                                               ) : (
                                                                 <Badge className={`text-xs ${getCallResultBadge(existingAttestations[company].result)}`}>
@@ -389,6 +397,17 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                 <Link2 className="w-3 h-3" />
                                                                 On-Chain ✓
                                                               </Badge>
+                                                              {existingAttestations[company].result === 'INCONCLUSIVE' && (
+                                                                <Button
+                                                                  onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
+                                                                  size="sm"
+                                                                  className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
+                                                                  disabled={!uniqueCandidateId}
+                                                                >
+                                                                  <PhoneCall className="w-3 h-3 mr-1" />
+                                                                  Retry Call
+                                                                </Button>
+                                                              )}
                                                             </div>
                                                             {existingAttestations[company].result === 'NO' && (
                                                               <p className="text-red-400 text-[10px] font-medium">
@@ -398,10 +417,18 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                           </div>
                                                         ) : callResults[company] ? (
                                                           <div className="flex flex-col gap-2">
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                               {callResults[company].result === 'NO' ? (
                                                                 <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
                                                                   ⚠️ Company Denies Employment
+                                                                </Badge>
+                                                              ) : callResults[company].result === 'REFUSE_TO_DISCLOSE' ? (
+                                                                <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700">
+                                                                  Company Refuses to Verify or Deny
+                                                                </Badge>
+                                                              ) : callResults[company].result === 'INCONCLUSIVE' ? (
+                                                                <Badge className="text-xs bg-zinc-700 text-zinc-300">
+                                                                  Inconclusive Call Result
                                                                 </Badge>
                                                               ) : (
                                                                 <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
@@ -412,6 +439,17 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                 <Badge className="text-xs bg-purple-900/40 text-purple-300">
                                                                   On-Chain ✓
                                                                 </Badge>
+                                                              )}
+                                                              {callResults[company].result === 'INCONCLUSIVE' && (
+                                                                <Button
+                                                                  onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
+                                                                  size="sm"
+                                                                  className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
+                                                                  disabled={!uniqueCandidateId}
+                                                                >
+                                                                  <PhoneCall className="w-3 h-3 mr-1" />
+                                                                  Retry Call
+                                                                </Button>
                                                               )}
                                                             </div>
                                                             {callResults[company].result === 'NO' && (
