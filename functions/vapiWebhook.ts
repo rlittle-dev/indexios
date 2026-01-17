@@ -34,7 +34,9 @@ Deno.serve(async (req) => {
       verificationResult,
       summary,
       phone_number,
-      phoneNumber
+      phoneNumber,
+      unique_candidate_id,
+      uniqueCandidateId
     } = payload;
 
     // Normalize field names (Make.com may use snake_case or camelCase)
