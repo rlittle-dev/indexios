@@ -471,7 +471,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                 disabled={!uniqueCandidateId}
                                                               >
                                                                 <PhoneCall className="w-3 h-3 mr-1" />
-                                                                Auto-Verify Call
+                                                                Auto-Verify
                                                               </Button>
                                                         )}
                                                       </div>
