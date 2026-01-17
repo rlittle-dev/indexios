@@ -371,29 +371,55 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                       </div>
 
                                                       {/* Call Button & Result */}
-                                                      <div className="flex items-center gap-2">
+                                                      <div className="flex flex-col gap-2">
                                                         {/* Check for existing attestation first */}
                                                         {existingAttestations[company] ? (
-                                                          <div className="flex items-center gap-2">
-                                                            <Badge className={`text-xs ${getCallResultBadge(existingAttestations[company].result)}`}>
-                                                              Call: {existingAttestations[company].result.replace(/_/g, ' ')}
-                                                            </Badge>
-                                                            <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
-                                                              <Link2 className="w-3 h-3" />
-                                                              On-Chain ✓
-                                                            </Badge>
+                                                          <div className="flex flex-col gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                              {existingAttestations[company].result === 'NO' ? (
+                                                                <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
+                                                                  ⚠️ Company Denies Employment
+                                                                </Badge>
+                                                              ) : (
+                                                                <Badge className={`text-xs ${getCallResultBadge(existingAttestations[company].result)}`}>
+                                                                  Call: {existingAttestations[company].result.replace(/_/g, ' ')}
+                                                                </Badge>
+                                                              )}
+                                                              <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
+                                                                <Link2 className="w-3 h-3" />
+                                                                On-Chain ✓
+                                                              </Badge>
+                                                            </div>
+                                                            {existingAttestations[company].result === 'NO' && (
+                                                              <p className="text-red-400 text-[10px] font-medium">
+                                                                Verified fraud: Employer confirmed candidate never worked there
+                                                              </p>
+                                                            )}
                                                           </div>
                                                         ) : callResults[company] ? (
-                                                          <div className="flex items-center gap-2">
-                                                              <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
-                                                                {callResults[company].result.replace(/_/g, ' ')}
-                                                              </Badge>
+                                                          <div className="flex flex-col gap-2">
+                                                            <div className="flex items-center gap-2">
+                                                              {callResults[company].result === 'NO' ? (
+                                                                <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
+                                                                  ⚠️ Company Denies Employment
+                                                                </Badge>
+                                                              ) : (
+                                                                <Badge className={`text-xs ${getCallResultBadge(callResults[company].result)}`}>
+                                                                  {callResults[company].result.replace(/_/g, ' ')}
+                                                                </Badge>
+                                                              )}
                                                               {callResults[company].attestationCreated && (
                                                                 <Badge className="text-xs bg-purple-900/40 text-purple-300">
                                                                   On-Chain ✓
                                                                 </Badge>
                                                               )}
                                                             </div>
+                                                            {callResults[company].result === 'NO' && (
+                                                              <p className="text-red-400 text-[10px] font-medium">
+                                                                Verified fraud: Employer confirmed candidate never worked there
+                                                              </p>
+                                                            )}
+                                                          </div>
                                                         ) : callingCompany === company ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
