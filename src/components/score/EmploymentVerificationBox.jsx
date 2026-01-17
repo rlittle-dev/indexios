@@ -405,7 +405,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                   disabled={!uniqueCandidateId}
                                                                 >
                                                                   <PhoneCall className="w-3 h-3 mr-1" />
-                                                                  Retry Call
+                                                                  Retry
                                                                 </Button>
                                                               )}
                                                             </div>
@@ -448,7 +448,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                   disabled={!uniqueCandidateId}
                                                                 >
                                                                   <PhoneCall className="w-3 h-3 mr-1" />
-                                                                  Retry Call
+                                                                  Retry
                                                                 </Button>
                                                               )}
                                                             </div>
