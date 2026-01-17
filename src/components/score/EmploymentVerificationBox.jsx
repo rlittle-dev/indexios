@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
 
-export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName, userTier = 'free' }) {
+export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName, uniqueCandidateId, userTier = 'free' }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
