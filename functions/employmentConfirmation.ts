@@ -343,18 +343,32 @@ Deno.serve(async (req) => {
       }, { status: 429 });
     }
 
-    const { candidateName, employers } = await req.json();
+    const { candidateName, employers, uniqueCandidateId } = await req.json();
 
     if (!candidateName || !Array.isArray(employers)) {
       return Response.json({ error: 'Missing: candidateName, employers' }, { status: 400 });
     }
 
-    console.log(`[EmploymentConfirmation] Starting for ${candidateName}, ${employers.length} employers`);
+    console.log(`[EmploymentConfirmation] Starting for ${candidateName}, ${employers.length} employers, uniqueCandidateId: ${uniqueCandidateId}`);
 
     const candidateNorm = normalize(candidateName);
     const results = {};
     const employersToVerify = [];
     let cachedCount = 0;
+    
+    // Store reference to UniqueCandidate for updates
+    let targetUniqueCandidate = null;
+    if (uniqueCandidateId) {
+      try {
+        const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+        if (candidates && candidates.length > 0) {
+          targetUniqueCandidate = candidates[0];
+          console.log(`[EmploymentConfirmation] Found UniqueCandidate: ${targetUniqueCandidate.id}`);
+        }
+      } catch (err) {
+        console.error(`[EmploymentConfirmation] Error fetching UniqueCandidate:`, err.message);
+      }
+    }
 
     // Check database for previously verified employment
     for (const employer of employers) {
