@@ -62,39 +62,6 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Normalize phone number to E.164 format
-    // Strip everything except digits and leading +
-    let normalized = String(hrPhoneNumber).trim();
-    const hasPlus = normalized.startsWith('+');
-    normalized = normalized.replace(/[^\d]/g, ''); // Remove all non-digits
-    
-    // If original had +, keep it; otherwise assume US
-    if (hasPlus) {
-      normalized = '+' + normalized;
-    } else {
-      // Handle US numbers: strip leading 1 if 11 digits, then add +1
-      if (normalized.length === 11 && normalized.startsWith('1')) {
-        normalized = '+' + normalized; // Already has country code
-      } else if (normalized.length === 10) {
-        normalized = '+1' + normalized; // Add US country code
-      } else {
-        // Unknown format, try adding + and hope for the best
-        normalized = '+' + normalized;
-      }
-    }
-
-    // Validate E.164: must start with +, be 11-15 chars total
-    const e164Regex = /^\+[1-9]\d{10,14}$/;
-    if (!e164Regex.test(normalized)) {
-      console.error(`[VapiCall] Invalid E.164 format: "${hrPhoneNumber}" -> "${normalized}"`);
-      return Response.json({ 
-        error: `Invalid HR phone number format. Got "${hrPhoneNumber}", normalized to "${normalized}". Must be E.164 like +12035551212.`,
-        originalNumber: hrPhoneNumber,
-        normalizedNumber: normalized
-      }, { status: 400 });
-    }
-
-    hrPhoneNumber = normalized;
     console.log(`[VapiCall] Initiating call to ${hrPhoneNumber} for ${candidateName} at ${companyName}`);
 
     // Validate Vapi configuration
@@ -123,19 +90,13 @@ Deno.serve(async (req) => {
             candidateName: candidateName,
             companyName: companyName,
             uniqueCandidateId: uniqueCandidateId || ''
-          }
+          },
+          firstMessage: `Hello, I'm calling to verify employment for ${candidateName}. Can you confirm if they were employed at ${companyName}?`
         }
       })
     });
 
-    // Safely parse response (Vapi may return non-JSON on errors)
-    const raw = await response.text();
-    let callData;
-    try { 
-      callData = JSON.parse(raw); 
-    } catch (_e) { 
-      callData = { raw }; 
-    }
+    const callData = await response.json();
 
     if (!response.ok) {
       console.error('[VapiCall] VAPI error:', JSON.stringify(callData, null, 2));
