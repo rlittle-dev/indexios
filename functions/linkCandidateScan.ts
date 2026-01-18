@@ -169,12 +169,16 @@ Deno.serve(async (req) => {
     const candidate = candidates[0];
     
     // Extract employers from the scan analysis - handle both array formats
+    // IMPORTANT: Check company_names first as it's more reliably populated, 
+    // then fall back to companies array
     let scanEmployers = [];
     
-    if (candidate.analysis?.companies && Array.isArray(candidate.analysis.companies)) {
-      scanEmployers = candidate.analysis.companies;
-    } else if (candidate.analysis?.company_names && Array.isArray(candidate.analysis.company_names)) {
+    if (candidate.analysis?.company_names && Array.isArray(candidate.analysis.company_names) && candidate.analysis.company_names.length > 0) {
       scanEmployers = candidate.analysis.company_names.map(n => ({ name: n }));
+      console.log(`[LinkScan] Using company_names array: ${candidate.analysis.company_names.join(', ')}`);
+    } else if (candidate.analysis?.companies && Array.isArray(candidate.analysis.companies) && candidate.analysis.companies.length > 0) {
+      scanEmployers = candidate.analysis.companies;
+      console.log(`[LinkScan] Using companies array`);
     }
     
     console.log(`[LinkScan] Processing candidate "${candidate.name}" with ${scanEmployers.length} employers`);
