@@ -66,13 +66,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   }, [uniqueCandidateId, companyNames]);
 
   const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
-    if (!phoneNumber) return;
-    
+    // Phone number is optional - backend will fetch from UniqueCandidate if not provided
     setCallingCompany(company);
     try {
-      // Initiate the call
+      // Initiate the call - pass phone if available, otherwise backend fetches from UniqueCandidate
       const initResponse = await base44.functions.invoke('vapiEmploymentCall', {
-        phoneNumber,
+        phoneNumber: phoneNumber || null,
         companyName: company,
         candidateName,
         uniqueCandidateId
