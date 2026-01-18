@@ -118,9 +118,37 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     return () => clearInterval(pollInterval);
   }, [existingEmailStatus, emailResults, callingCompanies, uniqueCandidateId, companyNames]);
 
+  const pollCallStatus = async (company, callId) => {
+    try {
+      const statusResponse = await base44.functions.invoke('vapiCallStatus', { callId });
+      
+      if (statusResponse.data?.status === 'ended') {
+        setCallResults(prev => ({
+          ...prev,
+          [company]: {
+            result: statusResponse.data?.verificationResult || 'INCONCLUSIVE',
+            summary: statusResponse.data?.summary,
+            transcript: statusResponse.data?.transcript,
+            attestationCreated: statusResponse.data?.attestationCreated
+          }
+        }));
+        // Remove from active calls
+        setCallingCompanies(prev => {
+          const updated = { ...prev };
+          delete updated[company];
+          return updated;
+        });
+        // Refresh verifications to get updated attestation info
+        checkExistingVerifications();
+      }
+    } catch (error) {
+      console.error(`[EmploymentVerification] Poll error for ${company}:`, error);
+    }
+  };
+
   const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
     // Phone number is optional - backend will fetch from UniqueCandidate if not provided
-    setCallingCompany(company);
+    setCallingCompanies(prev => ({ ...prev, [company]: null })); // Mark as initiating
     try {
       // Initiate the call - pass phone if available, otherwise backend fetches from UniqueCandidate
       const initResponse = await base44.functions.invoke('vapiEmploymentCall', {
@@ -136,33 +164,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
       const callId = initResponse.data.callId;
       
-      // Poll for call status
-      let attempts = 0;
-      const maxAttempts = 60; // 5 minutes max
-      
-      const pollStatus = async () => {
-        attempts++;
-        const statusResponse = await base44.functions.invoke('vapiCallStatus', { callId });
-        
-        if (statusResponse.data?.status === 'ended' || attempts >= maxAttempts) {
-          setCallResults(prev => ({
-            ...prev,
-            [company]: {
-              result: statusResponse.data?.verificationResult || 'INCONCLUSIVE',
-              summary: statusResponse.data?.summary,
-              transcript: statusResponse.data?.transcript,
-              attestationCreated: statusResponse.data?.attestationCreated
-            }
-          }));
-          setCallingCompany(null);
-        } else {
-          // Poll again in 5 seconds
-          setTimeout(pollStatus, 5000);
-        }
-      };
-
-      // Start polling after a short delay
-      setTimeout(pollStatus, 3000);
+      // Store callId for polling
+      setCallingCompanies(prev => ({ ...prev, [company]: callId }));
 
     } catch (error) {
       console.error('Call error:', error);
@@ -170,7 +173,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         ...prev,
         [company]: { result: 'ERROR', error: error.message }
       }));
-      setCallingCompany(null);
+      // Remove from active calls
+      setCallingCompanies(prev => {
+        const updated = { ...prev };
+        delete updated[company];
+        return updated;
+      });
     }
   };
 
