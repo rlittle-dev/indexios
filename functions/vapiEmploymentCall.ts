@@ -94,7 +94,15 @@ Deno.serve(async (req) => {
     const callData = await response.json();
 
     if (!response.ok) {
-      console.error('[VapiCall] VAPI error:', callData);
+      console.error('[VapiCall] VAPI error:', JSON.stringify(callData, null, 2));
+      console.error('[VapiCall] Request details:', {
+        phoneNumberId: VAPI_PHONE_NUMBER_ID,
+        assistantId: VAPI_ASSISTANT_ID,
+        customerNumber: hrPhoneNumber,
+        candidateName,
+        companyName,
+        uniqueCandidateId
+      });
       return Response.json({ 
         error: 'Failed to initiate call',
         details: callData 
