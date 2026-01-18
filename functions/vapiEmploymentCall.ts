@@ -62,6 +62,32 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // Normalize phone number to E.164 format
+    let normalized = String(hrPhoneNumber).replace(/[^\d+]/g, '').trim();
+    
+    // If no + prefix, assume US number and add +1
+    if (!normalized.startsWith('+')) {
+      // Remove leading 1 if present (e.g., 12035551212 -> 2035551212)
+      if (normalized.length === 11 && normalized.startsWith('1')) {
+        normalized = normalized.substring(1);
+      }
+      // Add +1 for US numbers
+      if (normalized.length === 10) {
+        normalized = '+1' + normalized;
+      } else {
+        normalized = '+' + normalized;
+      }
+    }
+
+    // Validate E.164 format
+    if (normalized.length < 11 || normalized.length > 15) {
+      console.error(`[VapiCall] Invalid phone format: ${hrPhoneNumber} -> ${normalized}`);
+      return Response.json({ 
+        error: `Invalid HR phone number format. Got "${hrPhoneNumber}", needs E.164 format like +12035551212.` 
+      }, { status: 400 });
+    }
+
+    hrPhoneNumber = normalized;
     console.log(`[VapiCall] Initiating call to ${hrPhoneNumber} for ${candidateName} at ${companyName}`);
 
     // Validate Vapi configuration
