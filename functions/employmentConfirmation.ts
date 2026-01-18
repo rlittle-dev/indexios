@@ -395,6 +395,26 @@ Deno.serve(async (req) => {
             debug: `cached from ${cached.verified_date}`
           };
           cachedCount++;
+          
+          // Also update UniqueCandidate with cached data if not already populated
+          if (targetUniqueCandidate && (cached.phone || cached.email)) {
+            const existingEmployers = targetUniqueCandidate.employers || [];
+            const employerIndex = existingEmployers.findIndex(e => 
+              normalize(e.employer_name) === normalize(employer.name)
+            );
+            
+            if (employerIndex >= 0) {
+              const emp = existingEmployers[employerIndex];
+              // Only update if hr_phone/hr_email are missing
+              if (!emp.hr_phone && cached.phone) {
+                existingEmployers[employerIndex].hr_phone = cached.phone;
+              }
+              if (!emp.hr_email && cached.email) {
+                existingEmployers[employerIndex].hr_email = cached.email;
+              }
+              targetUniqueCandidate.employers = existingEmployers;
+            }
+          }
         } else {
           employersToVerify.push(employer);
         }
