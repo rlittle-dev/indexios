@@ -574,6 +574,18 @@ Deno.serve(async (req) => {
     const verifiedCount = Object.values(results).filter(r => r.status === 'verified').length;
     console.log(`[EmploymentConfirmation] Final: ${verifiedCount}/${employers.length} verified (${cachedCount} from cache)`);
 
+    // Final update to UniqueCandidate with all employer data (including cached results)
+    if (targetUniqueCandidate) {
+      try {
+        await base44.asServiceRole.entities.UniqueCandidate.update(targetUniqueCandidate.id, {
+          employers: targetUniqueCandidate.employers
+        });
+        console.log(`[EmploymentConfirmation] Final UniqueCandidate update with ${targetUniqueCandidate.employers?.length || 0} employers`);
+      } catch (finalErr) {
+        console.error(`[EmploymentConfirmation] Final update error:`, finalErr.message);
+      }
+    }
+
     // Increment usage counter
     await base44.auth.updateMe({
       employment_verifications_used: verificationsUsed + 1,
