@@ -19,88 +19,99 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
 
-  // Check for existing attestations and email status when uniqueCandidateId is available
-  useEffect(() => {
-    const checkExistingVerifications = async () => {
-      if (!uniqueCandidateId || companyNames.length === 0) return;
+  // Check for existing attestations and email status - with live polling
+  const checkExistingVerifications = async () => {
+    if (!uniqueCandidateId || companyNames.length === 0) return;
 
-      try {
-        const candidates = await base44.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
-        if (candidates && candidates.length > 0) {
-          const candidate = candidates[0];
-          const attestations = {};
-          const emailStatuses = {};
+    try {
+      const candidates = await base44.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+      if (candidates && candidates.length > 0) {
+        const candidate = candidates[0];
+        const attestations = {};
+        const emailStatuses = {};
 
-          if (candidate.employers && Array.isArray(candidate.employers)) {
-            for (const employer of candidate.employers) {
-              const employerNorm = employer.employer_name?.toLowerCase().trim();
+        if (candidate.employers && Array.isArray(candidate.employers)) {
+          for (const employer of candidate.employers) {
+            const employerNorm = employer.employer_name?.toLowerCase().trim();
 
-              for (const companyName of companyNames) {
-                const companyNorm = companyName.toLowerCase().trim();
+            for (const companyName of companyNames) {
+              const companyNorm = companyName.toLowerCase().trim();
 
-                if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
-                  // Check call verification status
-                  if (employer.call_verification_status && 
-                      employer.call_verification_status !== 'not_called' && 
-                      employer.call_verification_status !== 'pending') {
+              if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
+                // Check call verification status
+                if (employer.call_verification_status && 
+                    employer.call_verification_status !== 'not_called' && 
+                    employer.call_verification_status !== 'pending') {
+                  const attestationUID = employer.attestation_uid || candidate.attestation_uid;
+                  attestations[companyName] = {
+                    result: employer.call_verification_status.toUpperCase(),
+                    verifiedDate: employer.call_verified_date,
+                    attestationUID: attestationUID,
+                    attestationDate: candidate.attestation_date,
+                    hasAttestation: !!attestationUID,
+                    type: 'call'
+                  };
+                }
+                
+                // Check email verification status
+                if (employer.email_verification_status) {
+                  emailStatuses[companyName] = {
+                    status: employer.email_verification_status,
+                    sentDate: employer.email_sent_date,
+                    sentTo: employer.email_sent_to,
+                    verifiedDate: employer.email_verified_date,
+                    responseFrom: employer.email_response_from,
+                    hasAttestation: !!(employer.attestation_uid || candidate.attestation_uid)
+                  };
+                  
+                  // If email verification is complete and no call attestation, use email result
+                  if (employer.email_verification_status !== 'pending' && 
+                      employer.email_verification_status !== 'not_sent' &&
+                      !attestations[companyName]) {
                     const attestationUID = employer.attestation_uid || candidate.attestation_uid;
                     attestations[companyName] = {
-                      result: employer.call_verification_status.toUpperCase(),
-                      verifiedDate: employer.call_verified_date,
+                      result: employer.email_verification_status.toUpperCase(),
+                      verifiedDate: employer.email_verified_date,
                       attestationUID: attestationUID,
                       attestationDate: candidate.attestation_date,
                       hasAttestation: !!attestationUID,
-                      type: 'call'
+                      type: 'email'
                     };
-                  }
-                  
-                  // Check email verification status
-                  if (employer.email_verification_status) {
-                    emailStatuses[companyName] = {
-                      status: employer.email_verification_status,
-                      sentDate: employer.email_sent_date,
-                      sentTo: employer.email_sent_to,
-                      verifiedDate: employer.email_verified_date,
-                      responseFrom: employer.email_response_from,
-                      hasAttestation: !!(employer.attestation_uid || candidate.attestation_uid)
-                    };
-                    
-                    // If email verification is complete and no call attestation, use email result
-                    if (employer.email_verification_status !== 'pending' && 
-                        employer.email_verification_status !== 'not_sent' &&
-                        !attestations[companyName]) {
-                      const attestationUID = employer.attestation_uid || candidate.attestation_uid;
-                      attestations[companyName] = {
-                        result: employer.email_verification_status.toUpperCase(),
-                        verifiedDate: employer.email_verified_date,
-                        attestationUID: attestationUID,
-                        attestationDate: candidate.attestation_date,
-                        hasAttestation: !!attestationUID,
-                        type: 'email'
-                      };
-                    }
                   }
                 }
               }
             }
           }
-
-          if (Object.keys(attestations).length > 0) {
-            console.log('[EmploymentVerification] Found existing attestations:', attestations);
-            setExistingAttestations(attestations);
-          }
-          if (Object.keys(emailStatuses).length > 0) {
-            console.log('[EmploymentVerification] Found email statuses:', emailStatuses);
-            setExistingEmailStatus(emailStatuses);
-          }
         }
-      } catch (error) {
-        console.error('[EmploymentVerification] Error checking verifications:', error);
-      }
-    };
 
+        setExistingAttestations(attestations);
+        setExistingEmailStatus(emailStatuses);
+      }
+    } catch (error) {
+      console.error('[EmploymentVerification] Error checking verifications:', error);
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
     checkExistingVerifications();
   }, [uniqueCandidateId, companyNames]);
+
+  // Live polling every 10 seconds when there are pending verifications
+  useEffect(() => {
+    const hasPendingEmail = Object.values(existingEmailStatus).some(s => s.status === 'pending') ||
+                           Object.values(emailResults).some(r => r.status === 'pending');
+    const hasPendingCall = callingCompany !== null;
+    
+    if (!hasPendingEmail && !hasPendingCall) return;
+
+    const pollInterval = setInterval(() => {
+      console.log('[EmploymentVerification] Polling for updates...');
+      checkExistingVerifications();
+    }, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [existingEmailStatus, emailResults, callingCompany, uniqueCandidateId, companyNames]);
 
   const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
     // Phone number is optional - backend will fetch from UniqueCandidate if not provided
