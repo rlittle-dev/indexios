@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Shield, Zap, Target, ArrowRight, User, Briefcase, GraduationCap, Sparkles } from 'lucide-react';
+import { Shield, Zap, Target, ArrowRight, User, Briefcase, GraduationCap, Sparkles, Phone, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -30,6 +30,8 @@ export default function Home() {
         "One AWS certification mentioned but lacks specific credential ID for verification"
       ],
       green_flags: [
+        "✅ Employment verified via automated HR phone call (TechCorp confirmed)",
+        "✅ Verification attestation recorded on blockchain",
         "5+ years consistent tenure at each company (no job hopping)",
         "Quantified achievements with specific metrics (35% speed increase, 99.7% reliability)",
         "Elite university credentials from MIT with strong GPA (3.8)",
@@ -101,7 +103,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Make confident hiring decisions with advanced resume verification. Get instant legitimacy scores and detailed credential analysis.
+              Make confident hiring decisions with AI-powered resume verification, automated employment phone calls, and blockchain-verified attestations.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -229,7 +231,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -239,9 +241,24 @@ export default function Home() {
                 <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
                   <Shield className="w-6 h-6 text-purple-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Fraud Detection</h3>
+                <h3 className="text-xl font-bold text-white mb-2">AI Fraud Detection</h3>
                 <p className="text-white/70">
-                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced verification analysis
+                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced AI analysis
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65 }}
+                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-green-500/30 hover:border-green-500/50 transition-colors"
+              >
+                <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
+                  <Phone className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Automated Phone Verification</h3>
+                <p className="text-white/70">
+                  AI-powered calls to HR departments automatically verify employment history and discover company policies
                 </p>
               </motion.div>
 
@@ -249,6 +266,21 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
+                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-500/30 hover:border-blue-500/50 transition-colors"
+              >
+                <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
+                  <Link2 className="w-6 h-6 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Blockchain Attestations</h3>
+                <p className="text-white/70">
+                  Verified employment records are permanently recorded on-chain for tamper-proof, portable credentials
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.75 }}
                 className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
               >
                 <div className="inline-flex p-3 rounded-xl bg-emerald-500/10 mb-4">
@@ -266,8 +298,8 @@ export default function Home() {
                 transition={{ delay: 0.8 }}
                 className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
               >
-                <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
-                  <Target className="w-6 h-6 text-blue-400" />
+                <div className="inline-flex p-3 rounded-xl bg-orange-500/10 mb-4">
+                  <Target className="w-6 h-6 text-orange-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Actionable Insights</h3>
                 <p className="text-white/70">
