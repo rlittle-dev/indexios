@@ -63,7 +63,37 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    console.log(`[VapiCall] Initiating call to ${hrPhoneNumber} for ${candidateName} at ${companyName}`);
+    // Normalize phone number to E.164 format
+    const originalPhone = hrPhoneNumber;
+    let normalized = String(hrPhoneNumber).trim();
+    const hadPlus = normalized.startsWith('+');
+    normalized = normalized.replace(/[^\d]/g, ''); // Remove ALL non-digits
+    
+    // Determine country code
+    if (hadPlus && normalized.length >= 11) {
+      normalized = '+' + normalized;
+    } else if (normalized.length === 11 && normalized.startsWith('1')) {
+      normalized = '+' + normalized;
+    } else if (normalized.length === 10) {
+      normalized = '+1' + normalized;
+    } else if (normalized.length > 11) {
+      normalized = '+' + normalized;
+    } else {
+      normalized = '+1' + normalized;
+    }
+
+    // Validate E.164: must start with +, be 11-15 chars total
+    const e164Regex = /^\+[1-9]\d{10,14}$/;
+    if (!e164Regex.test(normalized)) {
+      console.error(`[VapiCall] Invalid E.164: "${originalPhone}" -> "${normalized}"`);
+      return Response.json({ 
+        error: `Invalid phone format: ${originalPhone}`,
+        normalized
+      }, { status: 400 });
+    }
+
+    hrPhoneNumber = normalized;
+    console.log(`[VapiCall] Initiating call to ${hrPhoneNumber} (from: ${originalPhone}) for ${candidateName} at ${companyName}`);
 
     // Validate Vapi configuration
     if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
