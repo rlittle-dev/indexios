@@ -158,12 +158,51 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     }
   };
 
+  const handleEmailCompany = async (company, hrEmail, uniqueCandidateId) => {
+    if (!hrEmail) {
+      alert('No HR email available for this company');
+      return;
+    }
+    setEmailingCompany(company);
+    try {
+      const response = await base44.functions.invoke('sendVerificationEmail', {
+        hrEmail,
+        companyName: company,
+        candidateName,
+        uniqueCandidateId
+      });
+
+      if (response.data?.success) {
+        setEmailResults(prev => ({
+          ...prev,
+          [company]: {
+            status: 'pending',
+            sentTo: hrEmail,
+            sentDate: new Date().toISOString()
+          }
+        }));
+      } else {
+        throw new Error(response.data?.error || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Email error:', error);
+      setEmailResults(prev => ({
+        ...prev,
+        [company]: { status: 'error', error: error.message }
+      }));
+    } finally {
+      setEmailingCompany(null);
+    }
+  };
+
   const getCallResultBadge = (result) => {
     const styles = {
       YES: 'bg-green-900/40 text-green-300',
       NO: 'bg-red-900/40 text-red-300',
       INCONCLUSIVE: 'bg-yellow-900/40 text-yellow-300',
       REFUSE_TO_DISCLOSE: 'bg-orange-900/40 text-orange-300',
+      REFUSED_TO_DISCLOSE: 'bg-orange-900/40 text-orange-300',
+      PENDING: 'bg-blue-900/40 text-blue-300',
       ERROR: 'bg-red-900/40 text-red-300'
     };
     return styles[result] || 'bg-zinc-700 text-white/70';
