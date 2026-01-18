@@ -243,24 +243,40 @@ Deno.serve(async (req) => {
     console.log(`[LinkScan] Updating UniqueCandidate ${uniqueCandidate.id} with:`, JSON.stringify(updateData, null, 2));
     await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, updateData);
     
-    // If no attestation exists, ensure all employers have call_verification_status = 'not_called'
-    if (!uniqueCandidate.attestation_uid && uniqueCandidate.employers && uniqueCandidate.employers.length > 0) {
+    // Ensure all employers have call_verification_status set (preserve existing values)
+    if (uniqueCandidate.employers && uniqueCandidate.employers.length > 0) {
       const updatedEmployers = uniqueCandidate.employers.map(emp => ({
         ...emp,
         call_verification_status: emp.call_verification_status || 'not_called',
         call_verified_date: emp.call_verified_date || null
       }));
-      
+
       await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, {
         employers: updatedEmployers
       });
     }
-    
+
+    // Fetch the updated UniqueCandidate to return accurate data
+    const finalCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidate.id });
+    const finalCandidate = finalCandidates[0] || uniqueCandidate;
+
+    // Return info about existing verifications
+    const existingVerifications = (finalCandidate.employers || [])
+      .filter(emp => emp.call_verification_status && emp.call_verification_status !== 'not_called')
+      .map(emp => ({
+        employer: emp.employer_name,
+        status: emp.call_verification_status,
+        hasAttestation: !!(emp.attestation_uid || finalCandidate.attestation_uid)
+      }));
+
     return Response.json({
       success: true,
-      uniqueCandidateId: uniqueCandidate.id,
+      uniqueCandidateId: finalCandidate.id,
       isNewCandidate: isNew,
-      matchType: matchType
+      matchType: matchType,
+      hasAttestation: !!finalCandidate.attestation_uid,
+      attestationUID: finalCandidate.attestation_uid || null,
+      existingVerifications: existingVerifications
     });
     
   } catch (error) {
