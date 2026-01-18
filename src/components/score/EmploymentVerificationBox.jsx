@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2 } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
@@ -11,8 +11,11 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [results, setResults] = useState(null);
   const [selectedEvidence, setSelectedEvidence] = useState(null);
   const [callingCompany, setCallingCompany] = useState(null);
+  const [emailingCompany, setEmailingCompany] = useState(null);
   const [callResults, setCallResults] = useState({});
+  const [emailResults, setEmailResults] = useState({});
   const [existingAttestations, setExistingAttestations] = useState({}); // company -> attestation data
+  const [existingEmailStatus, setExistingEmailStatus] = useState({}); // company -> email status
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
 
