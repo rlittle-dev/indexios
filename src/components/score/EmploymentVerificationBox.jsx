@@ -562,16 +562,50 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                       <div className="flex items-start gap-2">
                                                         <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
                                                         <div className="text-xs">
-                                                          <a 
-                                                            href={`mailto:${result.email.address}`}
-                                                            className="text-blue-300 font-medium hover:text-blue-200 underline"
-                                                          >
+                                                          <p className="text-blue-300 font-medium">
                                                             {result.email.address}
-                                                          </a>
+                                                          </p>
                                                           <p className="text-white/60 text-[10px] mt-0.5">
                                                             {result.email.notes || 'HR/Employment verification email'}
                                                           </p>
                                                         </div>
+                                                      </div>
+                                                      
+                                                      {/* Email Verification Button & Status */}
+                                                      <div className="flex flex-col gap-2">
+                                                        {existingEmailStatus[company]?.status === 'pending' || emailResults[company]?.status === 'pending' ? (
+                                                          <Badge className="text-xs bg-blue-900/40 text-blue-300">
+                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                            Awaiting Response
+                                                          </Badge>
+                                                        ) : existingEmailStatus[company]?.status && existingEmailStatus[company]?.status !== 'not_sent' ? (
+                                                          <div className="flex items-center gap-2 flex-wrap">
+                                                            <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
+                                                              Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
+                                                            </Badge>
+                                                            {existingEmailStatus[company].hasAttestation && (
+                                                              <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
+                                                                <Link2 className="w-3 h-3" />
+                                                                On-Chain ✓
+                                                              </Badge>
+                                                            )}
+                                                          </div>
+                                                        ) : emailingCompany === company ? (
+                                                          <div className="flex items-center gap-1 text-xs text-blue-300">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                            Sending...
+                                                          </div>
+                                                        ) : !existingAttestations[company] ? (
+                                                          <Button
+                                                            onClick={() => handleEmailCompany(company, result.email.address, uniqueCandidateId)}
+                                                            size="sm"
+                                                            className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white"
+                                                            disabled={!uniqueCandidateId}
+                                                          >
+                                                            <Send className="w-3 h-3 mr-1" />
+                                                            Email Verify
+                                                          </Button>
+                                                        ) : null}
                                                       </div>
                                                     </div>
                                                   )}
