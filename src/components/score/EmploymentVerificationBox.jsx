@@ -20,38 +20,45 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   useEffect(() => {
     const checkExistingAttestations = async () => {
       if (!uniqueCandidateId || companyNames.length === 0) return;
-      
+
       try {
         // Fetch the UniqueCandidate to check for existing call verifications
         const candidates = await base44.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
         if (candidates && candidates.length > 0) {
           const candidate = candidates[0];
           const attestations = {};
-          
+
           // Check each employer for call verification status
           if (candidate.employers && Array.isArray(candidate.employers)) {
             for (const employer of candidate.employers) {
               // Normalize company names for comparison
               const employerNorm = employer.employer_name?.toLowerCase().trim();
-              
+
               for (const companyName of companyNames) {
                 const companyNorm = companyName.toLowerCase().trim();
-                
+
                 if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
-                  // Only show attestation if there's actually an attestation_uid on the candidate
-                          if (candidate.attestation_uid && employer.call_verification_status && employer.call_verification_status !== 'not_called' && employer.call_verification_status !== 'pending') {
-                            attestations[companyName] = {
-                              result: employer.call_verification_status.toUpperCase(),
-                              verifiedDate: employer.call_verified_date,
-                              attestationUID: candidate.attestation_uid,
-                              attestationDate: candidate.attestation_date
-                            };
-                          }
+                  // Check if employer has call verification (with or without global attestation)
+                  if (employer.call_verification_status && 
+                      employer.call_verification_status !== 'not_called' && 
+                      employer.call_verification_status !== 'pending') {
+
+                    // Use employer-level attestation_uid if available, otherwise candidate-level
+                    const attestationUID = employer.attestation_uid || candidate.attestation_uid;
+
+                    attestations[companyName] = {
+                      result: employer.call_verification_status.toUpperCase(),
+                      verifiedDate: employer.call_verified_date,
+                      attestationUID: attestationUID,
+                      attestationDate: candidate.attestation_date,
+                      hasAttestation: !!attestationUID
+                    };
+                  }
                 }
               }
             }
           }
-          
+
           if (Object.keys(attestations).length > 0) {
             console.log('[EmploymentVerification] Found existing attestations:', attestations);
             setExistingAttestations(attestations);
@@ -61,7 +68,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         console.error('[EmploymentVerification] Error checking attestations:', error);
       }
     };
-    
+
     checkExistingAttestations();
   }, [uniqueCandidateId, companyNames]);
 
@@ -380,7 +387,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                 <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
                                                                   ⚠️ Company Denies Employment
                                                                 </Badge>
-                                                              ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' ? (
+                                                              ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' || existingAttestations[company].result === 'REFUSED_TO_DISCLOSE' ? (
                                                                 <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700">
                                                                   Company Refuses to Verify or Deny
                                                                 </Badge>
@@ -393,10 +400,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                   Call: {existingAttestations[company].result.replace(/_/g, ' ')}
                                                                 </Badge>
                                                               )}
-                                                              <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
-                                                                <Link2 className="w-3 h-3" />
-                                                                On-Chain ✓
-                                                              </Badge>
+                                                              {existingAttestations[company].hasAttestation && (
+                                                                <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
+                                                                  <Link2 className="w-3 h-3" />
+                                                                  On-Chain ✓
+                                                                </Badge>
+                                                              )}
                                                               {existingAttestations[company].result === 'INCONCLUSIVE' && (
                                                                 <Button
                                                                   onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
