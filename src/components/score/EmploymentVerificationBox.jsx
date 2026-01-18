@@ -145,7 +145,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     try {
       const response = await base44.functions.invoke('employmentConfirmation', {
         candidateName,
-        employers: companyNames.map(name => ({ name }))
+        employers: companyNames.map(name => ({ name })),
+        uniqueCandidateId // Pass the ID so backend can update it
       });
 
       if (response.data?.success) {
