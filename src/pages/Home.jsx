@@ -103,7 +103,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Make confident hiring decisions with AI-powered resume verification, automated employment phone calls, and blockchain-verified attestations.
+              Make confident hiring decisions with advanced resume verification, automated employment phone calls, and blockchain-verified attestations.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -241,9 +241,9 @@ export default function Home() {
                 <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
                   <Shield className="w-6 h-6 text-purple-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">AI Fraud Detection</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Fraud Detection</h3>
                 <p className="text-white/70">
-                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced AI analysis
+                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced verification analysis
                 </p>
               </motion.div>
 
@@ -251,14 +251,14 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.65 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-green-500/30 hover:border-green-500/50 transition-colors"
+                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
               >
                 <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
                   <Phone className="w-6 h-6 text-green-400" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Automated Phone Verification</h3>
                 <p className="text-white/70">
-                  AI-powered calls to HR departments automatically verify employment history and discover company policies
+                  Automated calls to HR departments verify employment history and discover company policies
                 </p>
               </motion.div>
 
@@ -266,7 +266,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-500/30 hover:border-blue-500/50 transition-colors"
+                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
               >
                 <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
                   <Link2 className="w-6 h-6 text-blue-400" />
@@ -281,21 +281,6 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.75 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
-              >
-                <div className="inline-flex p-3 rounded-xl bg-emerald-500/10 mb-4">
-                  <Zap className="w-6 h-6 text-emerald-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Instant Results</h3>
-                <p className="text-white/70">
-                  Get comprehensive verification reports in seconds, not days. Make faster hiring decisions
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
                 className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
               >
                 <div className="inline-flex p-3 rounded-xl bg-orange-500/10 mb-4">
