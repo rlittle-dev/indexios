@@ -101,17 +101,22 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   useEffect(() => {
     const hasPendingEmail = Object.values(existingEmailStatus).some(s => s.status === 'pending') ||
                            Object.values(emailResults).some(r => r.status === 'pending');
-    const hasPendingCall = callingCompany !== null;
+    const hasPendingCalls = Object.keys(callingCompanies).length > 0;
     
-    if (!hasPendingEmail && !hasPendingCall) return;
+    if (!hasPendingEmail && !hasPendingCalls) return;
 
     const pollInterval = setInterval(() => {
       console.log('[EmploymentVerification] Polling for updates...');
       checkExistingVerifications();
-    }, 10000); // Poll every 10 seconds
+      
+      // Poll each active call
+      Object.entries(callingCompanies).forEach(([company, callId]) => {
+        pollCallStatus(company, callId);
+      });
+    }, 5000); // Poll every 5 seconds for calls
 
     return () => clearInterval(pollInterval);
-  }, [existingEmailStatus, emailResults, callingCompany, uniqueCandidateId, companyNames]);
+  }, [existingEmailStatus, emailResults, callingCompanies, uniqueCandidateId, companyNames]);
 
   const handleCallCompany = async (company, phoneNumber, uniqueCandidateId) => {
     // Phone number is optional - backend will fetch from UniqueCandidate if not provided
