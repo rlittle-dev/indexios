@@ -4,6 +4,11 @@ const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
 const VAPI_ASSISTANT_ID = Deno.env.get('VAPI_ASSISTANT_ID');
 const VAPI_PHONE_NUMBER_ID = Deno.env.get('VAPI_PHONE_NUMBER_ID');
 
+console.log('[VapiCall] Has API key:', !!VAPI_API_KEY);
+console.log('[VapiCall] Has assistant ID:', !!VAPI_ASSISTANT_ID);
+console.log('[VapiCall] Has phone ID:', !!VAPI_PHONE_NUMBER_ID);
+
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
