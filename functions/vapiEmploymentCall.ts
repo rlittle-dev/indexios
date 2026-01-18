@@ -23,13 +23,41 @@ Deno.serve(async (req) => {
 
     const { phoneNumber, companyName, candidateName, uniqueCandidateId } = await req.json();
 
-    if (!phoneNumber || !companyName || !candidateName) {
+    if (!companyName || !candidateName) {
       return Response.json({ 
-        error: 'Missing required fields: phoneNumber, companyName, candidateName' 
+        error: 'Missing required fields: companyName, candidateName' 
       }, { status: 400 });
     }
 
-    console.log(`[VapiCall] Initiating call to ${phoneNumber} for ${candidateName} at ${companyName}`);
+    // Determine the phone number to call - use provided or fetch from UniqueCandidate
+    let hrPhoneNumber = phoneNumber;
+
+    if (!hrPhoneNumber && uniqueCandidateId) {
+      // Fetch phone number from UniqueCandidate employers
+      try {
+        const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+        if (candidates && candidates.length > 0) {
+          const candidate = candidates[0];
+          const employer = candidate.employers?.find(e => 
+            e.employer_name?.toLowerCase().trim() === companyName.toLowerCase().trim()
+          );
+          if (employer?.hr_phone?.number) {
+            hrPhoneNumber = employer.hr_phone.number;
+            console.log(`[VapiCall] Found phone from UniqueCandidate: ${hrPhoneNumber}`);
+          }
+        }
+      } catch (fetchError) {
+        console.error('[VapiCall] Error fetching UniqueCandidate:', fetchError.message);
+      }
+    }
+
+    if (!hrPhoneNumber) {
+      return Response.json({ 
+        error: 'No HR phone number available for this company' 
+      }, { status: 400 });
+    }
+
+    console.log(`[VapiCall] Initiating call to ${hrPhoneNumber} for ${candidateName} at ${companyName}`);
 
     // Validate Vapi configuration
     if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID || !VAPI_PHONE_NUMBER_ID) {
