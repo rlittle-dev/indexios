@@ -7,6 +7,7 @@ const VAPI_PHONE_NUMBER_ID = Deno.env.get('VAPI_PHONE_NUMBER_ID');
 console.log('[VapiCall] Has API key:', !!VAPI_API_KEY);
 console.log('[VapiCall] Has assistant ID:', !!VAPI_ASSISTANT_ID);
 console.log('[VapiCall] Has phone ID:', !!VAPI_PHONE_NUMBER_ID);
+console.log("[VapiCall] Key fingerprint:", (VAPI_API_KEY || "").slice(0, 6), (VAPI_API_KEY || "").slice(-4));
 
 
 Deno.serve(async (req) => {
