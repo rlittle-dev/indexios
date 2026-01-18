@@ -168,12 +168,17 @@ Deno.serve(async (req) => {
     
     const candidate = candidates[0];
     
-    // Extract employers from the scan analysis
-    const scanEmployers = candidate.analysis?.companies || 
-                          candidate.analysis?.company_names?.map(n => ({ name: n })) || 
-                          [];
+    // Extract employers from the scan analysis - handle both array formats
+    let scanEmployers = [];
+    
+    if (candidate.analysis?.companies && Array.isArray(candidate.analysis.companies)) {
+      scanEmployers = candidate.analysis.companies;
+    } else if (candidate.analysis?.company_names && Array.isArray(candidate.analysis.company_names)) {
+      scanEmployers = candidate.analysis.company_names.map(n => ({ name: n }));
+    }
     
     console.log(`[LinkScan] Processing candidate "${candidate.name}" with ${scanEmployers.length} employers`);
+    console.log(`[LinkScan] Employers found:`, scanEmployers.map(e => typeof e === 'string' ? e : e.name || e.employer_name));
     
     // Find or create UniqueCandidate
     const { candidate: uniqueCandidate, isNew, matchType } = await findOrCreateUniqueCandidate(base44, {
