@@ -116,13 +116,19 @@ Deno.serve(async (req) => {
             candidateName: candidateName,
             companyName: companyName,
             uniqueCandidateId: uniqueCandidateId || ''
-          },
-          firstMessage: `Hello, I'm calling to verify employment for ${candidateName}. Can you confirm if they were employed at ${companyName}?`
+          }
         }
       })
     });
 
-    const callData = await response.json();
+    // Safely parse response (Vapi may return non-JSON on errors)
+    const raw = await response.text();
+    let callData;
+    try { 
+      callData = JSON.parse(raw); 
+    } catch { 
+      callData = { raw }; 
+    }
 
     if (!response.ok) {
       console.error('[VapiCall] VAPI error:', JSON.stringify(callData, null, 2));
