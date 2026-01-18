@@ -14,10 +14,52 @@ function normalizeName(name) {
 }
 
 /**
- * Find or create a UniqueCandidate based on identifying info
- * Priority: email > name
+ * Normalize company name for matching
  */
-async function findOrCreateUniqueCandidate(base44, candidateData) {
+function normalizeCompany(name) {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\b(inc|co|company|corp|corporation|ltd|llc|plc|limited)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Calculate overlap between two arrays of employers
+ * Returns ratio of matching employers (0-1)
+ */
+function calculateEmployerOverlap(employers1, employers2) {
+  if (!employers1?.length || !employers2?.length) return 0;
+  
+  const normalized1 = employers1.map(e => normalizeCompany(typeof e === 'string' ? e : e.employer_name || e.name));
+  const normalized2 = employers2.map(e => normalizeCompany(typeof e === 'string' ? e : e.employer_name || e.name));
+  
+  let matches = 0;
+  for (const emp1 of normalized1) {
+    if (!emp1) continue;
+    for (const emp2 of normalized2) {
+      if (!emp2) continue;
+      // Check for exact match or significant substring match
+      if (emp1 === emp2 || emp1.includes(emp2) || emp2.includes(emp1)) {
+        matches++;
+        break;
+      }
+    }
+  }
+  
+  // Return overlap ratio based on the smaller list
+  const minLength = Math.min(normalized1.length, normalized2.length);
+  return matches / minLength;
+}
+
+/**
+ * Find or create a UniqueCandidate based on identifying info
+ * Priority: email > (name + employer overlap)
+ */
+async function findOrCreateUniqueCandidate(base44, candidateData, scanEmployers = []) {
   const { name, email } = candidateData || {};
   const normalizedName = normalizeName(name);
   
@@ -26,20 +68,80 @@ async function findOrCreateUniqueCandidate(base44, candidateData) {
     const byEmail = await base44.asServiceRole.entities.UniqueCandidate.filter({ email });
     if (byEmail && byEmail.length > 0) {
       console.log(`[LinkScan] Found existing candidate by email: ${email}`);
-      return { candidate: byEmail[0], isNew: false };
+      return { candidate: byEmail[0], isNew: false, matchType: 'email' };
     }
   }
   
-  // 2. No match found - create new UniqueCandidate
+  // 2. Try to match by name + employer overlap (to catch duplicates without email)
+  if (normalizedName && scanEmployers.length > 0) {
+    // Get all candidates and check for name + employer overlap
+    const allCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+    
+    for (const existing of allCandidates) {
+      const existingNormalizedName = normalizeName(existing.name);
+      
+      // Name must match exactly (normalized)
+      if (existingNormalizedName !== normalizedName) continue;
+      
+      // Calculate employer overlap
+      const existingEmployers = existing.employers || [];
+      const overlap = calculateEmployerOverlap(scanEmployers, existingEmployers);
+      
+      console.log(`[LinkScan] Name match "${name}" with existing "${existing.name}", employer overlap: ${(overlap * 100).toFixed(0)}%`);
+      
+      // Require at least 50% employer overlap to consider it the same person
+      // This prevents false positives from people with the same name
+      if (overlap >= 0.5) {
+        console.log(`[LinkScan] Found existing candidate by name + employer overlap: ${existing.id}`);
+        return { candidate: existing, isNew: false, matchType: 'name_employer_overlap' };
+      }
+    }
+    
+    console.log(`[LinkScan] No name + employer match found for "${name}"`);
+  }
+  
+  // 3. No match found - create new UniqueCandidate
   console.log(`[LinkScan] Creating new UniqueCandidate: ${name}`);
   const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
     name: name || 'Unknown',
     email: email || null,
-    verified_employers: [],
-    total_verifications: 0
+    employers: []
   });
   
-  return { candidate: newCandidate, isNew: true };
+  return { candidate: newCandidate, isNew: true, matchType: 'new' };
+}
+
+/**
+ * Merge new employers into existing employers list
+ */
+function mergeEmployers(existingEmployers, newEmployers) {
+  const merged = [...(existingEmployers || [])];
+  
+  for (const newEmp of newEmployers) {
+    const newNormalized = normalizeCompany(typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name);
+    if (!newNormalized) continue;
+    
+    // Check if this employer already exists
+    const exists = merged.some(existing => {
+      const existingNormalized = normalizeCompany(existing.employer_name);
+      return existingNormalized === newNormalized || 
+             existingNormalized?.includes(newNormalized) || 
+             newNormalized?.includes(existingNormalized);
+    });
+    
+    if (!exists) {
+      // Add new employer with default verification status
+      merged.push({
+        employer_name: typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name,
+        web_evidence_status: 'no',
+        call_verification_status: 'not_called',
+        evidence_count: 0
+      });
+      console.log(`[LinkScan] Added new employer: ${typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name}`);
+    }
+  }
+  
+  return merged;
 }
 
 Deno.serve(async (req) => {
@@ -65,32 +167,65 @@ Deno.serve(async (req) => {
     
     const candidate = candidates[0];
     
+    // Extract employers from the scan analysis
+    const scanEmployers = candidate.analysis?.companies || 
+                          candidate.analysis?.company_names?.map(n => ({ name: n })) || 
+                          [];
+    
+    console.log(`[LinkScan] Processing candidate "${candidate.name}" with ${scanEmployers.length} employers`);
+    
     // Find or create UniqueCandidate
-    const { candidate: uniqueCandidate, isNew } = await findOrCreateUniqueCandidate(base44, {
+    const { candidate: uniqueCandidate, isNew, matchType } = await findOrCreateUniqueCandidate(base44, {
       name: candidate.name,
       email: candidate.email
-    });
+    }, scanEmployers);
     
-    console.log(`[LinkScan] Linked scan ${candidateId} -> UniqueCandidate ${uniqueCandidate.id}`);
+    console.log(`[LinkScan] Linked scan ${candidateId} -> UniqueCandidate ${uniqueCandidate.id} (${matchType})`);
+    
+    // Merge employers from the new scan into the UniqueCandidate
+    if (scanEmployers.length > 0) {
+      const mergedEmployers = mergeEmployers(uniqueCandidate.employers, scanEmployers);
+      
+      // Update UniqueCandidate with merged employers and potentially new email
+      const updateData = { employers: mergedEmployers };
+      
+      // Update email if we didn't have one before
+      if (!uniqueCandidate.email && candidate.email) {
+        updateData.email = candidate.email;
+        console.log(`[LinkScan] Updated email to: ${candidate.email}`);
+      }
+      
+      // Update phone if we didn't have one before
+      if (!uniqueCandidate.phone && candidate.phone) {
+        updateData.phone = candidate.phone;
+      }
+      
+      // Update LinkedIn if we didn't have one before
+      if (!uniqueCandidate.linkedin_url && candidate.linkedin_url) {
+        updateData.linkedin_url = candidate.linkedin_url;
+      }
+      
+      await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, updateData);
+    }
     
     // If no attestation exists, ensure all employers have call_verification_status = 'not_called'
     if (!uniqueCandidate.attestation_uid && uniqueCandidate.employers && uniqueCandidate.employers.length > 0) {
       const updatedEmployers = uniqueCandidate.employers.map(emp => ({
         ...emp,
-        call_verification_status: 'not_called',
-        call_verified_date: null
+        call_verification_status: emp.call_verification_status || 'not_called',
+        call_verified_date: emp.call_verified_date || null
       }));
       
       await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, {
         employers: updatedEmployers
       });
-      console.log(`[LinkScan] Reset call_verification_status to not_called for ${updatedEmployers.length} employers (no attestation)`);
     }
     
     return Response.json({
       success: true,
       uniqueCandidateId: uniqueCandidate.id,
-      isNewCandidate: isNew
+      isNewCandidate: isNew,
+      matchType: matchType
     });
     
   } catch (error) {
