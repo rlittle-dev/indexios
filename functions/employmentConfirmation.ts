@@ -473,11 +473,16 @@ Deno.serve(async (req) => {
           }
 
           // Update UniqueCandidate with employer verification data (phone, email, evidence)
+          // Use the passed uniqueCandidateId first, otherwise fall back to name matching
           try {
-            const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
-            let matchingCandidate = existingCandidates.find(c => 
-              normalize(c.name) === normalize(candidateName)
-            );
+            let matchingCandidate = targetUniqueCandidate;
+            
+            if (!matchingCandidate) {
+              const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+              matchingCandidate = existingCandidates.find(c => 
+                normalize(c.name) === normalize(candidateName)
+              );
+            }
 
             if (matchingCandidate) {
               const existingEmployers = matchingCandidate.employers || [];
@@ -517,6 +522,10 @@ Deno.serve(async (req) => {
               await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
                 employers: updatedEmployers
               });
+              
+              // Update the cached reference so subsequent employers use the latest data
+              targetUniqueCandidate = { ...matchingCandidate, employers: updatedEmployers };
+              
               console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with ${updatedEmployers.length} employers`);
             } else {
               // Create new UniqueCandidate with this employer
@@ -533,6 +542,7 @@ Deno.serve(async (req) => {
                   call_verified_date: null
                 }]
               });
+              targetUniqueCandidate = newCandidate;
               console.log(`[EmploymentConfirmation] Created UniqueCandidate ${newCandidate.id} for ${candidateName}`);
             }
           } catch (ucError) {
