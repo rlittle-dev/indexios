@@ -27,18 +27,24 @@ function generateCandidateHash(uniqueCandidateId) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Only professional+ users can create attestations
-    const userTier = user.subscription_tier || 'free';
-    if (userTier !== 'professional' && userTier !== 'enterprise') {
-      return Response.json({ 
-        error: 'Attestations require Professional or Enterprise plan' 
-      }, { status: 403 });
+    
+    // Check if called by service role (from another backend function) or by user
+    let isServiceCall = false;
+    try {
+      const user = await base44.auth.me();
+      if (user) {
+        // Called by user - check tier
+        const userTier = user.subscription_tier || 'free';
+        if (userTier !== 'professional' && userTier !== 'enterprise') {
+          return Response.json({ 
+            error: 'Attestations require Professional or Enterprise plan' 
+          }, { status: 403 });
+        }
+      }
+    } catch {
+      // No user auth - likely called via service role from another function
+      isServiceCall = true;
+      console.log('[Attestation] Called via service role');
     }
 
     const { 
