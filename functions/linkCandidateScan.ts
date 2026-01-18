@@ -118,8 +118,9 @@ function mergeEmployers(existingEmployers, newEmployers) {
   const merged = [...(existingEmployers || [])];
   
   for (const newEmp of newEmployers) {
-    const newNormalized = normalizeCompany(typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name);
-    if (!newNormalized) continue;
+    const empName = typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name;
+    const newNormalized = normalizeCompany(empName);
+    if (!newNormalized || !empName) continue;
     
     // Check if this employer already exists
     const exists = merged.some(existing => {
@@ -132,12 +133,12 @@ function mergeEmployers(existingEmployers, newEmployers) {
     if (!exists) {
       // Add new employer with default verification status
       merged.push({
-        employer_name: typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name,
+        employer_name: empName,
         web_evidence_status: 'no',
         call_verification_status: 'not_called',
         evidence_count: 0
       });
-      console.log(`[LinkScan] Added new employer: ${typeof newEmp === 'string' ? newEmp : newEmp.employer_name || newEmp.name}`);
+      console.log(`[LinkScan] Added new employer: ${empName}`);
     }
   }
   
