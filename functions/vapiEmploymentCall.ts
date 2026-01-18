@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
     let callData;
     try { 
       callData = JSON.parse(raw); 
-    } catch { 
+    } catch (_e) { 
       callData = { raw }; 
     }
 
