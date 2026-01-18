@@ -57,7 +57,7 @@ function calculateEmployerOverlap(employers1, employers2) {
 
 /**
  * Find or create a UniqueCandidate based on identifying info
- * Priority: email > (name + employer overlap)
+ * Priority: email > (name + employer overlap) > exact name match
  */
 async function findOrCreateUniqueCandidate(base44, candidateData, scanEmployers = []) {
   const { name, email } = candidateData || {};
@@ -72,11 +72,11 @@ async function findOrCreateUniqueCandidate(base44, candidateData, scanEmployers 
     }
   }
   
+  // Get all candidates for name matching
+  const allCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+  
   // 2. Try to match by name + employer overlap (to catch duplicates without email)
   if (normalizedName && scanEmployers.length > 0) {
-    // Get all candidates and check for name + employer overlap
-    const allCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
-    
     for (const existing of allCandidates) {
       const existingNormalizedName = normalizeName(existing.name);
       
@@ -85,22 +85,43 @@ async function findOrCreateUniqueCandidate(base44, candidateData, scanEmployers 
       
       // Calculate employer overlap
       const existingEmployers = existing.employers || [];
-      const overlap = calculateEmployerOverlap(scanEmployers, existingEmployers);
       
-      console.log(`[LinkScan] Name match "${name}" with existing "${existing.name}", employer overlap: ${(overlap * 100).toFixed(0)}%`);
-      
-      // Require at least 50% employer overlap to consider it the same person
-      // This prevents false positives from people with the same name
-      if (overlap >= 0.5) {
-        console.log(`[LinkScan] Found existing candidate by name + employer overlap: ${existing.id}`);
-        return { candidate: existing, isNew: false, matchType: 'name_employer_overlap' };
+      // If existing candidate has employers, check for overlap
+      if (existingEmployers.length > 0) {
+        const overlap = calculateEmployerOverlap(scanEmployers, existingEmployers);
+        
+        console.log(`[LinkScan] Name match "${name}" with existing "${existing.name}", employer overlap: ${(overlap * 100).toFixed(0)}%`);
+        
+        // Require at least 50% employer overlap to consider it the same person
+        if (overlap >= 0.5) {
+          console.log(`[LinkScan] Found existing candidate by name + employer overlap: ${existing.id}`);
+          return { candidate: existing, isNew: false, matchType: 'name_employer_overlap' };
+        }
       }
     }
     
     console.log(`[LinkScan] No name + employer match found for "${name}"`);
   }
   
-  // 3. No match found - create new UniqueCandidate
+  // 3. Check if there's an existing candidate with exact name match but NO employers (empty profile)
+  // This handles the case where a UniqueCandidate was created but never populated
+  if (normalizedName) {
+    for (const existing of allCandidates) {
+      const existingNormalizedName = normalizeName(existing.name);
+      
+      if (existingNormalizedName === normalizedName) {
+        const existingEmployers = existing.employers || [];
+        
+        // If the existing candidate has no employers, use it (it's an empty shell)
+        if (existingEmployers.length === 0) {
+          console.log(`[LinkScan] Found existing empty candidate with same name: ${existing.id}`);
+          return { candidate: existing, isNew: false, matchType: 'name_empty_profile' };
+        }
+      }
+    }
+  }
+  
+  // 4. No match found - create new UniqueCandidate
   console.log(`[LinkScan] Creating new UniqueCandidate: ${name}`);
   const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
     name: name || 'Unknown',
