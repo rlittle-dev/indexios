@@ -1,7 +1,7 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Shield, Target, Users, Zap, ArrowLeft } from 'lucide-react';
+import { Shield, Target, Users, Zap, ArrowLeft, Phone, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -47,7 +47,7 @@ export default function About() {
           <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-8 border border-zinc-800">
             <h2 className="text-2xl font-bold text-white mb-4">Our Mission</h2>
             <p className="text-white/70 text-lg leading-relaxed">
-              Indexios empowers hiring teams to make confident decisions by providing comprehensive resume verification and legitimacy analysis. We help you identify the best candidates while protecting your organization from fraudulent applications.
+              Indexios empowers hiring teams to make confident decisions by combining AI-powered resume analysis, automated employment verification phone calls, and blockchain-backed attestations. We help you identify the best candidates while protecting your organization from fraudulent applications with verifiable, tamper-proof records.
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export default function About() {
               <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
                 <Shield className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Advanced Verification</h3>
+              <h3 className="text-xl font-bold text-white mb-2">AI-Powered Analysis</h3>
               <p className="text-white/70">
                 Deep analysis of resumes to detect inconsistencies, verify credentials, and assess candidate legitimacy with precision.
               </p>
@@ -70,7 +70,37 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-green-500/30"
+            >
+              <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
+                <Phone className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Automated Phone Verification</h3>
+              <p className="text-white/70">
+                AI-powered calls to HR departments automatically verify employment history and discover company verification policies.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-500/30"
+            >
+              <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
+                <Link2 className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Blockchain Attestations</h3>
+              <p className="text-white/70">
+                Verified employment records are permanently recorded on-chain, creating tamper-proof, portable credentials for candidates.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
               className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
             >
               <div className="inline-flex p-3 rounded-xl bg-indigo-500/10 mb-4">
@@ -100,7 +130,7 @@ export default function About() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.35 }}
               className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
             >
               <div className="inline-flex p-3 rounded-xl bg-yellow-500/10 mb-4">
