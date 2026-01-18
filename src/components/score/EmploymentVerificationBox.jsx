@@ -560,7 +560,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                               </p>
                                                             )}
                                                           </div>
-                                                        ) : callingCompany === company ? (
+                                                        ) : callingCompanies[company] !== undefined ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
                                                             Calling...
