@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     }
 
     // Create outbound call via VAPI
-    const response = await fetch('https://api.vapi.ai/call/phone', {
+    const response = await fetch('https://api.vapi.ai/call', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${VAPI_API_KEY}`,
