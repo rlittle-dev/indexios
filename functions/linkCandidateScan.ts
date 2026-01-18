@@ -189,30 +189,34 @@ Deno.serve(async (req) => {
     console.log(`[LinkScan] Linked scan ${candidateId} -> UniqueCandidate ${uniqueCandidate.id} (${matchType})`);
     
     // Merge employers from the new scan into the UniqueCandidate
-    if (scanEmployers.length > 0) {
-      const mergedEmployers = mergeEmployers(uniqueCandidate.employers, scanEmployers);
-      
-      // Update UniqueCandidate with merged employers and potentially new email
-      const updateData = { employers: mergedEmployers };
-      
-      // Update email if we didn't have one before
-      if (!uniqueCandidate.email && candidate.email) {
-        updateData.email = candidate.email;
-        console.log(`[LinkScan] Updated email to: ${candidate.email}`);
-      }
-      
-      // Update phone if we didn't have one before
-      if (!uniqueCandidate.phone && candidate.phone) {
-        updateData.phone = candidate.phone;
-      }
-      
-      // Update LinkedIn if we didn't have one before
-      if (!uniqueCandidate.linkedin_url && candidate.linkedin_url) {
-        updateData.linkedin_url = candidate.linkedin_url;
-      }
-      
-      await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, updateData);
+    const mergedEmployers = mergeEmployers(uniqueCandidate.employers, scanEmployers);
+    
+    // Update UniqueCandidate with merged employers and potentially new email
+    const updateData = { employers: mergedEmployers };
+    
+    // Update email if we didn't have one before
+    if (!uniqueCandidate.email && candidate.email) {
+      updateData.email = candidate.email;
+      console.log(`[LinkScan] Updated email to: ${candidate.email}`);
     }
+    
+    // Update phone if we didn't have one before
+    if (!uniqueCandidate.phone && candidate.phone) {
+      updateData.phone = candidate.phone;
+    }
+    
+    // Update LinkedIn if we didn't have one before
+    if (!uniqueCandidate.linkedin_url && candidate.linkedin_url) {
+      updateData.linkedin_url = candidate.linkedin_url;
+    }
+    
+    // Always update name if candidate has one
+    if (candidate.name && candidate.name !== 'Unknown') {
+      updateData.name = candidate.name;
+    }
+    
+    console.log(`[LinkScan] Updating UniqueCandidate ${uniqueCandidate.id} with:`, JSON.stringify(updateData, null, 2));
+    await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidate.id, updateData);
     
     // If no attestation exists, ensure all employers have call_verification_status = 'not_called'
     if (!uniqueCandidate.attestation_uid && uniqueCandidate.employers && uniqueCandidate.employers.length > 0) {
