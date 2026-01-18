@@ -63,27 +63,34 @@ Deno.serve(async (req) => {
     }
 
     // Normalize phone number to E.164 format
-    let normalized = String(hrPhoneNumber).replace(/[^\d+]/g, '').trim();
+    // Strip everything except digits and leading +
+    let normalized = String(hrPhoneNumber).trim();
+    const hasPlus = normalized.startsWith('+');
+    normalized = normalized.replace(/[^\d]/g, ''); // Remove all non-digits
     
-    // If no + prefix, assume US number and add +1
-    if (!normalized.startsWith('+')) {
-      // Remove leading 1 if present (e.g., 12035551212 -> 2035551212)
+    // If original had +, keep it; otherwise assume US
+    if (hasPlus) {
+      normalized = '+' + normalized;
+    } else {
+      // Handle US numbers: strip leading 1 if 11 digits, then add +1
       if (normalized.length === 11 && normalized.startsWith('1')) {
-        normalized = normalized.substring(1);
-      }
-      // Add +1 for US numbers
-      if (normalized.length === 10) {
-        normalized = '+1' + normalized;
+        normalized = '+' + normalized; // Already has country code
+      } else if (normalized.length === 10) {
+        normalized = '+1' + normalized; // Add US country code
       } else {
+        // Unknown format, try adding + and hope for the best
         normalized = '+' + normalized;
       }
     }
 
-    // Validate E.164 format
-    if (normalized.length < 11 || normalized.length > 15) {
-      console.error(`[VapiCall] Invalid phone format: ${hrPhoneNumber} -> ${normalized}`);
+    // Validate E.164: must start with +, be 11-15 chars total
+    const e164Regex = /^\+[1-9]\d{10,14}$/;
+    if (!e164Regex.test(normalized)) {
+      console.error(`[VapiCall] Invalid E.164 format: "${hrPhoneNumber}" -> "${normalized}"`);
       return Response.json({ 
-        error: `Invalid HR phone number format. Got "${hrPhoneNumber}", needs E.164 format like +12035551212.` 
+        error: `Invalid HR phone number format. Got "${hrPhoneNumber}", normalized to "${normalized}". Must be E.164 like +12035551212.`,
+        originalNumber: hrPhoneNumber,
+        normalizedNumber: normalized
       }, { status: 400 });
     }
 
