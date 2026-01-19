@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     let attestationCreated = false;
     let attestationUID = null;
 
-    if (callData.status === 'ended' && verificationResult !== 'INCONCLUSIVE') {
+    if (callData.status === 'ended') {
       // Get candidate info from call metadata
       const candidateName = callData.assistantOverrides?.variableValues?.candidateName || 
                            callData.metadata?.candidateName;
