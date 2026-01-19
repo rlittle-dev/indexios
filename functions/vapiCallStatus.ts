@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
 
       console.log(`[VapiCallStatus] Call ended for candidate: ${candidateName}, company: ${companyName}, uniqueId: ${uniqueCandidateId}`);
 
-      // Update UniqueCandidate with call result
+      // Update UniqueCandidate with call result (only create attestation for non-INCONCLUSIVE results)
+      const shouldCreateAttestation = verificationResult !== 'INCONCLUSIVE';
       if (uniqueCandidateId && companyName) {
         try {
           const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
