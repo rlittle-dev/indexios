@@ -126,66 +126,70 @@ Deno.serve(async (req) => {
             });
             console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
 
-            // Create blockchain attestation
-            try {
-              // Map verification result to outcome code
-              let verificationOutcome = 0; // inconclusive
-              if (verificationResult === 'YES') verificationOutcome = 1;
-              else if (verificationResult === 'NO') verificationOutcome = 2;
-              else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
+            // Create blockchain attestation (only for non-INCONCLUSIVE results)
+            if (shouldCreateAttestation) {
+              try {
+                // Map verification result to outcome code
+                let verificationOutcome = 0; // inconclusive
+                if (verificationResult === 'YES') verificationOutcome = 1;
+                else if (verificationResult === 'NO') verificationOutcome = 2;
+                else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
 
-              const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+                const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
 
-              console.log(`[VapiCallStatus] Creating attestation with params:`, {
-                uniqueCandidateId,
-                companyDomain,
-                verificationType: 'phone_call',
-                verificationOutcome
-              });
-
-              const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
-                uniqueCandidateId: uniqueCandidateId,
-                companyDomain: companyDomain,
-                verificationType: 'phone_call',
-                verificationOutcome: verificationOutcome,
-                verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`
-              });
-
-              console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
-
-              // Handle both nested response and direct response formats
-              const attestationData = attestationResponse.data || attestationResponse;
-              
-              if (attestationData?.attestationUID) {
-                attestationUID = attestationData.attestationUID;
-                attestationCreated = true;
-                console.log(`[VapiCallStatus] Created attestation: ${attestationUID}`);
-                
-                // Update the employer with attestation UID
-                const finalEmployers = [...updatedEmployers];
-                const empIdx = finalEmployers.findIndex(e => 
-                  e.employer_name?.toLowerCase().trim() === companyNorm ||
-                  e.employer_name?.toLowerCase().includes(companyNorm) ||
-                  companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
-                );
-                if (empIdx >= 0) {
-                  finalEmployers[empIdx].attestation_uid = attestationUID;
-                }
-                
-                await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
-                  employers: finalEmployers,
-                  attestation_uid: attestationUID,
-                  attestation_date: new Date().toISOString()
+                console.log(`[VapiCallStatus] Creating attestation with params:`, {
+                  uniqueCandidateId,
+                  companyDomain,
+                  verificationType: 'phone_call',
+                  verificationOutcome
                 });
-                console.log(`[VapiCallStatus] Saved attestation UID to UniqueCandidate`);
-              } else if (attestationData?.error) {
-                console.error(`[VapiCallStatus] Attestation returned error: ${attestationData.error}`);
-              } else {
-                console.error(`[VapiCallStatus] Attestation response missing UID:`, attestationData);
+
+                const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
+                  uniqueCandidateId: uniqueCandidateId,
+                  companyDomain: companyDomain,
+                  verificationType: 'phone_call',
+                  verificationOutcome: verificationOutcome,
+                  verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`
+                });
+
+                console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
+
+                // Handle both nested response and direct response formats
+                const attestationData = attestationResponse.data || attestationResponse;
+                
+                if (attestationData?.attestationUID) {
+                  attestationUID = attestationData.attestationUID;
+                  attestationCreated = true;
+                  console.log(`[VapiCallStatus] Created attestation: ${attestationUID}`);
+                  
+                  // Update the employer with attestation UID
+                  const finalEmployers = [...updatedEmployers];
+                  const empIdx = finalEmployers.findIndex(e => 
+                    e.employer_name?.toLowerCase().trim() === companyNorm ||
+                    e.employer_name?.toLowerCase().includes(companyNorm) ||
+                    companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
+                  );
+                  if (empIdx >= 0) {
+                    finalEmployers[empIdx].attestation_uid = attestationUID;
+                  }
+                  
+                  await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
+                    employers: finalEmployers,
+                    attestation_uid: attestationUID,
+                    attestation_date: new Date().toISOString()
+                  });
+                  console.log(`[VapiCallStatus] Saved attestation UID to UniqueCandidate`);
+                } else if (attestationData?.error) {
+                  console.error(`[VapiCallStatus] Attestation returned error: ${attestationData.error}`);
+                } else {
+                  console.error(`[VapiCallStatus] Attestation response missing UID:`, attestationData);
+                }
+              } catch (attestError) {
+                console.error('[VapiCallStatus] Attestation error:', attestError.message);
+                console.error('[VapiCallStatus] Attestation error stack:', attestError.stack);
               }
-            } catch (attestError) {
-              console.error('[VapiCallStatus] Attestation error:', attestError.message);
-              console.error('[VapiCallStatus] Attestation error stack:', attestError.stack);
+            } else {
+              console.log(`[VapiCallStatus] Skipping attestation for INCONCLUSIVE result`);
             }
           }
         } catch (updateError) {
