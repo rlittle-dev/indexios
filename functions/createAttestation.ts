@@ -110,10 +110,51 @@ Deno.serve(async (req) => {
     console.log(`[Attestation] Transaction confirmed in block ${receipt.blockNumber}`);
 
     // Extract attestation UID from logs
-    const attestedLog = receipt.logs.find(log => log.topics.length > 1);
-    const attestationUID = attestedLog?.topics[1] || null;
+    // The EAS contract emits an "Attested" event with the attestation UID
+    // Event signature: Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID)
+    // The UID is the 3rd topic (index 2) in older versions or can be in data
+    let attestationUID = null;
+    
+    console.log(`[Attestation] Processing ${receipt.logs.length} logs`);
+    
+    for (const log of receipt.logs) {
+      console.log(`[Attestation] Log address: ${log.address}, topics: ${log.topics.length}`);
+      
+      // Look for the Attested event from EAS contract
+      if (log.address.toLowerCase() === EAS_CONTRACT_ADDRESS.toLowerCase()) {
+        // The Attested event has 4 topics: event sig, recipient (indexed), attester (indexed), schemaUID (indexed)
+        // The UID is typically in the data field or as a non-indexed return
+        if (log.topics.length >= 1) {
+          // Try to decode the log data - the UID is often the first 32 bytes of data
+          if (log.data && log.data.length >= 66) {
+            // Data starts with 0x, then the UID is the first 32 bytes (64 hex chars)
+            attestationUID = '0x' + log.data.slice(2, 66);
+            console.log(`[Attestation] Extracted UID from data: ${attestationUID}`);
+            break;
+          }
+          // Fallback: try topics[1] if it looks like a valid UID
+          if (log.topics[1] && log.topics[1] !== ethers.ZeroHash) {
+            attestationUID = log.topics[1];
+            console.log(`[Attestation] Extracted UID from topics[1]: ${attestationUID}`);
+            break;
+          }
+        }
+      }
+    }
 
-    console.log(`[Attestation] Attestation UID: ${attestationUID}`);
+    // If still no UID, try parsing the transaction return value
+    if (!attestationUID || attestationUID === ethers.ZeroHash) {
+      // The attest function returns the UID directly, try to get it from the transaction
+      try {
+        // Re-fetch transaction receipt and look for return data
+        const txResponse = await provider.getTransaction(tx.hash);
+        console.log(`[Attestation] Transaction nonce: ${txResponse?.nonce}`);
+      } catch (e) {
+        console.log(`[Attestation] Could not get additional tx data: ${e.message}`);
+      }
+    }
+
+    console.log(`[Attestation] Final attestation UID: ${attestationUID}`);
 
     // Update UniqueCandidate with attestation info
     if (attestationUID) {
