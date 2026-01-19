@@ -138,6 +138,8 @@ Deno.serve(async (req) => {
     let attestationResult = null;
     if (normalizedData.uniqueCandidateId && normalizedData.companyName && normalizedData.verificationResult !== 'INCONCLUSIVE') {
       try {
+        const base44 = createClientFromRequest(req);
+        
         // Map verification result to outcome code
         let verificationOutcome = 0; // inconclusive
         if (normalizedData.verificationResult === 'YES') verificationOutcome = 1;
@@ -147,6 +149,13 @@ Deno.serve(async (req) => {
         // Extract company domain from company name
         const companyDomain = normalizedData.companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
 
+        console.log(`[VapiWebhook] Creating attestation with params:`, {
+          uniqueCandidateId: normalizedData.uniqueCandidateId,
+          companyDomain,
+          verificationType: 'phone_call',
+          verificationOutcome
+        });
+
         const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
           uniqueCandidateId: normalizedData.uniqueCandidateId,
           companyDomain: companyDomain,
@@ -155,15 +164,52 @@ Deno.serve(async (req) => {
           verificationReason: normalizedData.summary || `Phone verification result: ${normalizedData.verificationResult}`
         });
 
-        if (attestationResponse.data?.attestationUID) {
+        console.log(`[VapiWebhook] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
+
+        // Handle both nested response and direct response formats
+        const attestationData = attestationResponse.data || attestationResponse;
+        
+        if (attestationData?.attestationUID) {
           attestationResult = {
-            attestationUID: attestationResponse.data.attestationUID,
-            transactionHash: attestationResponse.data.transactionHash
+            attestationUID: attestationData.attestationUID,
+            transactionHash: attestationData.transactionHash
           };
           console.log(`[VapiWebhook] Created attestation: ${attestationResult.attestationUID}`);
+          
+          // Also update the UniqueCandidate employer with attestation UID
+          try {
+            const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: normalizedData.uniqueCandidateId });
+            if (candidates && candidates.length > 0) {
+              const candidate = candidates[0];
+              const companyNorm = normalizedData.companyName.toLowerCase().trim();
+              const updatedEmployers = [...(candidate.employers || [])];
+              
+              const empIdx = updatedEmployers.findIndex(e => 
+                e.employer_name?.toLowerCase().trim() === companyNorm ||
+                e.employer_name?.toLowerCase().includes(companyNorm) ||
+                companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
+              );
+              
+              if (empIdx >= 0) {
+                updatedEmployers[empIdx].attestation_uid = attestationData.attestationUID;
+              }
+              
+              await base44.asServiceRole.entities.UniqueCandidate.update(normalizedData.uniqueCandidateId, {
+                employers: updatedEmployers,
+                attestation_uid: attestationData.attestationUID,
+                attestation_date: new Date().toISOString()
+              });
+              console.log(`[VapiWebhook] Saved attestation UID to UniqueCandidate`);
+            }
+          } catch (updateErr) {
+            console.error(`[VapiWebhook] Failed to update UniqueCandidate with attestation:`, updateErr.message);
+          }
+        } else if (attestationData?.error) {
+          console.error(`[VapiWebhook] Attestation returned error: ${attestationData.error}`);
         }
       } catch (attestError) {
         console.error('[VapiWebhook] Attestation error:', attestError.message);
+        console.error('[VapiWebhook] Attestation error stack:', attestError.stack);
       }
     }
 
