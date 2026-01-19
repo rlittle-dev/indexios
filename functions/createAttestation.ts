@@ -3,7 +3,7 @@ import { ethers } from 'npm:ethers@6.11.1';
 
 // Base Sepolia EAS Contract
 const EAS_CONTRACT_ADDRESS = '0x4200000000000000000000000000000000000021';
-const SCHEMA_UID = '0x3e2ce91ecbf1c3dd061c6a09e5c4f8a56404b80836f8ab0381c26add9b674af7';
+const SCHEMA_UID = '0xd33ef4759bbd01353c967cdfdc504df42a90c5f4e5466237d8dc5e63a0adb969';
 
 // EAS ABI (minimal for attest function)
 const EAS_ABI = [
