@@ -135,6 +135,13 @@ Deno.serve(async (req) => {
 
               const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
 
+              console.log(`[VapiCallStatus] Creating attestation with params:`, {
+                uniqueCandidateId,
+                companyDomain,
+                verificationType: 'phone_call',
+                verificationOutcome
+              });
+
               const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
                 uniqueCandidateId: uniqueCandidateId,
                 companyDomain: companyDomain,
@@ -143,8 +150,13 @@ Deno.serve(async (req) => {
                 verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`
               });
 
-              if (attestationResponse.data?.attestationUID) {
-                attestationUID = attestationResponse.data.attestationUID;
+              console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
+
+              // Handle both nested response and direct response formats
+              const attestationData = attestationResponse.data || attestationResponse;
+              
+              if (attestationData?.attestationUID) {
+                attestationUID = attestationData.attestationUID;
                 attestationCreated = true;
                 console.log(`[VapiCallStatus] Created attestation: ${attestationUID}`);
                 
@@ -165,9 +177,14 @@ Deno.serve(async (req) => {
                   attestation_date: new Date().toISOString()
                 });
                 console.log(`[VapiCallStatus] Saved attestation UID to UniqueCandidate`);
+              } else if (attestationData?.error) {
+                console.error(`[VapiCallStatus] Attestation returned error: ${attestationData.error}`);
+              } else {
+                console.error(`[VapiCallStatus] Attestation response missing UID:`, attestationData);
               }
             } catch (attestError) {
               console.error('[VapiCallStatus] Attestation error:', attestError.message);
+              console.error('[VapiCallStatus] Attestation error stack:', attestError.stack);
             }
           }
         } catch (updateError) {
