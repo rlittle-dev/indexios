@@ -254,10 +254,10 @@ Deno.serve(async (req) => {
                     verificationOutcome
                   });
 
-                  // Call createAttestation via SDK (not asServiceRole for functions)
-                  console.log(`[VapiCallStatus] About to call createAttestation via base44.functions.invoke...`);
+                  // Call createAttestation via SDK using service role
+                  console.log(`[VapiCallStatus] About to call createAttestation via base44.asServiceRole.functions.invoke...`);
                   
-                  const attestationResult = await base44.functions.invoke('createAttestation', {
+                  const attestationResult = await base44.asServiceRole.functions.invoke('createAttestation', {
                     uniqueCandidateId: uniqueCandidateId,
                     companyDomain: resolvedDomain,
                     verificationType: 'phone_call',
