@@ -603,7 +603,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                     Call: {existingAttestations[company].result.replace(/_/g, ' ')}
                                                                   </Badge>
                                                                 )}
-                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-normal">
+                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-normal pointer-events-none">
                                                                   Indexios has automatically called this user's employer to verify their association to this organization.
                                                                 </div>
                                                               </div>
@@ -653,7 +653,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                     {callResults[company].result.replace(/_/g, ' ')}
                                                                   </Badge>
                                                                 )}
-                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-normal">
+                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-normal pointer-events-none">
                                                                   Indexios has automatically called this user's employer to verify their association to this organization.
                                                                 </div>
                                                               </div>
