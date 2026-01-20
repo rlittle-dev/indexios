@@ -286,6 +286,8 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log(`[VapiCallStatus] Returning final response - attestationCreated: ${attestationCreated}, attestationUID: ${attestationUID}`);
+    
     return Response.json({
       success: true,
       callId,
