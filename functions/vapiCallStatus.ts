@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
 
-Deno.serve(async (req) => {
+async function processRequest(req) {
   console.log(`[VapiCallStatus] === Function invoked ===`);
   
   let base44;
