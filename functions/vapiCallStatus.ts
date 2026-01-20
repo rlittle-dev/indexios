@@ -203,34 +203,8 @@ Deno.serve(async (req) => {
                 
                 console.log(`[VapiCallStatus] createAttestation SDK response:`, JSON.stringify(attestationResult, null, 2));
 
-                const attestationResponse = await fetch(attestationUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': req.headers.get('Authorization') || ''
-                  },
-                  body: JSON.stringify({
-                    uniqueCandidateId: uniqueCandidateId,
-                    companyDomain: companyDomain,
-                    verificationType: 'phone_call',
-                    verificationOutcome: verificationOutcome,
-                    verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
-                    _internal: true
-                  })
-                });
-
-                console.log(`[VapiCallStatus] Attestation HTTP status: ${attestationResponse.status}`);
-                const attestationText = await attestationResponse.text();
-                console.log(`[VapiCallStatus] Attestation raw response: ${attestationText.substring(0, 500)}`);
-
-                let attestationData;
-                try {
-                  attestationData = JSON.parse(attestationText);
-                } catch (parseErr) {
-                  console.error(`[VapiCallStatus] Failed to parse attestation response:`, attestationText);
-                  attestationData = { error: 'Invalid JSON response' };
-                }
-                console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationData, null, 2));
+                // attestationResult is already the parsed response from SDK
+                const attestationData = attestationResult?.data || attestationResult;
                 
                 if (attestationData?.attestationUID) {
                   attestationUID = attestationData.attestationUID;
