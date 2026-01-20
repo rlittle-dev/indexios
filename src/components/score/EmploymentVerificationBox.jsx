@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 import { base44 } from '@/api/base44Client';
 import OnChainBadge from './OnChainBadge';
 
@@ -532,32 +532,28 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                         {existingAttestations[company] ? (
                                                           <div className="flex flex-col gap-2">
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                              <TooltipProvider>
-                                                                <Tooltip>
-                                                                  <TooltipTrigger asChild>
-                                                                    {existingAttestations[company].result === 'NO' ? (
-                                                                      <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
-                                                                        ⚠️ Company Denies Employment
-                                                                      </Badge>
-                                                                    ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' || existingAttestations[company].result === 'REFUSED_TO_DISCLOSE' ? (
-                                                                      <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
-                                                                        Company Refuses to Verify or Deny
-                                                                      </Badge>
-                                                                    ) : existingAttestations[company].result === 'INCONCLUSIVE' ? (
-                                                                      <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
-                                                                        Inconclusive Call Result
-                                                                      </Badge>
-                                                                    ) : (
-                                                                      <Badge className={`text-xs cursor-help ${getCallResultBadge(existingAttestations[company].result)}`}>
-                                                                        Call: {existingAttestations[company].result.replace(/_/g, ' ')}
-                                                                      </Badge>
-                                                                    )}
-                                                                  </TooltipTrigger>
-                                                                  <TooltipContent className="bg-green-950/90 border-green-800 text-green-100 max-w-xs">
-                                                                    <p>Indexios has automatically called this user's employer to verify their association to this organization.</p>
-                                                                  </TooltipContent>
-                                                                </Tooltip>
-                                                              </TooltipProvider>
+                                                              <div className="relative group">
+                                                                {existingAttestations[company].result === 'NO' ? (
+                                                                  <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
+                                                                    ⚠️ Company Denies Employment
+                                                                  </Badge>
+                                                                ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' || existingAttestations[company].result === 'REFUSED_TO_DISCLOSE' ? (
+                                                                  <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
+                                                                    Company Refuses to Verify or Deny
+                                                                  </Badge>
+                                                                ) : existingAttestations[company].result === 'INCONCLUSIVE' ? (
+                                                                  <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
+                                                                    Inconclusive Call Result
+                                                                  </Badge>
+                                                                ) : (
+                                                                  <Badge className={`text-xs cursor-help ${getCallResultBadge(existingAttestations[company].result)}`}>
+                                                                    Call: {existingAttestations[company].result.replace(/_/g, ' ')}
+                                                                  </Badge>
+                                                                )}
+                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-normal">
+                                                                  Indexios has automatically called this user's employer to verify their association to this organization.
+                                                                </div>
+                                                              </div>
                                                               {(existingAttestations[company].hasAttestation || blockchainAttestations[company]) && (
                                                                 <OnChainBadge 
                                                                   attestationUID={existingAttestations[company].attestationUID || blockchainAttestations[company]?.uid}
@@ -586,32 +582,28 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                         ) : callResults[company] ? (
                                                           <div className="flex flex-col gap-2">
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                              <TooltipProvider>
-                                                                <Tooltip>
-                                                                  <TooltipTrigger asChild>
-                                                                    {callResults[company].result === 'NO' ? (
-                                                                      <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
-                                                                        ⚠️ Company Denies Employment
-                                                                      </Badge>
-                                                                    ) : callResults[company].result === 'REFUSE_TO_DISCLOSE' ? (
-                                                                      <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
-                                                                        Company Refuses to Verify or Deny
-                                                                      </Badge>
-                                                                    ) : callResults[company].result === 'INCONCLUSIVE' ? (
-                                                                      <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
-                                                                        Inconclusive Call Result
-                                                                      </Badge>
-                                                                    ) : (
-                                                                      <Badge className={`text-xs cursor-help ${getCallResultBadge(callResults[company].result)}`}>
-                                                                        {callResults[company].result.replace(/_/g, ' ')}
-                                                                      </Badge>
-                                                                    )}
-                                                                  </TooltipTrigger>
-                                                                  <TooltipContent className="bg-green-950/90 border-green-800 text-green-100 max-w-xs">
-                                                                    <p>Indexios has automatically called this user's employer to verify their association to this organization.</p>
-                                                                  </TooltipContent>
-                                                                </Tooltip>
-                                                              </TooltipProvider>
+                                                              <div className="relative group">
+                                                                {callResults[company].result === 'NO' ? (
+                                                                  <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
+                                                                    ⚠️ Company Denies Employment
+                                                                  </Badge>
+                                                                ) : callResults[company].result === 'REFUSE_TO_DISCLOSE' ? (
+                                                                  <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
+                                                                    Company Refuses to Verify or Deny
+                                                                  </Badge>
+                                                                ) : callResults[company].result === 'INCONCLUSIVE' ? (
+                                                                  <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
+                                                                    Inconclusive Call Result
+                                                                  </Badge>
+                                                                ) : (
+                                                                  <Badge className={`text-xs cursor-help ${getCallResultBadge(callResults[company].result)}`}>
+                                                                    {callResults[company].result.replace(/_/g, ' ')}
+                                                                  </Badge>
+                                                                )}
+                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-normal">
+                                                                  Indexios has automatically called this user's employer to verify their association to this organization.
+                                                                </div>
+                                                              </div>
                                                               {(callResults[company].attestationCreated || blockchainAttestations[company]) && (
                                                                 <OnChainBadge 
                                                                   attestationUID={blockchainAttestations[company]?.uid}
