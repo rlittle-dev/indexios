@@ -79,8 +79,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Attestation signer not configured' }, { status: 500 });
     }
 
-    // Connect to Base Sepolia
-    const provider = new ethers.JsonRpcProvider('https://sepolia.base.org');
+    // Connect to Base Mainnet
+      const provider = new ethers.JsonRpcProvider('https://mainnet.base.org');
     const wallet = new ethers.Wallet(privateKey, provider);
     const easContract = new ethers.Contract(EAS_CONTRACT_ADDRESS, EAS_ABI, wallet);
 

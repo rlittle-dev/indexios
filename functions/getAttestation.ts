@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { ethers } from 'npm:ethers@6.11.1';
 
-// Base Sepolia EAS GraphQL endpoint
-const EAS_GRAPHQL_URL = 'https://base-sepolia.easscan.org/graphql';
+// Base Mainnet EAS GraphQL endpoint
+const EAS_GRAPHQL_URL = 'https://base.easscan.org/graphql';
 const SCHEMA_UID = '0x3e2ce91ecbf1c3dd061c6a09e5c4f8a56404b80836f8ab0381c26add9b674af7';
 
 // Generate candidate hash (same as createAttestation)

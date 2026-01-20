@@ -12,7 +12,7 @@ export default function OnChainBadge({ attestationUID, status, explorerUrl }) {
     INCONCLUSIVE: 'bg-zinc-700 text-zinc-200 border-zinc-500'
   };
 
-  const url = explorerUrl || `https://base-sepolia.easscan.org/attestation/view/${attestationUID}`;
+  const url = explorerUrl || `https://base.easscan.org/attestation/view/${attestationUID}`;
 
   return (
     <a
