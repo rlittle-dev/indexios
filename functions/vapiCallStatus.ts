@@ -172,7 +172,9 @@ Deno.serve(async (req) => {
             console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
 
             // Create blockchain attestation (only for non-INCONCLUSIVE results)
+            console.log(`[VapiCallStatus] Checking attestation condition: shouldCreateAttestation=${shouldCreateAttestation}`);
             if (shouldCreateAttestation) {
+              console.log(`[VapiCallStatus] ENTERING attestation block...`);
               try {
                 // Map verification result to outcome code
                 let verificationOutcome = 0; // inconclusive
