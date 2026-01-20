@@ -28,30 +28,46 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
+    // Parse request body first to check for internal flag
+    const body = await req.json();
+    const { 
+      uniqueCandidateId,
+      companyDomain,
+      verificationType,
+      verificationOutcome,
+      verificationReason,
+      _internal // Flag to skip tier check when called from other backend functions
+    } = body;
+    
     // Check if called by service role (from another backend function) or by user
-    let isServiceCall = false;
-    try {
-      const isAuthenticated = await base44.auth.isAuthenticated();
-      if (isAuthenticated) {
-        const user = await base44.auth.me();
-        if (user) {
-          // Called by user - check tier
-          const userTier = user.subscription_tier || 'free';
-          if (userTier !== 'professional' && userTier !== 'enterprise') {
-            return Response.json({ 
-              error: 'Attestations require Professional or Enterprise plan' 
-            }, { status: 403 });
+    let isServiceCall = _internal === true;
+    
+    if (!isServiceCall) {
+      try {
+        const isAuthenticated = await base44.auth.isAuthenticated();
+        if (isAuthenticated) {
+          const user = await base44.auth.me();
+          if (user) {
+            // Called by user - check tier
+            const userTier = user.subscription_tier || 'free';
+            if (userTier !== 'professional' && userTier !== 'enterprise') {
+              return Response.json({ 
+                error: 'Attestations require Professional or Enterprise plan' 
+              }, { status: 403 });
+            }
           }
+        } else {
+          // No user auth - likely called via service role from another function
+          isServiceCall = true;
+          console.log('[Attestation] Called via service role (no user auth)');
         }
-      } else {
-        // No user auth - likely called via service role from another function
+      } catch (authError) {
+        // Auth check failed - likely called via service role from another function
         isServiceCall = true;
-        console.log('[Attestation] Called via service role (no user auth)');
+        console.log('[Attestation] Called via service role:', authError.message);
       }
-    } catch (authError) {
-      // Auth check failed - likely called via service role from another function
-      isServiceCall = true;
-      console.log('[Attestation] Called via service role:', authError.message);
+    } else {
+      console.log('[Attestation] Called internally from another function');
     }
 
     const { 
