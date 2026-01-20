@@ -3,15 +3,23 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 const VAPI_API_KEY = Deno.env.get('VAPI_API_KEY');
 
 Deno.serve(async (req) => {
+  console.log(`[VapiCallStatus] Function invoked`);
+  
   try {
     const base44 = createClientFromRequest(req);
+    console.log(`[VapiCallStatus] Created base44 client`);
+    
     const user = await base44.auth.me();
+    console.log(`[VapiCallStatus] User auth result: ${user ? user.email : 'null'}`);
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { callId, candidateName: inputCandidateName, companyName: inputCompanyName, uniqueCandidateId: inputUniqueCandidateId } = await req.json();
+    const body = await req.json();
+    console.log(`[VapiCallStatus] Request body:`, JSON.stringify(body));
+    
+    const { callId, candidateName: inputCandidateName, companyName: inputCompanyName, uniqueCandidateId: inputUniqueCandidateId } = body;
 
     if (!callId) {
       return Response.json({ error: 'Missing callId' }, { status: 400 });
