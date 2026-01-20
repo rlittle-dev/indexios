@@ -195,10 +195,14 @@ Deno.serve(async (req) => {
             }
 
             console.log(`[VapiCallStatus] Updating UniqueCandidate employers...`);
-            await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
-              employers: updatedEmployers
-            });
-            console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
+            try {
+              await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
+                employers: updatedEmployers
+              });
+              console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
+            } catch (updateErr) {
+              console.error(`[VapiCallStatus] Failed to update UniqueCandidate:`, updateErr.message);
+            }
 
             // Create blockchain attestation (only for non-INCONCLUSIVE results)
             console.log(`[VapiCallStatus] About to check shouldCreateAttestation: ${shouldCreateAttestation}, verificationResult: ${verificationResult}`);
