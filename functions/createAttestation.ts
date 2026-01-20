@@ -31,20 +31,27 @@ Deno.serve(async (req) => {
     // Check if called by service role (from another backend function) or by user
     let isServiceCall = false;
     try {
-      const user = await base44.auth.me();
-      if (user) {
-        // Called by user - check tier
-        const userTier = user.subscription_tier || 'free';
-        if (userTier !== 'professional' && userTier !== 'enterprise') {
-          return Response.json({ 
-            error: 'Attestations require Professional or Enterprise plan' 
-          }, { status: 403 });
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (isAuthenticated) {
+        const user = await base44.auth.me();
+        if (user) {
+          // Called by user - check tier
+          const userTier = user.subscription_tier || 'free';
+          if (userTier !== 'professional' && userTier !== 'enterprise') {
+            return Response.json({ 
+              error: 'Attestations require Professional or Enterprise plan' 
+            }, { status: 403 });
+          }
         }
+      } else {
+        // No user auth - likely called via service role from another function
+        isServiceCall = true;
+        console.log('[Attestation] Called via service role (no user auth)');
       }
-    } catch {
-      // No user auth - likely called via service role from another function
+    } catch (authError) {
+      // Auth check failed - likely called via service role from another function
       isServiceCall = true;
-      console.log('[Attestation] Called via service role');
+      console.log('[Attestation] Called via service role:', authError.message);
     }
 
     const { 
