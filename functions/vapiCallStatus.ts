@@ -125,14 +125,20 @@ Deno.serve(async (req) => {
           
           if (candidates && candidates.length > 0) {
             const candidate = candidates[0];
+            console.log(`[VapiCallStatus] Candidate data:`, JSON.stringify({ id: candidate.id, employers: candidate.employers }, null, 2));
+            
             const existingEmployers = candidate.employers || [];
             const companyNorm = companyName.toLowerCase().trim();
+            
+            console.log(`[VapiCallStatus] Looking for employer matching: "${companyNorm}" in ${existingEmployers.length} employers`);
             
             const employerIndex = existingEmployers.findIndex(e => 
               e.employer_name?.toLowerCase().trim() === companyNorm ||
               e.employer_name?.toLowerCase().includes(companyNorm) ||
               companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
             );
+            
+            console.log(`[VapiCallStatus] Employer index found: ${employerIndex}`);
 
             // Map verification result to call status
             let callStatus = 'inconclusive';
