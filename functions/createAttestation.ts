@@ -39,35 +39,30 @@ Deno.serve(async (req) => {
       _internal // Flag to skip tier check when called from other backend functions
     } = body;
     
-    // Check if called by service role (from another backend function) or by user
-    let isServiceCall = _internal === true;
-    
-    if (!isServiceCall) {
+    // Check if called internally from another backend function - skip tier check
+    if (_internal === true) {
+      console.log('[Attestation] Called internally from another function - skipping tier check');
+    } else {
+      // Called directly by user - check tier
       try {
         const isAuthenticated = await base44.auth.isAuthenticated();
         if (isAuthenticated) {
           const user = await base44.auth.me();
           if (user) {
-            // Called by user - check tier
             const userTier = user.subscription_tier || 'free';
             if (userTier !== 'professional' && userTier !== 'enterprise') {
               return Response.json({ 
                 error: 'Attestations require Professional or Enterprise plan' 
               }, { status: 403 });
             }
+            console.log(`[Attestation] Called by user ${user.email} with tier ${userTier}`);
           }
         } else {
-          // No user auth - likely called via service role from another function
-          isServiceCall = true;
-          console.log('[Attestation] Called via service role (no user auth)');
+          console.log('[Attestation] No user auth but _internal not set - proceeding anyway');
         }
       } catch (authError) {
-        // Auth check failed - likely called via service role from another function
-        isServiceCall = true;
-        console.log('[Attestation] Called via service role:', authError.message);
+        console.log('[Attestation] Auth check failed:', authError.message);
       }
-    } else {
-      console.log('[Attestation] Called internally from another function');
     }
 
     // Body already parsed above
