@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
                 });
 
                 // Call createAttestation directly via HTTP to avoid SDK auth issues
-                const functionBaseUrl = req.url.replace(/\/vapiCallStatus.*$/, '');
+                const functionBaseUrl = req.url.replace(/\/vapiCallStatus.*$/, '').replace(/\/$/, '');
                 const attestationUrl = `${functionBaseUrl}/createAttestation`;
 
                 console.log(`[VapiCallStatus] Calling attestation at: ${attestationUrl}`);
