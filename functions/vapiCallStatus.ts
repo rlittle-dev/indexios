@@ -114,7 +114,9 @@ Deno.serve(async (req) => {
           
           if (candidates && candidates.length > 0) {
             const candidate = candidates[0];
+            console.log(`[VapiCallStatus] Found candidate:`, candidate.id);
             const existingEmployers = candidate.employers || [];
+            console.log(`[VapiCallStatus] Existing employers count: ${existingEmployers.length}`);
             const companyNorm = companyName.toLowerCase().trim();
             
             const employerIndex = existingEmployers.findIndex(e => 
@@ -122,12 +124,14 @@ Deno.serve(async (req) => {
               e.employer_name?.toLowerCase().includes(companyNorm) ||
               companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
             );
+            console.log(`[VapiCallStatus] Employer index found: ${employerIndex}`);
 
             // Map verification result to call status
             let callStatus = 'inconclusive';
             if (verificationResult === 'YES') callStatus = 'yes';
             else if (verificationResult === 'NO') callStatus = 'no';
             else if (verificationResult === 'REFUSE_TO_DISCLOSE') callStatus = 'refused_to_disclose';
+            console.log(`[VapiCallStatus] Mapped callStatus: ${callStatus}`);
 
             const updatedEmployers = [...existingEmployers];
             
@@ -135,6 +139,11 @@ Deno.serve(async (req) => {
               // Check if already verified - skip if already has attestation
               const existingStatus = updatedEmployers[employerIndex].call_verification_status;
               console.log(`[VapiCallStatus] Employer ${companyName} existing status: ${existingStatus}, attestation_uid: ${updatedEmployers[employerIndex].attestation_uid}`);
+              
+              // IMPORTANT: Check if status is already 'yes' - if so, skip to avoid re-processing
+              if (existingStatus === 'yes' && !updatedEmployers[employerIndex].attestation_uid) {
+                console.log(`[VapiCallStatus] Status already 'yes' but no attestation - will create attestation`);
+              }
               
               if (updatedEmployers[employerIndex].attestation_uid) {
                 console.log(`[VapiCallStatus] Employer ${companyName} already has attestation, skipping`);
