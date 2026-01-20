@@ -81,13 +81,21 @@ Deno.serve(async (req) => {
     let attestationUID = null;
 
     if (callData.status === 'ended') {
-      // Get candidate info from call metadata
+      // Log the full call data to debug metadata extraction
+      console.log(`[VapiCallStatus] Full call data keys:`, Object.keys(callData));
+      console.log(`[VapiCallStatus] assistantOverrides:`, JSON.stringify(callData.assistantOverrides, null, 2));
+      console.log(`[VapiCallStatus] metadata:`, JSON.stringify(callData.metadata, null, 2));
+      
+      // Get candidate info from call metadata - check multiple possible locations
       const candidateName = callData.assistantOverrides?.variableValues?.candidateName || 
-                           callData.metadata?.candidateName;
+                           callData.metadata?.candidateName ||
+                           callData.assistant?.variableValues?.candidateName;
       const companyName = callData.assistantOverrides?.variableValues?.companyName || 
-                         callData.metadata?.companyName;
+                         callData.metadata?.companyName ||
+                         callData.assistant?.variableValues?.companyName;
       const uniqueCandidateId = callData.assistantOverrides?.variableValues?.uniqueCandidateId || 
-                               callData.metadata?.uniqueCandidateId;
+                               callData.metadata?.uniqueCandidateId ||
+                               callData.assistant?.variableValues?.uniqueCandidateId;
 
       console.log(`[VapiCallStatus] Call ended for candidate: ${candidateName}, company: ${companyName}, uniqueId: ${uniqueCandidateId}`);
 
