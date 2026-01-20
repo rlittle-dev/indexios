@@ -70,13 +70,7 @@ Deno.serve(async (req) => {
       console.log('[Attestation] Called internally from another function');
     }
 
-    const { 
-      uniqueCandidateId,
-      companyDomain,
-      verificationType, // 'web_evidence' or 'phone_call'
-      verificationOutcome, // 0=inconclusive, 1=yes, 2=no, 3=refused_to_disclose
-      verificationReason
-    } = await req.json();
+    // Body already parsed above
 
     if (!uniqueCandidateId || !companyDomain || verificationType === undefined || verificationOutcome === undefined) {
       return Response.json({ 
