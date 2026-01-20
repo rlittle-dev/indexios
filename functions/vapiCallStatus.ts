@@ -172,7 +172,8 @@ Deno.serve(async (req) => {
                   companyDomain: companyDomain,
                   verificationType: 'phone_call',
                   verificationOutcome: verificationOutcome,
-                  verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`
+                  verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
+                  _internal: true // Skip tier check for internal calls
                 });
 
                 console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
