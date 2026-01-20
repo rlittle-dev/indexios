@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
             txHash: att.txid,
             ...decoded,
             status: outcomeToStatus(decoded.verificationOutcome),
-            explorerUrl: `https://base-sepolia.easscan.org/attestation/view/${att.id}`
+            explorerUrl: `https://base.easscan.org/attestation/view/${att.id}`
           });
         } catch (decodeError) {
           console.error('[getAttestation] Decode error:', decodeError);
@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
                 txHash: att.txid,
                 ...decoded,
                 status: outcomeToStatus(decoded.verificationOutcome),
-                explorerUrl: `https://base-sepolia.easscan.org/attestation/view/${att.id}`
+                explorerUrl: `https://base.easscan.org/attestation/view/${att.id}`
               });
             }
           } catch (decodeError) {
