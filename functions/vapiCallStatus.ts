@@ -182,31 +182,28 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
               employers: updatedEmployers
             });
-            console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
+            console.log(`[VapiCallStatus] Updated UniqueCandidate - now checking attestation`);
 
             // Create blockchain attestation (only for non-INCONCLUSIVE results)
-            console.log(`[VapiCallStatus] Checking attestation condition: shouldCreateAttestation=${shouldCreateAttestation}`);
-            if (shouldCreateAttestation) {
-              console.log(`[VapiCallStatus] ENTERING attestation block...`);
+            console.log(`[VapiCallStatus] shouldCreateAttestation=${shouldCreateAttestation}, verificationResult=${verificationResult}`);
+            
+            if (!shouldCreateAttestation) {
+              console.log(`[VapiCallStatus] Skipping attestation - result is INCONCLUSIVE`);
+            } else {
+              console.log(`[VapiCallStatus] Will create attestation now`);
+              
+              // Map verification result to outcome code
+              let verificationOutcome = 0; // inconclusive
+              if (verificationResult === 'YES') verificationOutcome = 1;
+              else if (verificationResult === 'NO') verificationOutcome = 2;
+              else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
+
+              const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+
+              console.log(`[VapiCallStatus] Attestation params: uniqueCandidateId=${uniqueCandidateId}, companyDomain=${companyDomain}, verificationOutcome=${verificationOutcome}`);
+
               try {
-                console.log(`[VapiCallStatus] Inside try block for attestation`);
-                // Map verification result to outcome code
-                let verificationOutcome = 0; // inconclusive
-                if (verificationResult === 'YES') verificationOutcome = 1;
-                else if (verificationResult === 'NO') verificationOutcome = 2;
-                else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
-
-                const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
-
-                console.log(`[VapiCallStatus] Creating attestation with params:`, {
-                  uniqueCandidateId,
-                  companyDomain,
-                  verificationType: 'phone_call',
-                  verificationOutcome
-                });
-
-                // Call createAttestation via SDK service role instead of HTTP
-                console.log(`[VapiCallStatus] About to call createAttestation via SDK...`);
+                console.log(`[VapiCallStatus] Calling createAttestation via SDK...`);
                 
                 const attestationResult = await base44.asServiceRole.functions.invoke('createAttestation', {
                   uniqueCandidateId: uniqueCandidateId,
