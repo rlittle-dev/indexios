@@ -258,6 +258,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log(`[VapiCallStatus] Final response: attestationCreated=${attestationCreated}, attestationUID=${attestationUID}`);
     return Response.json({
       success: true,
       callId,
@@ -272,7 +273,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[VapiCallStatus] Error:', error);
+    console.error('[VapiCallStatus] Top-level error:', error.message);
+    console.error('[VapiCallStatus] Top-level error stack:', error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
