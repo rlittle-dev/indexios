@@ -313,4 +313,14 @@ async function processRequest(req) {
     attestationCreated,
     attestationUID
   });
+}
+
+Deno.serve(async (req) => {
+  try {
+    return await processRequest(req);
+  } catch (fatalError) {
+    console.error(`[VapiCallStatus] FATAL ERROR:`, fatalError.message);
+    console.error(`[VapiCallStatus] Stack:`, fatalError.stack);
+    return Response.json({ error: fatalError.message }, { status: 500 });
+  }
 });
