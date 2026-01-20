@@ -28,7 +28,19 @@ Deno.serve(async (req) => {
       }
     });
 
-    const callData = await response.json();
+    const responseText = await response.text();
+    console.log(`[VapiCallStatus] Raw VAPI response (${response.status}):`, responseText.substring(0, 500));
+    
+    let callData;
+    try {
+      callData = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('[VapiCallStatus] Failed to parse VAPI response:', responseText);
+      return Response.json({ 
+        error: 'Invalid response from VAPI API',
+        details: responseText.substring(0, 200)
+      }, { status: 502 });
+    }
 
     if (!response.ok) {
       console.error('[VapiCallStatus] VAPI error:', callData);
