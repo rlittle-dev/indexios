@@ -141,18 +141,26 @@ Deno.serve(async (req) => {
             );
             
             console.log(`[VapiCallStatus] Employer index found: ${employerIndex}`);
+            if (employerIndex >= 0) {
+              console.log(`[VapiCallStatus] Existing employer data:`, JSON.stringify(existingEmployers[employerIndex]));
+            }
 
             // Map verification result to call status
             let callStatus = 'inconclusive';
             if (verificationResult === 'YES') callStatus = 'yes';
             else if (verificationResult === 'NO') callStatus = 'no';
             else if (verificationResult === 'REFUSE_TO_DISCLOSE') callStatus = 'refused_to_disclose';
+            
+            console.log(`[VapiCallStatus] Mapped call status: ${callStatus}`);
 
             const updatedEmployers = [...existingEmployers];
             
             if (employerIndex >= 0) {
               // Check if already verified - skip if already has attestation
-              if (updatedEmployers[employerIndex].attestation_uid) {
+              const existingAttestationUid = updatedEmployers[employerIndex].attestation_uid;
+              console.log(`[VapiCallStatus] Existing attestation_uid: ${existingAttestationUid}`);
+              
+              if (existingAttestationUid) {
                 console.log(`[VapiCallStatus] Employer ${companyName} already has attestation, skipping`);
                 return Response.json({
                   success: true,
@@ -164,11 +172,12 @@ Deno.serve(async (req) => {
                   transcript: transcript.substring(0, 500),
                   summary: analysis.summary || null,
                   attestationCreated: false,
-                  attestationUID: updatedEmployers[employerIndex].attestation_uid,
+                  attestationUID: existingAttestationUid,
                   message: 'Employer already has attestation'
                 });
               }
               
+              console.log(`[VapiCallStatus] Updating employer status to: ${callStatus}`);
               updatedEmployers[employerIndex] = {
                 ...updatedEmployers[employerIndex],
                 call_verification_status: callStatus,
