@@ -167,19 +167,30 @@ Deno.serve(async (req) => {
                   verificationOutcome
                 });
 
-                const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
-                  uniqueCandidateId: uniqueCandidateId,
-                  companyDomain: companyDomain,
-                  verificationType: 'phone_call',
-                  verificationOutcome: verificationOutcome,
-                  verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
-                  _internal: true // Skip tier check for internal calls
+                // Call createAttestation directly via HTTP to avoid SDK auth issues
+                const functionBaseUrl = req.url.replace(/\/vapiCallStatus.*$/, '');
+                const attestationUrl = `${functionBaseUrl}/createAttestation`;
+
+                console.log(`[VapiCallStatus] Calling attestation at: ${attestationUrl}`);
+
+                const attestationResponse = await fetch(attestationUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': req.headers.get('Authorization') || ''
+                  },
+                  body: JSON.stringify({
+                    uniqueCandidateId: uniqueCandidateId,
+                    companyDomain: companyDomain,
+                    verificationType: 'phone_call',
+                    verificationOutcome: verificationOutcome,
+                    verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
+                    _internal: true
+                  })
                 });
 
-                console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationResponse.data || attestationResponse, null, 2));
-
-                // Handle both nested response and direct response formats
-                const attestationData = attestationResponse.data || attestationResponse;
+                const attestationData = await attestationResponse.json();
+                console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationData, null, 2));
                 
                 if (attestationData?.attestationUID) {
                   attestationUID = attestationData.attestationUID;
