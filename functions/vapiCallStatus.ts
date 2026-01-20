@@ -250,8 +250,6 @@ Deno.serve(async (req) => {
                 console.error('[VapiCallStatus] Attestation error:', attestError.message);
                 console.error('[VapiCallStatus] Attestation error stack:', attestError.stack);
               }
-            } else {
-              console.log(`[VapiCallStatus] Skipping attestation for INCONCLUSIVE result`);
             }
           }
         } catch (updateError) {
