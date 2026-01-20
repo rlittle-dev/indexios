@@ -107,6 +107,8 @@ Deno.serve(async (req) => {
       const shouldCreateAttestation = verificationResult !== 'INCONCLUSIVE';
       console.log(`[VapiCallStatus] shouldCreateAttestation=${shouldCreateAttestation}, uniqueCandidateId=${uniqueCandidateId}, companyName=${companyName}`);
       
+      console.log(`[VapiCallStatus] Checking conditions - uniqueCandidateId: ${uniqueCandidateId}, companyName: ${companyName}`);
+      
       if (uniqueCandidateId && companyName) {
         try {
           console.log(`[VapiCallStatus] Fetching UniqueCandidate...`);
