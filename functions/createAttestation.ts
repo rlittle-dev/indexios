@@ -171,11 +171,53 @@ Deno.serve(async (req) => {
     // Update UniqueCandidate with attestation info
     if (attestationUID) {
       try {
-        await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
-          attestation_uid: attestationUID,
-          attestation_date: new Date().toISOString()
-        });
-        console.log(`[Attestation] Updated UniqueCandidate ${uniqueCandidateId} with attestation`);
+        // Fetch current candidate to update employer entry
+        const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+        if (candidates && candidates.length > 0) {
+          const candidate = candidates[0];
+          const existingEmployers = candidate.employers || [];
+          const domainLower = companyDomain.toLowerCase();
+          
+          // Find and update the employer entry
+          const updatedEmployers = existingEmployers.map(emp => {
+            // Match by domain in hr_phone.source or hr_email.source, or by employer name containing domain
+            const empNameLower = (emp.employer_name || '').toLowerCase();
+            const hrPhoneSource = (emp.hr_phone?.source || '').toLowerCase();
+            const hrEmailSource = (emp.hr_email?.source || '').toLowerCase();
+            
+            if (hrPhoneSource.includes(domainLower) || hrEmailSource.includes(domainLower) || 
+                domainLower.includes(empNameLower.replace(/[^a-z0-9]/g, '')) ||
+                empNameLower.includes(domainLower.replace('.com', '').replace('.org', '').replace('.net', ''))) {
+              // Map verificationOutcome to call_verification_status
+              let callStatus = emp.call_verification_status;
+              if (verificationOutcome === 1) callStatus = 'yes';
+              else if (verificationOutcome === 2) callStatus = 'no';
+              else if (verificationOutcome === 3) callStatus = 'refused_to_disclose';
+              
+              return {
+                ...emp,
+                call_verification_status: callStatus,
+                call_verified_date: new Date().toISOString(),
+                attestation_uid: attestationUID
+              };
+            }
+            return emp;
+          });
+          
+          await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
+            employers: updatedEmployers,
+            attestation_uid: attestationUID,
+            attestation_date: new Date().toISOString()
+          });
+          console.log(`[Attestation] Updated UniqueCandidate ${uniqueCandidateId} with attestation and employer status`);
+        } else {
+          // Fallback: just update top-level attestation fields
+          await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
+            attestation_uid: attestationUID,
+            attestation_date: new Date().toISOString()
+          });
+          console.log(`[Attestation] Updated UniqueCandidate ${uniqueCandidateId} with attestation (no employers found)`);
+        }
       } catch (updateError) {
         console.error(`[Attestation] UniqueCandidate update error:`, updateError.message);
       }
