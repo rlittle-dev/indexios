@@ -95,7 +95,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     }
   };
 
-  // Fetch blockchain attestations
+  // Fetch blockchain attestations and sync to UniqueCandidate if needed
   const fetchBlockchainAttestations = async () => {
     if (!uniqueCandidateId) return;
 
@@ -105,6 +105,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       
       if (response.data?.success && response.data.attestations?.length > 0) {
         const attestationMap = {};
+        
+        // Also fetch current candidate to check if we need to sync
+        const candidates = await base44.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+        const candidate = candidates?.[0];
+        let needsSync = false;
+        let updatedEmployers = candidate?.employers ? [...candidate.employers] : [];
         
         for (const att of response.data.attestations) {
           // Match attestation to company by domain
@@ -124,6 +130,36 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                   verificationType: att.verificationType,
                   companyDomain: att.companyDomain
                 };
+                
+                // Check if this attestation is newer/different than what's in the DB
+                if (candidate) {
+                  const employerIdx = updatedEmployers.findIndex(emp => {
+                    const empNameLower = (emp.employer_name || '').toLowerCase();
+                    return empNameLower === companyNorm || empNameLower.includes(companyNorm) || companyNorm.includes(empNameLower);
+                  });
+                  
+                  if (employerIdx >= 0) {
+                    const emp = updatedEmployers[employerIdx];
+                    // If DB doesn't have this attestation UID or has different status, sync it
+                    if (emp.attestation_uid !== att.uid || 
+                        (emp.call_verification_status?.toUpperCase() !== att.status && att.status !== 'INCONCLUSIVE')) {
+                      // Map blockchain status to call_verification_status
+                      let newStatus = emp.call_verification_status;
+                      if (att.status === 'YES') newStatus = 'yes';
+                      else if (att.status === 'NO') newStatus = 'no';
+                      else if (att.status === 'REFUSE_TO_DISCLOSE') newStatus = 'refused_to_disclose';
+                      
+                      updatedEmployers[employerIdx] = {
+                        ...emp,
+                        call_verification_status: newStatus,
+                        call_verified_date: att.verifiedAt || new Date().toISOString(),
+                        attestation_uid: att.uid
+                      };
+                      needsSync = true;
+                      console.log(`[EmploymentVerification] Syncing attestation for ${companyName}: ${att.status}`);
+                    }
+                  }
+                }
                 break;
               }
             }
@@ -136,6 +172,23 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               verificationType: att.verificationType,
               companyDomain: att.companyDomain
             };
+          }
+        }
+        
+        // Sync to database if we found new/updated attestations
+        if (needsSync && candidate) {
+          try {
+            const latestAttestation = response.data.attestations[0];
+            await base44.entities.UniqueCandidate.update(uniqueCandidateId, {
+              employers: updatedEmployers,
+              attestation_uid: latestAttestation.uid,
+              attestation_date: latestAttestation.verifiedAt || new Date().toISOString()
+            });
+            console.log('[EmploymentVerification] Synced blockchain attestations to UniqueCandidate');
+            // Refresh local state after sync
+            checkExistingVerifications();
+          } catch (syncError) {
+            console.error('[EmploymentVerification] Sync error:', syncError);
           }
         }
         
