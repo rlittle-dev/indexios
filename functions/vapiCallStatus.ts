@@ -254,22 +254,32 @@ Deno.serve(async (req) => {
                     verificationOutcome
                   });
 
-                  // Call createAttestation via SDK using service role
-                  console.log(`[VapiCallStatus] About to call createAttestation via base44.asServiceRole.functions.invoke...`);
+                  // Call createAttestation directly via HTTP with the same auth headers
+                  console.log(`[VapiCallStatus] About to call createAttestation directly...`);
                   
-                  const attestationResult = await base44.asServiceRole.functions.invoke('createAttestation', {
-                    uniqueCandidateId: uniqueCandidateId,
-                    companyDomain: resolvedDomain,
-                    verificationType: 'phone_call',
-                    verificationOutcome: verificationOutcome,
-                    verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
-                    _internal: true
+                  // Get the authorization header from the original request to pass through
+                  const authHeader = req.headers.get('Authorization');
+                  const appId = Deno.env.get('BASE44_APP_ID');
+                  
+                  const attestationResponse = await fetch(`https://app.base44.com/api/v1/functions/invoke/createAttestation`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': authHeader,
+                      'X-App-Id': appId
+                    },
+                    body: JSON.stringify({
+                      uniqueCandidateId: uniqueCandidateId,
+                      companyDomain: resolvedDomain,
+                      verificationType: 'phone_call',
+                      verificationOutcome: verificationOutcome,
+                      verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
+                      _internal: true
+                    })
                   });
                   
-                  console.log(`[VapiCallStatus] createAttestation SDK response:`, JSON.stringify(attestationResult, null, 2));
-
-                  // attestationResult is already the parsed response from SDK
-                  const attestationData = attestationResult?.data || attestationResult;
+                  const attestationData = await attestationResponse.json();
+                  console.log(`[VapiCallStatus] createAttestation response (${attestationResponse.status}):`, JSON.stringify(attestationData, null, 2));
                   
                   if (attestationData?.attestationUID) {
                     attestationUID = attestationData.attestationUID;
