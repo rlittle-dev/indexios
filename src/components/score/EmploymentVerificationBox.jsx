@@ -405,7 +405,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.8 }}
-      className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-blue-500/30"
+      className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-blue-500/30 overflow-visible"
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -445,7 +445,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
           opacity: isExpanded ? 1 : 0,
         }}
         transition={{ duration: 0.3 }}
-        className="overflow-hidden"
+        className="overflow-visible"
       >
         <div className="px-5 pb-5 border-t border-blue-500/20 space-y-4">
           {/* Locked State for Free/Starter */}
