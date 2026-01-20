@@ -89,7 +89,9 @@ Deno.serve(async (req) => {
     let attestationCreated = false;
     let attestationUID = null;
 
+    console.log(`[VapiCallStatus] Call status from VAPI: "${callData.status}"`);
     if (callData.status === 'ended') {
+      console.log(`[VapiCallStatus] Call has ended, processing...`);
       // Log the full call data to debug metadata extraction
       console.log(`[VapiCallStatus] Full call data keys:`, Object.keys(callData));
       console.log(`[VapiCallStatus] assistantOverrides:`, JSON.stringify(callData.assistantOverrides, null, 2));
