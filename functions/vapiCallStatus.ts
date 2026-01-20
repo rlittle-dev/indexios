@@ -112,10 +112,9 @@ Deno.serve(async (req) => {
           const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
           console.log(`[VapiCallStatus] Found ${candidates?.length || 0} candidates`);
           
-          console.log(`[VapiCallStatus] candidates array:`, candidates ? `length=${candidates.length}` : 'null');
           if (candidates && candidates.length > 0) {
             const candidate = candidates[0];
-            console.log(`[VapiCallStatus] Processing candidate:`, candidate.id);
+            console.log(`[VapiCallStatus] Found candidate:`, candidate.id);
             const existingEmployers = candidate.employers || [];
             console.log(`[VapiCallStatus] Existing employers count: ${existingEmployers.length}`);
             const companyNorm = companyName.toLowerCase().trim();
@@ -183,28 +182,31 @@ Deno.serve(async (req) => {
             await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
               employers: updatedEmployers
             });
-            console.log(`[VapiCallStatus] Updated UniqueCandidate - now checking attestation`);
+            console.log(`[VapiCallStatus] Updated UniqueCandidate ${uniqueCandidateId} employer ${companyName} with status: ${callStatus}`);
 
             // Create blockchain attestation (only for non-INCONCLUSIVE results)
-            console.log(`[VapiCallStatus] shouldCreateAttestation=${shouldCreateAttestation}, verificationResult=${verificationResult}`);
-            
-            if (!shouldCreateAttestation) {
-              console.log(`[VapiCallStatus] Skipping attestation - result is INCONCLUSIVE`);
-            } else {
-              console.log(`[VapiCallStatus] Will create attestation now`);
-              
-              // Map verification result to outcome code
-              let verificationOutcome = 0; // inconclusive
-              if (verificationResult === 'YES') verificationOutcome = 1;
-              else if (verificationResult === 'NO') verificationOutcome = 2;
-              else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
-
-              const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
-
-              console.log(`[VapiCallStatus] Attestation params: uniqueCandidateId=${uniqueCandidateId}, companyDomain=${companyDomain}, verificationOutcome=${verificationOutcome}`);
-
+            console.log(`[VapiCallStatus] Checking attestation condition: shouldCreateAttestation=${shouldCreateAttestation}`);
+            if (shouldCreateAttestation) {
+              console.log(`[VapiCallStatus] ENTERING attestation block...`);
               try {
-                console.log(`[VapiCallStatus] Calling createAttestation via SDK...`);
+                console.log(`[VapiCallStatus] Inside try block for attestation`);
+                // Map verification result to outcome code
+                let verificationOutcome = 0; // inconclusive
+                if (verificationResult === 'YES') verificationOutcome = 1;
+                else if (verificationResult === 'NO') verificationOutcome = 2;
+                else if (verificationResult === 'REFUSE_TO_DISCLOSE') verificationOutcome = 3;
+
+                const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+
+                console.log(`[VapiCallStatus] Creating attestation with params:`, {
+                  uniqueCandidateId,
+                  companyDomain,
+                  verificationType: 'phone_call',
+                  verificationOutcome
+                });
+
+                // Call createAttestation via SDK service role instead of HTTP
+                console.log(`[VapiCallStatus] About to call createAttestation via SDK...`);
                 
                 const attestationResult = await base44.asServiceRole.functions.invoke('createAttestation', {
                   uniqueCandidateId: uniqueCandidateId,
@@ -251,6 +253,8 @@ Deno.serve(async (req) => {
                 console.error('[VapiCallStatus] Attestation error:', attestError.message);
                 console.error('[VapiCallStatus] Attestation error stack:', attestError.stack);
               }
+            } else {
+              console.log(`[VapiCallStatus] Skipping attestation for INCONCLUSIVE result`);
             }
           }
         } catch (updateError) {
@@ -259,7 +263,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[VapiCallStatus] Final response: attestationCreated=${attestationCreated}, attestationUID=${attestationUID}`);
     return Response.json({
       success: true,
       callId,
@@ -274,8 +277,7 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[VapiCallStatus] Top-level error:', error.message);
-    console.error('[VapiCallStatus] Top-level error stack:', error.stack);
+    console.error('[VapiCallStatus] Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
