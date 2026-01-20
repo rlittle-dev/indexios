@@ -189,11 +189,19 @@ Deno.serve(async (req) => {
                   verificationOutcome
                 });
 
-                // Call createAttestation directly via HTTP to avoid SDK auth issues
-                const functionBaseUrl = req.url.replace(/\/vapiCallStatus.*$/, '').replace(/\/$/, '');
-                const attestationUrl = `${functionBaseUrl}/createAttestation`;
-
-                console.log(`[VapiCallStatus] Calling attestation at: ${attestationUrl}`);
+                // Call createAttestation via SDK service role instead of HTTP
+                console.log(`[VapiCallStatus] About to call createAttestation via SDK...`);
+                
+                const attestationResult = await base44.asServiceRole.functions.invoke('createAttestation', {
+                  uniqueCandidateId: uniqueCandidateId,
+                  companyDomain: companyDomain,
+                  verificationType: 'phone_call',
+                  verificationOutcome: verificationOutcome,
+                  verificationReason: analysis.summary || `Phone verification result: ${verificationResult}`,
+                  _internal: true
+                });
+                
+                console.log(`[VapiCallStatus] createAttestation SDK response:`, JSON.stringify(attestationResult, null, 2));
 
                 const attestationResponse = await fetch(attestationUrl, {
                   method: 'POST',
