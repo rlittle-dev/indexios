@@ -133,6 +133,9 @@ Deno.serve(async (req) => {
             
             if (employerIndex >= 0) {
               // Check if already verified - skip if already has attestation
+              const existingStatus = updatedEmployers[employerIndex].call_verification_status;
+              console.log(`[VapiCallStatus] Employer ${companyName} existing status: ${existingStatus}, attestation_uid: ${updatedEmployers[employerIndex].attestation_uid}`);
+              
               if (updatedEmployers[employerIndex].attestation_uid) {
                 console.log(`[VapiCallStatus] Employer ${companyName} already has attestation, skipping`);
                 return Response.json({
