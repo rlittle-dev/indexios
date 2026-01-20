@@ -39,30 +39,30 @@ Deno.serve(async (req) => {
       _internal // Flag to skip tier check when called from other backend functions
     } = body;
     
-    // Check if called internally from another backend function - skip tier check
-    if (_internal === true) {
-      console.log('[Attestation] Called internally from another function - skipping tier check');
-    } else {
+    // Check if called internally from another backend function
+    const isInternal = _internal === true;
+    console.log(`[createAttestation] internal = ${isInternal}`);
+    
+    if (!isInternal) {
       // Called directly by user - check tier
       try {
-        const isAuthenticated = await base44.auth.isAuthenticated();
-        if (isAuthenticated) {
-          const user = await base44.auth.me();
-          if (user) {
-            const userTier = user.subscription_tier || 'free';
-            if (userTier !== 'professional' && userTier !== 'enterprise') {
-              return Response.json({ 
-                error: 'Attestations require Professional or Enterprise plan' 
-              }, { status: 403 });
-            }
-            console.log(`[Attestation] Called by user ${user.email} with tier ${userTier}`);
+        const user = await base44.auth.me();
+        if (user) {
+          const userTier = user.subscription_tier || 'free';
+          if (userTier !== 'professional' && userTier !== 'enterprise') {
+            console.log(`[createAttestation] blocked_by_tier = true (tier: ${userTier})`);
+            return Response.json({ 
+              error: 'Attestations require Professional or Enterprise plan' 
+            }, { status: 403 });
           }
-        } else {
-          console.log('[Attestation] No user auth but _internal not set - proceeding anyway');
+          console.log(`[createAttestation] blocked_by_tier = false`);
         }
       } catch (authError) {
-        console.log('[Attestation] Auth check failed:', authError.message);
+        // No auth - allow if internal flag somehow missed
+        console.log('[createAttestation] Auth check failed, proceeding');
       }
+    } else {
+      console.log(`[createAttestation] blocked_by_tier = false (internal call)`);
     }
 
     // Body already parsed above
