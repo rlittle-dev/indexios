@@ -211,7 +211,17 @@ Deno.serve(async (req) => {
                   })
                 });
 
-                const attestationData = await attestationResponse.json();
+                console.log(`[VapiCallStatus] Attestation HTTP status: ${attestationResponse.status}`);
+                const attestationText = await attestationResponse.text();
+                console.log(`[VapiCallStatus] Attestation raw response: ${attestationText.substring(0, 500)}`);
+
+                let attestationData;
+                try {
+                  attestationData = JSON.parse(attestationText);
+                } catch (parseErr) {
+                  console.error(`[VapiCallStatus] Failed to parse attestation response:`, attestationText);
+                  attestationData = { error: 'Invalid JSON response' };
+                }
                 console.log(`[VapiCallStatus] Attestation response:`, JSON.stringify(attestationData, null, 2));
                 
                 if (attestationData?.attestationUID) {
