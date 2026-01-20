@@ -300,7 +300,8 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('[VapiCallStatus] Error:', error);
+    console.error('[VapiCallStatus] FATAL Error:', error.message);
+    console.error('[VapiCallStatus] Error stack:', error.stack);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
