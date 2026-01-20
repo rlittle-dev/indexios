@@ -86,16 +86,19 @@ Deno.serve(async (req) => {
       console.log(`[VapiCallStatus] assistantOverrides:`, JSON.stringify(callData.assistantOverrides, null, 2));
       console.log(`[VapiCallStatus] metadata:`, JSON.stringify(callData.metadata, null, 2));
       
-      // Get candidate info from call metadata - check multiple possible locations
+      // Get candidate info from call metadata OR from input params (fallback)
       const candidateName = callData.assistantOverrides?.variableValues?.candidateName || 
                            callData.metadata?.candidateName ||
-                           callData.assistant?.variableValues?.candidateName;
+                           callData.assistant?.variableValues?.candidateName ||
+                           inputCandidateName;
       const companyName = callData.assistantOverrides?.variableValues?.companyName || 
                          callData.metadata?.companyName ||
-                         callData.assistant?.variableValues?.companyName;
+                         callData.assistant?.variableValues?.companyName ||
+                         inputCompanyName;
       const uniqueCandidateId = callData.assistantOverrides?.variableValues?.uniqueCandidateId || 
                                callData.metadata?.uniqueCandidateId ||
-                               callData.assistant?.variableValues?.uniqueCandidateId;
+                               callData.assistant?.variableValues?.uniqueCandidateId ||
+                               inputUniqueCandidateId;
 
       console.log(`[VapiCallStatus] Call ended for candidate: ${candidateName}, company: ${companyName}, uniqueId: ${uniqueCandidateId}`);
 
