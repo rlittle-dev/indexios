@@ -166,6 +166,7 @@ Deno.serve(async (req) => {
               });
             }
 
+            console.log(`[VapiCallStatus] About to update UniqueCandidate...`);
             await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
               employers: updatedEmployers
             });
@@ -176,6 +177,7 @@ Deno.serve(async (req) => {
             if (shouldCreateAttestation) {
               console.log(`[VapiCallStatus] ENTERING attestation block...`);
               try {
+                console.log(`[VapiCallStatus] Inside try block for attestation`);
                 // Map verification result to outcome code
                 let verificationOutcome = 0; // inconclusive
                 if (verificationResult === 'YES') verificationOutcome = 1;
