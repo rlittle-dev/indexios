@@ -112,9 +112,10 @@ Deno.serve(async (req) => {
           const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
           console.log(`[VapiCallStatus] Found ${candidates?.length || 0} candidates`);
           
+          console.log(`[VapiCallStatus] candidates array:`, candidates ? `length=${candidates.length}` : 'null');
           if (candidates && candidates.length > 0) {
             const candidate = candidates[0];
-            console.log(`[VapiCallStatus] Found candidate:`, candidate.id);
+            console.log(`[VapiCallStatus] Processing candidate:`, candidate.id);
             const existingEmployers = candidate.employers || [];
             console.log(`[VapiCallStatus] Existing employers count: ${existingEmployers.length}`);
             const companyNorm = companyName.toLowerCase().trim();
