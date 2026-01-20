@@ -104,9 +104,13 @@ Deno.serve(async (req) => {
 
       // Update UniqueCandidate with call result (only create attestation for non-INCONCLUSIVE results)
       const shouldCreateAttestation = verificationResult !== 'INCONCLUSIVE';
+      console.log(`[VapiCallStatus] shouldCreateAttestation=${shouldCreateAttestation}, uniqueCandidateId=${uniqueCandidateId}, companyName=${companyName}`);
+      
       if (uniqueCandidateId && companyName) {
         try {
+          console.log(`[VapiCallStatus] Fetching UniqueCandidate...`);
           const candidates = await base44.asServiceRole.entities.UniqueCandidate.filter({ id: uniqueCandidateId });
+          console.log(`[VapiCallStatus] Found ${candidates?.length || 0} candidates`);
           
           if (candidates && candidates.length > 0) {
             const candidate = candidates[0];
