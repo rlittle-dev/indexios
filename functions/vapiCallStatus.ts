@@ -18,6 +18,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[VapiCallStatus] Checking status for call: ${callId}`);
+    console.log(`[VapiCallStatus] Input params - candidateName: ${inputCandidateName}, companyName: ${inputCompanyName}, uniqueCandidateId: ${inputUniqueCandidateId}`);
 
     // Get call details from VAPI
     const response = await fetch(`https://api.vapi.ai/call/${callId}`, {
