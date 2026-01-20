@@ -4,6 +4,7 @@ import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCa
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
+import OnChainBadge from './OnChainBadge';
 
 export default function EmploymentVerificationBox({ companyNames = [], candidateId, candidateName, uniqueCandidateId, userTier = 'free' }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -16,6 +17,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [emailResults, setEmailResults] = useState({});
   const [existingAttestations, setExistingAttestations] = useState({}); // company -> attestation data
   const [existingEmailStatus, setExistingEmailStatus] = useState({}); // company -> email status
+  const [blockchainAttestations, setBlockchainAttestations] = useState({}); // company -> blockchain attestation data
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
 
@@ -92,9 +94,62 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     }
   };
 
+  // Fetch blockchain attestations
+  const fetchBlockchainAttestations = async () => {
+    if (!uniqueCandidateId) return;
+
+    try {
+      console.log('[EmploymentVerification] Fetching blockchain attestations for:', uniqueCandidateId);
+      const response = await base44.functions.invoke('getAttestation', { uniqueCandidateId });
+      
+      if (response.data?.success && response.data.attestations?.length > 0) {
+        const attestationMap = {};
+        
+        for (const att of response.data.attestations) {
+          // Match attestation to company by domain
+          const domain = att.companyDomain?.toLowerCase();
+          if (domain) {
+            // Try to match domain to company name
+            for (const companyName of companyNames) {
+              const companyNorm = companyName.toLowerCase().trim();
+              // Simple matching: domain contains part of company name or vice versa
+              const domainBase = domain.replace(/\.(com|org|net|io|co)$/, '');
+              if (companyNorm.includes(domainBase) || domainBase.includes(companyNorm.split(' ')[0])) {
+                attestationMap[companyName] = {
+                  uid: att.uid,
+                  status: att.status,
+                  explorerUrl: att.explorerUrl,
+                  verifiedAt: att.verifiedAt,
+                  verificationType: att.verificationType,
+                  companyDomain: att.companyDomain
+                };
+                break;
+              }
+            }
+            // Also store by domain for direct lookup
+            attestationMap[domain] = {
+              uid: att.uid,
+              status: att.status,
+              explorerUrl: att.explorerUrl,
+              verifiedAt: att.verifiedAt,
+              verificationType: att.verificationType,
+              companyDomain: att.companyDomain
+            };
+          }
+        }
+        
+        console.log('[EmploymentVerification] Blockchain attestations found:', Object.keys(attestationMap));
+        setBlockchainAttestations(attestationMap);
+      }
+    } catch (error) {
+      console.error('[EmploymentVerification] Blockchain fetch error:', error);
+    }
+  };
+
   // Initial fetch
   useEffect(() => {
     checkExistingVerifications();
+    fetchBlockchainAttestations();
   }, [uniqueCandidateId, companyNames]);
 
   // Live polling every 10 seconds when there are pending verifications
@@ -493,11 +548,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                   Call: {existingAttestations[company].result.replace(/_/g, ' ')}
                                                                 </Badge>
                                                               )}
-                                                              {existingAttestations[company].hasAttestation && (
-                                                                <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
-                                                                  <Link2 className="w-3 h-3" />
-                                                                  On-Chain ✓
-                                                                </Badge>
+                                                              {(existingAttestations[company].hasAttestation || blockchainAttestations[company]) && (
+                                                                <OnChainBadge 
+                                                                  attestationUID={existingAttestations[company].attestationUID || blockchainAttestations[company]?.uid}
+                                                                  status={existingAttestations[company].result || blockchainAttestations[company]?.status}
+                                                                  explorerUrl={blockchainAttestations[company]?.explorerUrl}
+                                                                />
                                                               )}
                                                               {existingAttestations[company].result === 'INCONCLUSIVE' && (
                                                                 <Button
@@ -537,10 +593,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                                   {callResults[company].result.replace(/_/g, ' ')}
                                                                 </Badge>
                                                               )}
-                                                              {callResults[company].attestationCreated && (
-                                                                <Badge className="text-xs bg-purple-900/40 text-purple-300">
-                                                                  On-Chain ✓
-                                                                </Badge>
+                                                              {(callResults[company].attestationCreated || blockchainAttestations[company]) && (
+                                                                <OnChainBadge 
+                                                                  attestationUID={blockchainAttestations[company]?.uid}
+                                                                  status={callResults[company].result || blockchainAttestations[company]?.status}
+                                                                  explorerUrl={blockchainAttestations[company]?.explorerUrl}
+                                                                />
                                                               )}
                                                               {callResults[company].result === 'INCONCLUSIVE' && (
                                                                 <Button
@@ -607,11 +665,12 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                             <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
                                                               Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
                                                             </Badge>
-                                                            {existingEmailStatus[company].hasAttestation && (
-                                                              <Badge className="text-xs bg-purple-900/40 text-purple-300 flex items-center gap-1">
-                                                                <Link2 className="w-3 h-3" />
-                                                                On-Chain ✓
-                                                              </Badge>
+                                                            {(existingEmailStatus[company].hasAttestation || blockchainAttestations[company]) && (
+                                                              <OnChainBadge 
+                                                                attestationUID={blockchainAttestations[company]?.uid}
+                                                                status={existingEmailStatus[company].status?.toUpperCase() || blockchainAttestations[company]?.status}
+                                                                explorerUrl={blockchainAttestations[company]?.explorerUrl}
+                                                              />
                                                             )}
                                                           </div>
                                                         ) : emailingCompany === company ? (
