@@ -42,42 +42,44 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
               if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
                 // Check call verification status
+                // Check call verification status
                 if (employer.call_verification_status && 
                     employer.call_verification_status !== 'not_called' && 
                     employer.call_verification_status !== 'pending') {
-                  const attestationUID = employer.attestation_uid || candidate.attestation_uid;
+                  const phoneAttestationUID = employer.phone_attestation_uid || employer.attestation_uid || candidate.attestation_uid;
                   attestations[companyName] = {
                     result: employer.call_verification_status.toUpperCase(),
                     verifiedDate: employer.call_verified_date,
-                    attestationUID: attestationUID,
+                    attestationUID: phoneAttestationUID,
                     attestationDate: candidate.attestation_date,
-                    hasAttestation: !!attestationUID,
+                    hasAttestation: !!phoneAttestationUID,
                     type: 'call'
                   };
                 }
-                
+
                 // Check email verification status
                 if (employer.email_verification_status) {
+                  const emailAttestationUID = employer.email_attestation_uid;
                   emailStatuses[companyName] = {
                     status: employer.email_verification_status,
                     sentDate: employer.email_sent_date,
                     sentTo: employer.email_sent_to,
                     verifiedDate: employer.email_verified_date,
                     responseFrom: employer.email_response_from,
-                    hasAttestation: !!(employer.attestation_uid || candidate.attestation_uid)
+                    hasAttestation: !!emailAttestationUID,
+                    attestationUID: emailAttestationUID
                   };
-                  
-                  // If email verification is complete and no call attestation, use email result
+
+                  // If email verification is complete and no call attestation, use email result for main attestation display
                   if (employer.email_verification_status !== 'pending' && 
                       employer.email_verification_status !== 'not_sent' &&
                       !attestations[companyName]) {
-                    const attestationUID = employer.attestation_uid || candidate.attestation_uid;
                     attestations[companyName] = {
                       result: employer.email_verification_status.toUpperCase(),
                       verifiedDate: employer.email_verified_date,
-                      attestationUID: attestationUID,
-                      attestationDate: candidate.attestation_date,
-                      hasAttestation: !!attestationUID,
+                      attestationUID: emailAttestationUID,
+                      attestationDate: employer.email_verified_date,
+                      hasAttestation: !!emailAttestationUID,
                       type: 'email'
                     };
                   }

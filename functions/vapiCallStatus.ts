@@ -274,7 +274,7 @@ Deno.serve(async (req) => {
                     attestationCreated = true;
                     console.log(`[VapiCallStatus] Created attestation: ${attestationUID}`);
                     
-                    // Update the employer with attestation UID
+                    // Update the employer with phone attestation UID
                     const finalEmployers = [...updatedEmployers];
                     const empIdx = finalEmployers.findIndex(e => 
                       e.employer_name?.toLowerCase().trim() === companyNorm ||
@@ -282,7 +282,7 @@ Deno.serve(async (req) => {
                       companyNorm.includes(e.employer_name?.toLowerCase().trim() || '')
                     );
                     if (empIdx >= 0) {
-                      finalEmployers[empIdx].attestation_uid = attestationUID;
+                      finalEmployers[empIdx].phone_attestation_uid = attestationUID;
                     }
                     
                     await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
