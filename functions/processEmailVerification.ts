@@ -39,23 +39,23 @@ Deno.serve(async (req) => {
 
     // Map response to verification status
     let verificationStatus;
-    let attestationStatus;
+    let verificationOutcome; // 1=YES, 2=NO, 3=REFUSE_TO_DISCLOSE, 0=INCONCLUSIVE
     switch (response) {
       case 'yes':
         verificationStatus = 'yes';
-        attestationStatus = 'YES';
+        verificationOutcome = 1;
         break;
       case 'no':
         verificationStatus = 'no';
-        attestationStatus = 'NO';
+        verificationOutcome = 2;
         break;
       case 'refuse':
         verificationStatus = 'refused_to_disclose';
-        attestationStatus = 'REFUSE_TO_DISCLOSE';
+        verificationOutcome = 3;
         break;
       default:
         verificationStatus = 'inconclusive';
-        attestationStatus = 'INCONCLUSIVE';
+        verificationOutcome = 0;
     }
 
     // Update the employer record first with verification status
