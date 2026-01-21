@@ -440,14 +440,39 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
     setCurrentView('history');
   };
 
-  const handleSelectCandidate = (candidate) => {
+  const handleSelectCandidate = async (candidate) => {
     const userTier = user?.subscription_tier || 'free';
     if (userTier === 'free') {
       setCurrentView('upgrade');
       return;
     }
+    
+    // Set candidate immediately for fast UI response
     setSelectedCandidate(candidate);
     setCurrentView('result');
+    
+    // Then fetch the UniqueCandidate ID in the background if not already present
+    if (!candidate.unique_candidate_id && candidate.name && candidate.email) {
+      try {
+        // Try to find matching UniqueCandidate by email or name
+        let uniqueCandidates = [];
+        if (candidate.email) {
+          uniqueCandidates = await base44.entities.UniqueCandidate.filter({ email: candidate.email });
+        }
+        if (uniqueCandidates.length === 0 && candidate.name) {
+          uniqueCandidates = await base44.entities.UniqueCandidate.filter({ name: candidate.name });
+        }
+        
+        if (uniqueCandidates.length > 0) {
+          setSelectedCandidate(prev => ({
+            ...prev,
+            unique_candidate_id: uniqueCandidates[0].id
+          }));
+        }
+      } catch (error) {
+        console.error('[Scan] Error fetching UniqueCandidate:', error);
+      }
+    }
   };
 
   const handleBack = () => {
