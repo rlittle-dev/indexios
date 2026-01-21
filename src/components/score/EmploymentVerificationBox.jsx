@@ -733,11 +733,10 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                             <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
                                                               Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
                                                             </Badge>
-                                                            {(existingEmailStatus[company].hasAttestation || blockchainAttestations[company]) && (
+                                                            {(existingEmailStatus[company].hasAttestation || existingEmailStatus[company].attestationUID) && (
                                                               <OnChainBadge 
-                                                                attestationUID={blockchainAttestations[company]?.uid}
-                                                                status={existingEmailStatus[company].status?.toUpperCase() || blockchainAttestations[company]?.status}
-                                                                explorerUrl={blockchainAttestations[company]?.explorerUrl}
+                                                                attestationUID={existingEmailStatus[company].attestationUID}
+                                                                status={existingEmailStatus[company].status?.toUpperCase()}
                                                               />
                                                             )}
                                                           </div>
