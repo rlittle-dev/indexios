@@ -451,26 +451,21 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
     setSelectedCandidate(candidate);
     setCurrentView('result');
     
-    // Then fetch the UniqueCandidate ID in the background if not already present
-    if (!candidate.unique_candidate_id && candidate.name && candidate.email) {
+    // Then fetch/link the UniqueCandidate ID in the background if not already present
+    if (!candidate.unique_candidate_id && candidate.id && !candidate.id.startsWith('temp-') && !candidate.id.startsWith('bulk-')) {
       try {
-        // Try to find matching UniqueCandidate by email or name
-        let uniqueCandidates = [];
-        if (candidate.email) {
-          uniqueCandidates = await base44.entities.UniqueCandidate.filter({ email: candidate.email });
-        }
-        if (uniqueCandidates.length === 0 && candidate.name) {
-          uniqueCandidates = await base44.entities.UniqueCandidate.filter({ name: candidate.name });
-        }
+        // Use linkCandidateScan to get/create the UniqueCandidate
+        const res = await base44.functions.invoke('linkCandidateScan', { candidateId: candidate.id });
+        console.log('[Scan] Linked historical candidate:', res.data);
         
-        if (uniqueCandidates.length > 0) {
+        if (res.data?.uniqueCandidateId) {
           setSelectedCandidate(prev => ({
             ...prev,
-            unique_candidate_id: uniqueCandidates[0].id
+            unique_candidate_id: res.data.uniqueCandidateId
           }));
         }
       } catch (error) {
-        console.error('[Scan] Error fetching UniqueCandidate:', error);
+        console.error('[Scan] Error linking UniqueCandidate:', error);
       }
     }
   };
