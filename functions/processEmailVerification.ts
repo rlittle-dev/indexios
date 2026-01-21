@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
         attestationStatus = 'INCONCLUSIVE';
     }
 
-    // Update the employer record
+    // Update the employer record first with verification status
     const updatedEmployers = [...targetCandidate.employers];
     updatedEmployers[targetEmployerIndex] = {
       ...targetEmployer,
@@ -69,36 +69,46 @@ Deno.serve(async (req) => {
 
     // Create on-chain attestation
     let attestationUID = null;
-    try {
-      // Extract company domain from email
-      const sentToEmail = targetEmployer.email_sent_to || '';
-      const companyDomain = sentToEmail.split('@')[1] || '';
+    if (verificationStatus !== 'inconclusive') {
+      try {
+        // Extract company domain from email
+        const sentToEmail = targetEmployer.email_sent_to || '';
+        const companyDomain = sentToEmail.split('@')[1] || '';
+        
+        console.log('Creating email attestation for:', {
+          candidateId: targetCandidate.id,
+          companyDomain,
+          verificationResult: attestationStatus,
+          verificationType: 'email'
+        });
 
-      const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
-        uniqueCandidateId: targetCandidate.id,
-        companyDomain: companyDomain,
-        verificationResult: attestationStatus,
-        verificationType: 'email',
-        isInternalCall: true
-      });
+        const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
+          uniqueCandidateId: targetCandidate.id,
+          companyDomain: companyDomain,
+          verificationResult: attestationStatus,
+          verificationType: 'email',
+          isInternalCall: true
+        });
 
-      if (attestationResponse.data?.success) {
-        attestationUID = attestationResponse.data.attestationUID;
-        updatedEmployers[targetEmployerIndex].attestation_uid = attestationUID;
-        console.log('Attestation created:', attestationUID);
+        console.log('Attestation response:', attestationResponse.data);
+
+        if (attestationResponse.data?.success && attestationResponse.data?.attestationUID) {
+          attestationUID = attestationResponse.data.attestationUID;
+          // Store in email_attestation_uid specifically
+          updatedEmployers[targetEmployerIndex].email_attestation_uid = attestationUID;
+          console.log('Email attestation created:', attestationUID);
+        } else {
+          console.error('Attestation creation returned:', attestationResponse.data);
+        }
+      } catch (attestationError) {
+        console.error('Failed to create email attestation:', attestationError);
+        // Continue even if attestation fails - we still want to record the response
       }
-    } catch (attestationError) {
-      console.error('Failed to create attestation:', attestationError);
-      // Continue even if attestation fails - we still want to record the response
     }
 
     // Save updated candidate
     await base44.asServiceRole.entities.UniqueCandidate.update(targetCandidate.id, {
-      employers: updatedEmployers,
-      ...(attestationUID && !targetCandidate.attestation_uid ? {
-        attestation_uid: attestationUID,
-        attestation_date: new Date().toISOString()
-      } : {})
+      employers: updatedEmployers
     });
 
     return Response.json({
