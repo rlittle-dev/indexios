@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
       try {
         // Extract company domain from email
         const sentToEmail = targetEmployer.email_sent_to || '';
-        const companyDomain = sentToEmail.split('@')[1] || '';
+        const companyDomain = sentToEmail.split('@')[1] || targetEmployer.employer_name || '';
         
         console.log('Creating email attestation for:', {
           candidateId: targetCandidate.id,
@@ -85,8 +85,9 @@ Deno.serve(async (req) => {
         const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
           uniqueCandidateId: targetCandidate.id,
           companyDomain: companyDomain,
-          verificationOutcome: verificationOutcome,
           verificationType: 'email',
+          verificationOutcome: verificationOutcome,
+          verificationReason: `Email verification response: ${response}`,
           _internal: true
         });
 
