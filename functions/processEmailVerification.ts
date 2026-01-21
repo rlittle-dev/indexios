@@ -78,16 +78,16 @@ Deno.serve(async (req) => {
         console.log('Creating email attestation for:', {
           candidateId: targetCandidate.id,
           companyDomain,
-          verificationResult: attestationStatus,
+          verificationOutcome,
           verificationType: 'email'
         });
 
         const attestationResponse = await base44.asServiceRole.functions.invoke('createAttestation', {
           uniqueCandidateId: targetCandidate.id,
           companyDomain: companyDomain,
-          verificationResult: attestationStatus,
+          verificationOutcome: verificationOutcome,
           verificationType: 'email',
-          isInternalCall: true
+          _internal: true
         });
 
         console.log('Attestation response:', attestationResponse.data);
