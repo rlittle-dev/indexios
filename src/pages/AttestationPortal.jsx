@@ -1,0 +1,378 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+
+export default function AttestationPortal() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [companySearch, setCompanySearch] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [emailOptions, setEmailOptions] = useState([]);
+  const [selectedEmail, setSelectedEmail] = useState(null);
+  const [verified, setVerified] = useState(false);
+  const [verifiedWorkplace, setVerifiedWorkplace] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const isAuth = await base44.auth.isAuthenticated();
+        if (isAuth) {
+          const currentUser = await base44.auth.me();
+          setUser(currentUser);
+          // Check if user already has a verified workplace
+          if (currentUser.verified_workplace) {
+            setVerified(true);
+            setVerifiedWorkplace(currentUser.verified_workplace);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+      setLoading(false);
+    };
+    fetchUser();
+  }, []);
+
+  const handleSearchCompany = async () => {
+    if (!companySearch.trim()) return;
+    
+    setSearching(true);
+    setEmailOptions([]);
+    setSelectedEmail(null);
+    
+    try {
+      // Use LLM to find common email extensions for the company
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find the most likely corporate email domain extensions for the company "${companySearch}". 
+        
+        Return common patterns like:
+        - @companyname.com
+        - @company.com
+        - Any known official domain
+        
+        Be accurate - only include domains that are likely real for this specific company.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            company_name: { type: "string" },
+            email_domains: { 
+              type: "array", 
+              items: { type: "string" },
+              description: "List of email domain extensions (e.g., @google.com)"
+            },
+            primary_domain: { type: "string" }
+          }
+        }
+      });
+
+      if (result.email_domains && result.email_domains.length > 0) {
+        setEmailOptions(result.email_domains.map(domain => ({
+          domain,
+          company: result.company_name || companySearch
+        })));
+      } else {
+        // Fallback to generated options
+        const normalized = companySearch.toLowerCase().replace(/[^a-z0-9]/g, '');
+        setEmailOptions([
+          { domain: `@${normalized}.com`, company: companySearch },
+          { domain: `@${normalized}.co`, company: companySearch },
+          { domain: `@${normalized}.io`, company: companySearch }
+        ]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      // Fallback
+      const normalized = companySearch.toLowerCase().replace(/[^a-z0-9]/g, '');
+      setEmailOptions([
+        { domain: `@${normalized}.com`, company: companySearch },
+        { domain: `@${normalized}.co`, company: companySearch }
+      ]);
+    }
+    
+    setSearching(false);
+  };
+
+  const handleVerifyWorkplace = async () => {
+    if (!selectedEmail) return;
+    
+    // For now, just mark as verified (email verification to be implemented)
+    try {
+      await base44.auth.updateMe({
+        verified_workplace: {
+          company: selectedEmail.company,
+          domain: selectedEmail.domain,
+          verified_date: new Date().toISOString()
+        }
+      });
+      setVerified(true);
+      setVerifiedWorkplace({
+        company: selectedEmail.company,
+        domain: selectedEmail.domain,
+        verified_date: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Verification error:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Lockout for non-enterprise users
+  if (!user || user.subscription_tier !== 'enterprise') {
+    return (
+      <div className="min-h-screen bg-zinc-950">
+        <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none" />
+        
+        <div className="relative z-10 max-w-2xl mx-auto px-4 py-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 md:p-12 text-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="inline-flex p-4 rounded-full bg-purple-500/20 mb-6"
+            >
+              <Lock className="w-8 h-8 text-purple-400" />
+            </motion.div>
+            
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Enterprise Feature
+            </h1>
+            
+            <p className="text-white/70 text-lg mb-6">
+              The Attestation Portal is exclusively available for Enterprise plan subscribers. 
+              Manage on-chain employment verifications and build your verified workforce.
+            </p>
+            
+            <div className="bg-zinc-800/50 rounded-xl p-6 mb-8 text-left">
+              <h3 className="text-white font-semibold mb-3">What you get with Enterprise:</h3>
+              <ul className="space-y-2 text-white/70 text-sm">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  Workplace verification portal
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  On-chain attestation management
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  Unlimited employment verifications
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  Team collaboration (up to 5 members)
+                </li>
+              </ul>
+            </div>
+            
+            <Link to={createPageUrl('Pricing')}>
+              <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
+                Upgrade to Enterprise
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-950">
+      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent pointer-events-none" />
+      
+      <div className="relative z-10 max-w-4xl mx-auto px-4 py-12">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex p-3 rounded-full bg-blue-500/20 mb-4">
+            <Shield className="w-8 h-8 text-blue-400" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+            Attestation Portal
+          </h1>
+          <p className="text-white/60 max-w-xl mx-auto">
+            Verify your workplace and manage on-chain employment attestations
+          </p>
+        </motion.div>
+
+        {/* Workplace Verification Box */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-blue-500/20">
+              <Building2 className="w-5 h-5 text-blue-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-white">Find My Workplace</h2>
+            {verified && (
+              <Badge className="bg-green-500/20 text-green-300 ml-auto">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Verified
+              </Badge>
+            )}
+          </div>
+
+          {verified && verifiedWorkplace ? (
+            <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <CheckCircle className="w-6 h-6 text-green-400" />
+                <div>
+                  <p className="text-white font-medium">{verifiedWorkplace.company}</p>
+                  <p className="text-white/60 text-sm">{verifiedWorkplace.domain}</p>
+                </div>
+              </div>
+              <p className="text-green-300/80 text-sm">
+                Your workplace has been verified. You can now create and manage attestations.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-3 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Input
+                    placeholder="Enter company name (e.g., Google, Microsoft)"
+                    value={companySearch}
+                    onChange={(e) => setCompanySearch(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearchCompany()}
+                    className="pl-10 bg-zinc-800 border-zinc-700 text-white placeholder:text-white/40"
+                  />
+                </div>
+                <Button
+                  onClick={handleSearchCompany}
+                  disabled={searching || !companySearch.trim()}
+                  className="bg-blue-600 hover:bg-blue-500 text-white"
+                >
+                  {searching ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Search'
+                  )}
+                </Button>
+              </div>
+
+              {emailOptions.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-white/70 text-sm">Select your company email domain:</p>
+                  <div className="grid gap-2">
+                    {emailOptions.map((option, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedEmail(option)}
+                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                          selectedEmail?.domain === option.domain
+                            ? 'bg-blue-500/20 border-blue-500/50'
+                            : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
+                        }`}
+                      >
+                        <Mail className={`w-5 h-5 ${selectedEmail?.domain === option.domain ? 'text-blue-400' : 'text-white/40'}`} />
+                        <div className="text-left">
+                          <p className="text-white font-medium">{option.company}</p>
+                          <p className="text-white/60 text-sm">{option.domain}</p>
+                        </div>
+                        {selectedEmail?.domain === option.domain && (
+                          <CheckCircle className="w-5 h-5 text-blue-400 ml-auto" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  {selectedEmail && (
+                    <Button
+                      onClick={handleVerifyWorkplace}
+                      className="w-full bg-green-600 hover:bg-green-500 text-white mt-4"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Verify Workplace
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {!emailOptions.length && !searching && (
+                <p className="text-white/50 text-sm text-center py-4">
+                  Search for your company to find available email domains for verification
+                </p>
+              )}
+            </>
+          )}
+        </motion.div>
+
+        {/* My Attestations Button - Only show when verified */}
+        {verified && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-2xl p-6 md:p-8"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-white mb-2">My Attestations</h3>
+                <p className="text-white/60 text-sm">
+                  View all on-chain employment attestations you've created
+                </p>
+              </div>
+              <Link to={createPageUrl('MyAttestations')}>
+                <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                  View Attestations
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Info Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 bg-zinc-900/50 border border-zinc-800 rounded-xl p-6"
+        >
+          <h3 className="text-white font-semibold mb-4">About On-Chain Attestations</h3>
+          <div className="space-y-3 text-white/70 text-sm">
+            <p>
+              On-chain attestations are permanent, tamper-proof records of employment verification 
+              stored on the Base blockchain using the Ethereum Attestation Service (EAS).
+            </p>
+            <p>
+              When you verify a candidate's employment, an attestation is created that:
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Cannot be altered or deleted</li>
+              <li>Is publicly verifiable by anyone</li>
+              <li>Provides cryptographic proof of verification</li>
+              <li>Links to the verifying organization</li>
+            </ul>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

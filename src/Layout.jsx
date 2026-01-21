@@ -136,12 +136,17 @@ export default function Layout({ children }) {
                 </Button>
               </Link>
               <Link to={createPageUrl('Contact')}>
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
-                  Contact
-                </Button>
-              </Link>
-            </div>
-          </div>
+                    <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                      Contact
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('AttestationPortal')}>
+                    <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                      Attestations
+                    </Button>
+                  </Link>
+                </div>
+              </div>
 
           <div className="flex items-center gap-2">
             {/* Mobile Menu Button */}
@@ -252,12 +257,17 @@ export default function Layout({ children }) {
                 </Button>
               </Link>
               <Link to={createPageUrl('Contact')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
-                  Contact
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
+                    <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                      Contact
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('AttestationPortal')} onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                      Attestations
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
         )}
       </AnimatePresence>
 

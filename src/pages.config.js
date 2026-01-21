@@ -11,6 +11,8 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
+import AttestationPortal from './pages/AttestationPortal';
+import MyAttestations from './pages/MyAttestations';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +30,8 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
+    "AttestationPortal": AttestationPortal,
+    "MyAttestations": MyAttestations,
 }
 
 export const pagesConfig = {
