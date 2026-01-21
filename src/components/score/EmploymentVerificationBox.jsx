@@ -298,7 +298,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
     }
     setEmailingCompany(company);
     try {
-      const response = await base44.functions.invoke('sendVerificationEmail', {
+      const response = await base44.functions.invoke('sendVerificationEmailSG', {
         hrEmail,
         companyName: company,
         candidateName,
@@ -314,6 +314,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
             sentDate: new Date().toISOString()
           }
         }));
+        // Refresh verifications to show pending status
+        checkExistingVerifications();
       } else {
         throw new Error(response.data?.error || 'Failed to send email');
       }

@@ -13,6 +13,7 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
+import EmailVerificationResponse from './pages/EmailVerificationResponse';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
+    "EmailVerificationResponse": EmailVerificationResponse,
 }
 
 export const pagesConfig = {
