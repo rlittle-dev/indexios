@@ -239,12 +239,28 @@ export default function AttestationPortal() {
 
           {verified && verifiedWorkplace ? (
             <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-                <div>
-                  <p className="text-white font-medium">{verifiedWorkplace.company}</p>
-                  <p className="text-white/60 text-sm">{verifiedWorkplace.domain}</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-6 h-6 text-green-400" />
+                  <div>
+                    <p className="text-white font-medium">{verifiedWorkplace.company}</p>
+                    <p className="text-white/60 text-sm">{verifiedWorkplace.domain}</p>
+                  </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to unlink your workplace?')) {
+                      await base44.auth.updateMe({ verified_workplace: null });
+                      setVerified(false);
+                      setVerifiedWorkplace(null);
+                    }
+                  }}
+                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                >
+                  Unlink
+                </Button>
               </div>
               <p className="text-green-300/80 text-sm">
                 Your workplace has been verified. You can now create and manage attestations.
