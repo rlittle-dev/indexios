@@ -154,6 +154,12 @@ export default function About() {
               </Button>
             </Link>
           </div>
+
+          <div className="text-center pt-8 border-t border-zinc-800">
+            <p className="text-white/40 text-sm">
+              © {new Date().getFullYear()} Indexios LLC. All rights reserved.
+            </p>
+          </div>
         </motion.div>
       </div>
     </div>
