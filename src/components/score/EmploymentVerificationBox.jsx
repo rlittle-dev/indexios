@@ -583,11 +583,120 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                       )}
                     </div>
 
-                    {/* HR Contact Info - Only show if we have contact info */}
-                                                                      {(hasPhone || result.email?.address) && (
+                    {/* HR Contact Info & Verification Status */}
+                                                                      {(hasPhone || result.email?.address || manualAttestations[company]) && (
                                                 <div className="pt-2 border-t border-zinc-700/50 space-y-2">
-                                                  {/* Phone Number */}
-                                                  {hasPhone && (
+                                                  
+                                                  {/* Manual Employer Attestation Badge - Show first if exists */}
+                                                  {manualAttestations[company] && (
+                                                    <div className="flex items-start gap-2 mb-2">
+                                                      <Building2 className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                                      <div className="text-xs flex-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                          <Badge className="text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700">
+                                                            <CheckCircle className="w-3 h-3 mr-1" />
+                                                            Employer Verified
+                                                          </Badge>
+                                                          {manualAttestations[company].attestationUID && (
+                                                            <OnChainBadge 
+                                                              attestationUID={manualAttestations[company].attestationUID}
+                                                              status="YES"
+                                                            />
+                                                          )}
+                                                        </div>
+                                                        <p className="text-emerald-300/80 mt-1">
+                                                          Attested by {manualAttestations[company].attestedBy}
+                                                          {manualAttestations[company].jobTitle && ` • ${manualAttestations[company].jobTitle}`}
+                                                        </p>
+                                                        <p className="text-white/50 text-[10px]">
+                                                          {new Date(manualAttestations[company].attestedDate).toLocaleDateString()}
+                                                        </p>
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* Show call verification result if exists (read-only when manual attestation present) */}
+                                                  {(existingAttestations[company] || callResults[company]) && (
+                                                    <div className="flex items-start gap-2">
+                                                      <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
+                                                      <div className="text-xs flex-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                          {(() => {
+                                                            const attestation = existingAttestations[company] || callResults[company];
+                                                            const resultVal = attestation?.result;
+                                                            if (resultVal === 'YES') {
+                                                              return (
+                                                                <Badge className="text-xs bg-green-900/40 text-green-300">
+                                                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                                                  Call Verified
+                                                                </Badge>
+                                                              );
+                                                            } else if (resultVal === 'NO') {
+                                                              return (
+                                                                <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
+                                                                  ⚠️ Company Denies Employment
+                                                                </Badge>
+                                                              );
+                                                            } else if (resultVal === 'REFUSE_TO_DISCLOSE' || resultVal === 'REFUSED_TO_DISCLOSE') {
+                                                              return (
+                                                                <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700">
+                                                                  Company Refuses to Verify
+                                                                </Badge>
+                                                              );
+                                                            } else {
+                                                              return (
+                                                                <Badge className={`text-xs ${getCallResultBadge(resultVal)}`}>
+                                                                  Call: {resultVal?.replace(/_/g, ' ')}
+                                                                </Badge>
+                                                              );
+                                                            }
+                                                          })()}
+                                                          {(existingAttestations[company]?.hasAttestation || blockchainAttestations[company]) && (
+                                                            <OnChainBadge 
+                                                              attestationUID={existingAttestations[company]?.attestationUID || blockchainAttestations[company]?.uid}
+                                                              status={existingAttestations[company]?.result || blockchainAttestations[company]?.status}
+                                                              explorerUrl={blockchainAttestations[company]?.explorerUrl}
+                                                            />
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* Show email verification result if exists (read-only when manual attestation present) */}
+                                                  {existingEmailStatus[company]?.status && existingEmailStatus[company]?.status !== 'not_sent' && (
+                                                    <div className="flex items-start gap-2">
+                                                      <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
+                                                      <div className="text-xs flex-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                          {existingEmailStatus[company].status === 'pending' ? (
+                                                            <Badge className="text-xs bg-blue-900/40 text-blue-300">
+                                                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                              Awaiting Response
+                                                            </Badge>
+                                                          ) : existingEmailStatus[company].status === 'yes' ? (
+                                                            <Badge className="text-xs bg-green-900/40 text-green-300">
+                                                              <CheckCircle className="w-3 h-3 mr-1" />
+                                                              Email Verified
+                                                            </Badge>
+                                                          ) : (
+                                                            <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
+                                                              Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
+                                                            </Badge>
+                                                          )}
+                                                          {existingEmailStatus[company].attestationUID && (
+                                                            <OnChainBadge 
+                                                              attestationUID={existingEmailStatus[company].attestationUID}
+                                                              status={existingEmailStatus[company].status?.toUpperCase()}
+                                                            />
+                                                          )}
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  )}
+
+                                                  {/* Phone Number & Call Button - Only show if NO manual attestation */}
+                                                  {!manualAttestations[company] && hasPhone && !existingAttestations[company] && !callResults[company] && (
                                                     <div className="flex items-start justify-between gap-2">
                                                       <div className="flex items-start gap-2">
                                                         <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
@@ -599,159 +708,29 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                         </div>
                                                       </div>
 
-                                                      {/* Call Button & Result */}
                                                       <div className="flex flex-col gap-2">
-                                                        {/* Check for existing attestation first */}
-                                                        {existingAttestations[company] ? (
-                                                          <div className="flex flex-col gap-2">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                              <div className="relative group">
-                                                                {existingAttestations[company].result === 'NO' ? (
-                                                                  <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
-                                                                    ⚠️ Company Denies Employment
-                                                                  </Badge>
-                                                                ) : existingAttestations[company].result === 'REFUSE_TO_DISCLOSE' || existingAttestations[company].result === 'REFUSED_TO_DISCLOSE' ? (
-                                                                  <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
-                                                                    Company Refuses to Verify or Deny
-                                                                  </Badge>
-                                                                ) : existingAttestations[company].result === 'INCONCLUSIVE' ? (
-                                                                  <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
-                                                                    Inconclusive Call Result
-                                                                  </Badge>
-                                                                ) : (
-                                                                  <Badge className={`text-xs cursor-help ${getCallResultBadge(existingAttestations[company].result)}`}>
-                                                                    Call: {existingAttestations[company].result.replace(/_/g, ' ')}
-                                                                  </Badge>
-                                                                )}
-                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-normal pointer-events-none">
-                                                                  Indexios has automatically called this user's employer to verify their association to this organization.
-                                                                </div>
-                                                              </div>
-                                                              {(existingAttestations[company].hasAttestation || blockchainAttestations[company]) && (
-                                                                <OnChainBadge 
-                                                                  attestationUID={existingAttestations[company].attestationUID || blockchainAttestations[company]?.uid}
-                                                                  status={existingAttestations[company].result || blockchainAttestations[company]?.status}
-                                                                  explorerUrl={blockchainAttestations[company]?.explorerUrl}
-                                                                />
-                                                              )}
-                                                              {existingAttestations[company].result === 'INCONCLUSIVE' && (
-                                                                <Button
-                                                                  onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
-                                                                  size="sm"
-                                                                  className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
-                                                                  disabled={!uniqueCandidateId}
-                                                                >
-                                                                  <PhoneCall className="w-3 h-3 mr-1" />
-                                                                  Retry
-                                                                </Button>
-                                                              )}
-                                                            </div>
-                                                            {existingAttestations[company].result === 'NO' && (
-                                                              <p className="text-red-400 text-[10px] font-medium">
-                                                                Verified fraud: Employer confirmed candidate never worked there
-                                                              </p>
-                                                            )}
-                                                          </div>
-                                                        ) : callResults[company] ? (
-                                                          <div className="flex flex-col gap-2">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                              <div className="relative group">
-                                                                {callResults[company].result === 'NO' ? (
-                                                                  <Badge className="text-xs bg-red-950 text-red-200 border border-red-700 cursor-help">
-                                                                    ⚠️ Company Denies Employment
-                                                                  </Badge>
-                                                                ) : callResults[company].result === 'REFUSE_TO_DISCLOSE' ? (
-                                                                  <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700 cursor-help">
-                                                                    Company Refuses to Verify or Deny
-                                                                  </Badge>
-                                                                ) : callResults[company].result === 'INCONCLUSIVE' ? (
-                                                                  <Badge className="text-xs bg-zinc-700 text-zinc-300 cursor-help">
-                                                                    Inconclusive Call Result
-                                                                  </Badge>
-                                                                ) : (
-                                                                  <Badge className={`text-xs cursor-help ${getCallResultBadge(callResults[company].result)}`}>
-                                                                    {callResults[company].result.replace(/_/g, ' ')}
-                                                                  </Badge>
-                                                                )}
-                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-green-950/95 border border-green-800 text-green-100 text-xs rounded-md max-w-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] whitespace-normal pointer-events-none">
-                                                                  Indexios has automatically called this user's employer to verify their association to this organization.
-                                                                </div>
-                                                              </div>
-                                                              {(callResults[company].attestationCreated || blockchainAttestations[company]) && (
-                                                                <OnChainBadge 
-                                                                  attestationUID={blockchainAttestations[company]?.uid}
-                                                                  status={callResults[company].result || blockchainAttestations[company]?.status}
-                                                                  explorerUrl={blockchainAttestations[company]?.explorerUrl}
-                                                                />
-                                                              )}
-                                                              {callResults[company].result === 'INCONCLUSIVE' && (
-                                                                <Button
-                                                                  onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
-                                                                  size="sm"
-                                                                  className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
-                                                                  disabled={!uniqueCandidateId}
-                                                                >
-                                                                  <PhoneCall className="w-3 h-3 mr-1" />
-                                                                  Retry
-                                                                </Button>
-                                                              )}
-                                                            </div>
-                                                            {callResults[company].result === 'NO' && (
-                                                              <p className="text-red-400 text-[10px] font-medium">
-                                                                Verified fraud: Employer confirmed candidate never worked there
-                                                              </p>
-                                                            )}
-                                                          </div>
-                                                        ) : callingCompanies[company] !== undefined ? (
+                                                        {callingCompanies[company] !== undefined ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
                                                             Calling...
                                                           </div>
-                                                        ) : hasPhone ? (
+                                                        ) : (
                                                           <Button
-                                                                onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
-                                                                size="sm"
-                                                                className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
-                                                                disabled={!uniqueCandidateId}
-                                                              >
-                                                                <PhoneCall className="w-3 h-3 mr-1" />
-                                                                Auto-Verify
-                                                              </Button>
-                                                        ) : null}
+                                                            onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
+                                                            size="sm"
+                                                            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
+                                                            disabled={!uniqueCandidateId}
+                                                          >
+                                                            <PhoneCall className="w-3 h-3 mr-1" />
+                                                            Auto-Verify
+                                                          </Button>
+                                                        )}
                                                       </div>
                                                     </div>
                                                   )}
 
-                                                  {/* Manual Employer Attestation Badge */}
-                                                    {manualAttestations[company] && (
-                                                      <div className="flex items-start gap-2 mb-2">
-                                                        <Building2 className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
-                                                        <div className="text-xs flex-1">
-                                                          <div className="flex items-center gap-2 flex-wrap">
-                                                            <Badge className="text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700">
-                                                              <CheckCircle className="w-3 h-3 mr-1" />
-                                                              Employer Verified
-                                                            </Badge>
-                                                            {manualAttestations[company].attestationUID && (
-                                                              <OnChainBadge 
-                                                                attestationUID={manualAttestations[company].attestationUID}
-                                                                status="YES"
-                                                              />
-                                                            )}
-                                                          </div>
-                                                          <p className="text-emerald-300/80 mt-1">
-                                                            Attested by {manualAttestations[company].attestedBy}
-                                                            {manualAttestations[company].jobTitle && ` • ${manualAttestations[company].jobTitle}`}
-                                                          </p>
-                                                          <p className="text-white/50 text-[10px]">
-                                                            {new Date(manualAttestations[company].attestedDate).toLocaleDateString()}
-                                                          </p>
-                                                        </div>
-                                                      </div>
-                                                    )}
-
-                                                    {/* Email Address */}
-                                                    {result.email?.address && (
+                                                  {/* Email Address & Button - Only show if NO manual attestation */}
+                                                  {!manualAttestations[company] && result.email?.address && !existingEmailStatus[company]?.status && (
                                                     <div className="flex items-start justify-between gap-2">
                                                       <div className="flex items-start gap-2">
                                                         <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
@@ -765,31 +744,18 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                         </div>
                                                       </div>
                                                       
-                                                      {/* Email Verification Button & Status */}
                                                       <div className="flex flex-col gap-2">
-                                                        {existingEmailStatus[company]?.status === 'pending' || emailResults[company]?.status === 'pending' ? (
-                                                          <Badge className="text-xs bg-blue-900/40 text-blue-300">
-                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                                                            Awaiting Response
-                                                          </Badge>
-                                                        ) : existingEmailStatus[company]?.status && existingEmailStatus[company]?.status !== 'not_sent' ? (
-                                                          <div className="flex items-center gap-2 flex-wrap">
-                                                            <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
-                                                              Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
-                                                            </Badge>
-                                                            {(existingEmailStatus[company].hasAttestation || existingEmailStatus[company].attestationUID) && (
-                                                              <OnChainBadge 
-                                                                attestationUID={existingEmailStatus[company].attestationUID}
-                                                                status={existingEmailStatus[company].status?.toUpperCase()}
-                                                              />
-                                                            )}
-                                                          </div>
-                                                        ) : emailingCompany === company ? (
+                                                        {emailingCompany === company ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
                                                             Sending...
                                                           </div>
-                                                        ) : !existingAttestations[company] ? (
+                                                        ) : emailResults[company]?.status === 'pending' ? (
+                                                          <Badge className="text-xs bg-blue-900/40 text-blue-300">
+                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                            Awaiting Response
+                                                          </Badge>
+                                                        ) : (
                                                           <Button
                                                             onClick={() => handleEmailCompany(company, result.email.address, uniqueCandidateId)}
                                                             size="sm"
@@ -799,7 +765,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                             <Send className="w-3 h-3 mr-1" />
                                                             Email Verify
                                                           </Button>
-                                                        ) : null}
+                                                        )}
                                                       </div>
                                                     </div>
                                                   )}
