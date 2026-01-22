@@ -379,9 +379,11 @@ Deno.serve(async (req) => {
       uniqueCandidateId,
       candidateName: fullName,
       isNewCandidate: !matchedCandidate,
+      matchConfidence: matchedCandidate ? matchConfidence : null,
+      matchDetails: matchedCandidate ? matchDetails : [],
       attestationUID,
       message: matchedCandidate 
-        ? `Updated existing candidate "${fullName}" with manual attestation`
+        ? `Updated existing candidate "${fullName}" with manual attestation (confidence: ${matchConfidence}%)`
         : `Created new candidate "${fullName}" with manual attestation`
     });
 
