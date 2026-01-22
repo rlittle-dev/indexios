@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
         employers: []
       });
       uniqueCandidateId = newCandidate.id;
-      console.log(`Created new candidate: ${fullName} (${uniqueCandidateId})`);
+      console.log(`[ManualAttestation] Created new candidate: ${fullName} (${uniqueCandidateId})`);
     }
 
     // Create attestation on-chain
