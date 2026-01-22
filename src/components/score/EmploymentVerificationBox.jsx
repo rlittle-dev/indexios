@@ -583,6 +583,36 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                       )}
                     </div>
 
+                    {/* Manual Employer Attestation Badge - shown separately when employer verified */}
+                    {manualAttestations[company] && (
+                      <div className="pt-2 border-t border-zinc-700/50">
+                        <div className="flex items-start gap-2">
+                          <Building2 className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge className="text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Employer Verified
+                              </Badge>
+                              {manualAttestations[company].attestationUID && (
+                                <OnChainBadge 
+                                  attestationUID={manualAttestations[company].attestationUID}
+                                  status="YES"
+                                />
+                              )}
+                            </div>
+                            <p className="text-emerald-300/80 mt-1">
+                              Attested by {manualAttestations[company].attestedBy}
+                              {manualAttestations[company].jobTitle && ` • ${manualAttestations[company].jobTitle}`}
+                            </p>
+                            <p className="text-white/50 text-[10px]">
+                              {new Date(manualAttestations[company].attestedDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* HR Contact Info - Only show if we have contact info and no manual attestation */}
                                                                       {(hasPhone || result.email?.address) && !manualAttestations[company] && (
                                                 <div className="pt-2 border-t border-zinc-700/50 space-y-2">
