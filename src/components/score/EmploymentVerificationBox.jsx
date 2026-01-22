@@ -552,35 +552,35 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                     transition={{ delay: idx * 0.1 }}
                     className="bg-zinc-800/50 rounded-lg p-3 space-y-2"
                   >
-                    <div className="grid grid-cols-4 gap-2 items-center text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
                       {/* Employer */}
-                      <div className="text-white font-medium truncate">{company}</div>
+                      <div className="text-white font-medium truncate flex-1 min-w-0">{company}</div>
 
-                      {/* Status */}
-                      <div className="flex items-center gap-1">
-                        {getStatusIcon(status)}
-                        <Badge className={`text-xs ${getStatusColor(status)}`}>
-                          {status === 'verified' ? 'Verified' : 'Not found'}
-                        </Badge>
+                      {/* Status, Evidence Count & Button - stacked on mobile */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {getStatusIcon(status)}
+                          <Badge className={`text-xs ${getStatusColor(status)}`}>
+                            {status === 'verified' ? 'Verified' : 'Not found'}
+                          </Badge>
+                        </div>
+
+                        <span className="text-white/70 text-xs">
+                          {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
+                        </span>
+
+                        {hasEvidence && (
+                          <Button
+                            onClick={() => setSelectedEvidence({ company, result })}
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-7 px-2"
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
+                        )}
                       </div>
-
-                      {/* Evidence Count */}
-                      <div className="text-white/70 text-xs">
-                        {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
-                      </div>
-
-                      {/* Evidence Button */}
-                      {hasEvidence && (
-                        <Button
-                          onClick={() => setSelectedEvidence({ company, result })}
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs h-8"
-                        >
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                      )}
                     </div>
 
                     {/* HR Contact Info & Verification Status */}
