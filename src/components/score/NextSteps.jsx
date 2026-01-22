@@ -120,7 +120,7 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
               <h3 className="text-white font-semibold">Interview Questions</h3>
             </div>
             <ChevronDown
-              className={`w-5 h-5 text-indigo-400 transition-transform duration-300 ${
+              className={`w-5 h-5 text-white/60 transition-transform duration-300 ${
                 questionsExpanded ? 'rotate-180' : ''
               }`}
             />
