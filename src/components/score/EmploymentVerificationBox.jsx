@@ -667,20 +667,20 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                   {existingEmailStatus[company]?.status && existingEmailStatus[company]?.status !== 'not_sent' && (
                                                     <div className="flex items-start gap-2">
                                                       <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
-                                                      <div className="text-xs flex-1">
-                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                      <div className="text-xs flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5">
                                                           {existingEmailStatus[company].status === 'pending' ? (
-                                                            <Badge className="text-xs bg-blue-900/40 text-blue-300">
-                                                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                            <Badge className="text-[10px] sm:text-xs bg-blue-900/40 text-blue-300 whitespace-nowrap">
+                                                              <Loader2 className="w-3 h-3 mr-1 animate-spin flex-shrink-0" />
                                                               Awaiting Response
                                                             </Badge>
                                                           ) : existingEmailStatus[company].status === 'yes' ? (
-                                                            <Badge className="text-xs bg-green-900/40 text-green-300">
-                                                              <CheckCircle className="w-3 h-3 mr-1" />
+                                                            <Badge className="text-[10px] sm:text-xs bg-green-900/40 text-green-300 whitespace-nowrap">
+                                                              <CheckCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                                                               Email Verified
                                                             </Badge>
                                                           ) : (
-                                                            <Badge className={`text-xs ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
+                                                            <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${getCallResultBadge(existingEmailStatus[company].status.toUpperCase())}`}>
                                                               Email: {existingEmailStatus[company].status.replace(/_/g, ' ').toUpperCase()}
                                                             </Badge>
                                                           )}
