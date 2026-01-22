@@ -2,6 +2,7 @@ import About from './pages/About';
 import ApiAccess from './pages/ApiAccess';
 import AttestationPortal from './pages/AttestationPortal';
 import Contact from './pages/Contact';
+import EmailVerificationResponse from './pages/EmailVerificationResponse';
 import Home from './pages/Home';
 import ManageDevices from './pages/ManageDevices';
 import MyAccount from './pages/MyAccount';
@@ -13,7 +14,6 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
-import EmailVerificationResponse from './pages/EmailVerificationResponse';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +22,7 @@ export const PAGES = {
     "ApiAccess": ApiAccess,
     "AttestationPortal": AttestationPortal,
     "Contact": Contact,
+    "EmailVerificationResponse": EmailVerificationResponse,
     "Home": Home,
     "ManageDevices": ManageDevices,
     "MyAccount": MyAccount,
@@ -33,7 +34,6 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
-    "EmailVerificationResponse": EmailVerificationResponse,
 }
 
 export const pagesConfig = {

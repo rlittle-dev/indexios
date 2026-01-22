@@ -4,9 +4,10 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLink } from 'lucide-react';
+import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLink, UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import AddEmployeeModal from '@/components/attestation/AddEmployeeModal';
 
 export default function AttestationPortal() {
   const [user, setUser] = useState(null);
@@ -17,6 +18,8 @@ export default function AttestationPortal() {
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [verified, setVerified] = useState(false);
   const [verifiedWorkplace, setVerifiedWorkplace] = useState(null);
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+  const [attestedEmployees, setAttestedEmployees] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,6 +32,8 @@ export default function AttestationPortal() {
           if (currentUser.verified_workplace) {
             setVerified(true);
             setVerifiedWorkplace(currentUser.verified_workplace);
+            // Fetch employees attested by this company
+            fetchAttestedEmployees(currentUser.verified_workplace.company);
           }
         }
       } catch (error) {
@@ -38,6 +43,25 @@ export default function AttestationPortal() {
     };
     fetchUser();
   }, []);
+
+  const fetchAttestedEmployees = async (companyName) => {
+    try {
+      const candidates = await base44.entities.UniqueCandidate.filter({});
+      const attested = candidates.filter(c => {
+        if (!c.employers) return false;
+        return c.employers.some(emp => {
+          const ma = emp.manual_employer_attestation;
+          if (!ma || ma.status !== 'verified') return false;
+          const empCompany = ma.attested_by_company?.toLowerCase().trim();
+          const searchCompany = companyName?.toLowerCase().trim();
+          return empCompany === searchCompany || empCompany?.includes(searchCompany) || searchCompany?.includes(empCompany);
+        });
+      });
+      setAttestedEmployees(attested);
+    } catch (error) {
+      console.error('Error fetching attested employees:', error);
+    }
+  };
 
   const handleSearchCompany = async () => {
     if (!companySearch.trim()) return;
@@ -339,29 +363,93 @@ export default function AttestationPortal() {
           )}
         </motion.div>
 
-        {/* My Attestations Button - Only show when verified */}
+        {/* Add Employee & My Attestations - Only show when verified */}
         {verified && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-2xl p-6 md:p-8"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-2">My Attestations</h3>
-                <p className="text-white/60 text-sm">
-                  View all on-chain employment attestations you've created
-                </p>
-              </div>
-              <Link to={createPageUrl('MyAttestations')}>
-                <Button className="bg-white hover:bg-gray-100 text-black font-medium">
-                  View Attestations
-                  <ExternalLink className="w-4 h-4 ml-2" />
+          <>
+            {/* Add Employee Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <UserPlus className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">Add Employee</h2>
+                    <p className="text-white/60 text-sm">Attest employment for your team members</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setShowAddEmployee(true)}
+                  className="bg-green-600 hover:bg-green-500 text-white"
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add Employee
                 </Button>
-              </Link>
-            </div>
-          </motion.div>
+              </div>
+
+              {/* Attested Employees List */}
+              {attestedEmployees.length > 0 && (
+                <div className="border-t border-zinc-800 pt-4 mt-4">
+                  <p className="text-white/70 text-sm mb-3">
+                    Employees attested by {verifiedWorkplace?.company} ({attestedEmployees.length})
+                  </p>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {attestedEmployees.map((candidate, idx) => {
+                      const employer = candidate.employers?.find(emp => 
+                        emp.manual_employer_attestation?.attested_by_company?.toLowerCase().includes(verifiedWorkplace?.company?.toLowerCase())
+                      );
+                      const ma = employer?.manual_employer_attestation;
+                      return (
+                        <div key={candidate.id || idx} className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3">
+                          <div>
+                            <p className="text-white font-medium">{candidate.name}</p>
+                            <p className="text-white/50 text-xs">
+                              {ma?.job_title && `${ma.job_title} • `}
+                              Attested {new Date(ma?.attested_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {ma?.attestation_uid && (
+                            <Badge className="bg-green-500/20 text-green-300 text-xs">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              On-chain
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
+            {/* My Attestations Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-2xl p-6 md:p-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-white mb-2">My Attestations</h3>
+                  <p className="text-white/60 text-sm">
+                    View all on-chain employment attestations you've created
+                  </p>
+                </div>
+                <Link to={createPageUrl('MyAttestations')}>
+                  <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                    View Attestations
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </>
         )}
 
         {/* Info Section */}
@@ -389,6 +477,18 @@ export default function AttestationPortal() {
           </div>
         </motion.div>
       </div>
+
+      {/* Add Employee Modal */}
+      <AddEmployeeModal
+        isOpen={showAddEmployee}
+        onClose={() => setShowAddEmployee(false)}
+        verifiedWorkplace={verifiedWorkplace}
+        onSuccess={() => {
+          if (verifiedWorkplace?.company) {
+            fetchAttestedEmployees(verifiedWorkplace.company);
+          }
+        }}
+      />
     </div>
   );
 }
