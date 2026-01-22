@@ -731,38 +731,38 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                                                   {/* Email Address & Button - Only show if NO manual attestation */}
                                                   {!manualAttestations[company] && result.email?.address && !existingEmailStatus[company]?.status && (
-                                                    <div className="flex items-start justify-between gap-2">
-                                                      <div className="flex items-start gap-2">
+                                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                                      <div className="flex items-start gap-2 min-w-0 flex-1">
                                                         <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
-                                                        <div className="text-xs">
-                                                          <p className="text-blue-300 font-medium">
+                                                        <div className="text-xs min-w-0">
+                                                          <p className="text-blue-300 font-medium break-all">
                                                             {result.email.address}
                                                           </p>
-                                                          <p className="text-white/60 text-[10px] mt-0.5">
+                                                          <p className="text-white/60 text-[10px] mt-0.5 break-words">
                                                             {result.email.notes || 'HR/Employment verification email'}
                                                           </p>
                                                         </div>
                                                       </div>
                                                       
-                                                      <div className="flex flex-col gap-2">
+                                                      <div className="flex-shrink-0">
                                                         {emailingCompany === company ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
                                                             Sending...
                                                           </div>
                                                         ) : emailResults[company]?.status === 'pending' ? (
-                                                          <Badge className="text-xs bg-blue-900/40 text-blue-300">
-                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                                          <Badge className="text-[10px] sm:text-xs bg-blue-900/40 text-blue-300 whitespace-nowrap">
+                                                            <Loader2 className="w-3 h-3 mr-1 animate-spin flex-shrink-0" />
                                                             Awaiting Response
                                                           </Badge>
                                                         ) : (
                                                           <Button
                                                             onClick={() => handleEmailCompany(company, result.email.address, uniqueCandidateId)}
                                                             size="sm"
-                                                            className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-500 text-white"
+                                                            className="h-7 px-2 sm:px-3 text-[10px] sm:text-xs bg-blue-600 hover:bg-blue-500 text-white whitespace-nowrap"
                                                             disabled={!uniqueCandidateId}
                                                           >
-                                                            <Send className="w-3 h-3 mr-1" />
+                                                            <Send className="w-3 h-3 mr-1 flex-shrink-0" />
                                                             Email Verify
                                                           </Button>
                                                         )}
