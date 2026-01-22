@@ -92,7 +92,7 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
                   transition={{ delay: 0.7 + index * 0.1 }}
                   className="flex items-start gap-3 text-white/80"
                 >
-                  <ArrowRight className="w-4 h-4 text-emerald-400 mt-1 flex-shrink-0" />
+                  <ArrowRight className="w-4 h-4 text-white/40 mt-1 flex-shrink-0" />
                   <span className="text-sm leading-relaxed">{step}</span>
                 </motion.li>
               ))}
