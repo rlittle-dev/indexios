@@ -144,7 +144,7 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
                   transition={{ delay: 0.8 + index * 0.1 }}
                   className="flex items-start gap-3 text-white/80"
                 >
-                  <span className="text-indigo-400 font-bold flex-shrink-0 mt-0.5">{index + 1}.</span>
+                  <span className="text-white/40 font-bold flex-shrink-0 mt-0.5">{index + 1}.</span>
                   <span className="text-sm leading-relaxed">{question}</span>
                 </motion.li>
               ))}
