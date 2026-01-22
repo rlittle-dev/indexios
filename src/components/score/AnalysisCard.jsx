@@ -12,12 +12,19 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
     return 'bg-gradient-to-r from-red-500 to-red-400';
   };
 
+  const getBorderColor = (score) => {
+    if (score >= 80) return 'border-emerald-500/30';
+    if (score >= 60) return 'border-yellow-500/30';
+    if (score >= 40) return 'border-orange-500/30';
+    return 'border-red-500/30';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay }}
-      className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col"
+      className={`bg-zinc-900/80 backdrop-blur-sm rounded-xl p-5 border ${getBorderColor(score)} transition-colors flex flex-col`}
     >
       <button
         onClick={(e) => {
