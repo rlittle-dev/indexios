@@ -45,7 +45,7 @@ export default function FlagsList({ redFlags = [], greenFlags = [], isBasic = fa
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
         >
-          <div className="px-5 pb-5 border-t border-red-500/20 space-y-2">
+          <div className="px-5 pb-5 pt-3 space-y-2">
             {redFlags.length > 0 ? (
               <ul className="space-y-2">
                 {redFlags.map((flag, index) => (
