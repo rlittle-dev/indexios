@@ -19,15 +19,16 @@ export default function OnChainBadge({ attestationUID, status, explorerUrl }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex"
+      className="inline-flex flex-shrink-0"
       onClick={(e) => e.stopPropagation()}
     >
       <Badge 
-        className={`text-xs flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity border ${statusColors[status] || statusColors.INCONCLUSIVE}`}
+        className={`text-[10px] sm:text-xs flex items-center gap-0.5 sm:gap-1 cursor-pointer hover:opacity-80 transition-opacity border whitespace-nowrap ${statusColors[status] || statusColors.INCONCLUSIVE}`}
       >
-        <Link2 className="w-3 h-3" />
-        On-Chain
-        <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+        <Link2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+        <span className="hidden sm:inline">On-Chain</span>
+        <span className="sm:hidden">Chain</span>
+        <ExternalLink className="w-2 h-2 sm:w-2.5 sm:h-2.5 flex-shrink-0" />
       </Badge>
     </a>
   );
