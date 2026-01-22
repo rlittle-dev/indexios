@@ -114,10 +114,10 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
             className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-indigo-500/10">
-                <MessageCircle className="w-5 h-5 text-indigo-400" />
+              <div className="p-2 rounded-lg bg-white/5">
+                <MessageCircle className="w-5 h-5 text-white/60" />
               </div>
-              <h3 className="text-xl font-bold text-white">Interview Questions</h3>
+              <h3 className="text-white font-semibold">Interview Questions</h3>
             </div>
             <ChevronDown
               className={`w-5 h-5 text-indigo-400 transition-transform duration-300 ${
