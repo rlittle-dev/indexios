@@ -619,33 +619,33 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                   {(existingAttestations[company] || callResults[company]) && (
                                                     <div className="flex items-start gap-2">
                                                       <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
-                                                      <div className="text-xs flex-1">
-                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                      <div className="text-xs flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5">
                                                           {(() => {
                                                             const attestation = existingAttestations[company] || callResults[company];
                                                             const resultVal = attestation?.result;
                                                             if (resultVal === 'YES') {
                                                               return (
-                                                                <Badge className="text-xs bg-green-900/40 text-green-300">
-                                                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                                                <Badge className="text-[10px] sm:text-xs bg-green-900/40 text-green-300 whitespace-nowrap">
+                                                                  <CheckCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                                                                   Call Verified
                                                                 </Badge>
                                                               );
                                                             } else if (resultVal === 'NO') {
                                                               return (
-                                                                <Badge className="text-xs bg-red-950 text-red-200 border border-red-700">
-                                                                  ⚠️ Company Denies Employment
+                                                                <Badge className="text-[10px] sm:text-xs bg-red-950 text-red-200 border border-red-700 whitespace-nowrap">
+                                                                  ⚠️ Denies Employment
                                                                 </Badge>
                                                               );
                                                             } else if (resultVal === 'REFUSE_TO_DISCLOSE' || resultVal === 'REFUSED_TO_DISCLOSE') {
                                                               return (
-                                                                <Badge className="text-xs bg-orange-900/60 text-orange-200 border border-orange-700">
-                                                                  Company Refuses to Verify
+                                                                <Badge className="text-[10px] sm:text-xs bg-orange-900/60 text-orange-200 border border-orange-700 whitespace-nowrap">
+                                                                  Refuses to Verify
                                                                 </Badge>
                                                               );
                                                             } else {
                                                               return (
-                                                                <Badge className={`text-xs ${getCallResultBadge(resultVal)}`}>
+                                                                <Badge className={`text-[10px] sm:text-xs whitespace-nowrap ${getCallResultBadge(resultVal)}`}>
                                                                   Call: {resultVal?.replace(/_/g, ' ')}
                                                                 </Badge>
                                                               );
