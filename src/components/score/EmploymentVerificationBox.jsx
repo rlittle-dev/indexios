@@ -697,18 +697,18 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                                                   {/* Phone Number & Call Button - Only show if NO manual attestation */}
                                                   {!manualAttestations[company] && hasPhone && !existingAttestations[company] && !callResults[company] && (
-                                                    <div className="flex items-start justify-between gap-2">
-                                                      <div className="flex items-start gap-2">
+                                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                                      <div className="flex items-start gap-2 min-w-0 flex-1">
                                                         <Phone className="w-3 h-3 text-green-400 mt-0.5 flex-shrink-0" />
-                                                        <div className="text-xs">
-                                                          <p className="text-green-300 font-medium">{result.phone.number}</p>
-                                                          <p className="text-white/60 text-[10px] mt-0.5">
+                                                        <div className="text-xs min-w-0">
+                                                          <p className="text-green-300 font-medium break-all">{result.phone.number}</p>
+                                                          <p className="text-white/60 text-[10px] mt-0.5 break-words">
                                                             {result.phone.notes || 'Employment verification contact'}
                                                           </p>
                                                         </div>
                                                       </div>
 
-                                                      <div className="flex flex-col gap-2">
+                                                      <div className="flex-shrink-0">
                                                         {callingCompanies[company] !== undefined ? (
                                                           <div className="flex items-center gap-1 text-xs text-blue-300">
                                                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -718,10 +718,10 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                           <Button
                                                             onClick={() => handleCallCompany(company, result.phone.number, uniqueCandidateId)}
                                                             size="sm"
-                                                            className="h-7 px-3 text-xs bg-green-600 hover:bg-green-500 text-white"
+                                                            className="h-7 px-2 sm:px-3 text-[10px] sm:text-xs bg-green-600 hover:bg-green-500 text-white whitespace-nowrap"
                                                             disabled={!uniqueCandidateId}
                                                           >
-                                                            <PhoneCall className="w-3 h-3 mr-1" />
+                                                            <PhoneCall className="w-3 h-3 mr-1 flex-shrink-0" />
                                                             Auto-Verify
                                                           </Button>
                                                         )}
