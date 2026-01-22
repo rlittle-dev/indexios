@@ -591,11 +591,11 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                   {manualAttestations[company] && (
                                                     <div className="flex items-start gap-2 mb-2">
                                                       <Building2 className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
-                                                      <div className="text-xs flex-1">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                          <Badge className="text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700">
-                                                            <CheckCircle className="w-3 h-3 mr-1" />
-                                                            Employer Verified
+                                                      <div className="text-xs flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-1.5">
+                                                          <Badge className="text-[10px] sm:text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700 whitespace-nowrap">
+                                                            <CheckCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                            <span className="truncate">Employer Verified</span>
                                                           </Badge>
                                                           {manualAttestations[company].attestationUID && (
                                                             <OnChainBadge 
@@ -604,7 +604,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                             />
                                                           )}
                                                         </div>
-                                                        <p className="text-emerald-300/80 mt-1">
+                                                        <p className="text-emerald-300/80 mt-1 text-[10px] sm:text-xs break-words">
                                                           Attested by {manualAttestations[company].attestedBy}
                                                           {manualAttestations[company].jobTitle && ` • ${manualAttestations[company].jobTitle}`}
                                                         </p>
