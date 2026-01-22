@@ -257,40 +257,44 @@ Deno.serve(async (req) => {
     }
 
     const fullName = `${candidateData.firstName} ${candidateData.lastName}`;
-    const normalizedName = normalizeName(fullName);
 
-    // Search for existing candidates with similar name
-    const allCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+    // Prepare input data for matching
+    const inputData = {
+      name: fullName,
+      email: candidateData.email || null,
+      phone: candidateData.phone || null,
+      linkedin_url: candidateData.linkedinUrl || null,
+      state: candidateData.state || null,
+      city: candidateData.city || null,
+      employers: companyName ? [{ employer_name: companyName }] : []
+    };
+
+    // Use enhanced matching with confidence scoring (threshold: 60)
+    const matchResult = await findBestMatch(base44, inputData, 60);
     
-    let matchedCandidate = null;
-    for (const candidate of allCandidates) {
-      if (isSameCandidate(candidate, candidateData)) {
-        matchedCandidate = candidate;
-        break;
-      }
-    }
+    let matchedCandidate = matchResult.match;
+    let matchConfidence = matchResult.confidence;
+    let matchDetails = matchResult.details;
+    
+    console.log(`[ManualAttestation] Match result: ${matchedCandidate ? matchedCandidate.name : 'none'} (confidence: ${matchConfidence}, details: ${matchDetails.join(', ')})`);
 
     let uniqueCandidateId;
     let employers = [];
 
     if (matchedCandidate) {
-      // Update existing candidate
+      // Update existing candidate with enriched data
       uniqueCandidateId = matchedCandidate.id;
       employers = matchedCandidate.employers || [];
       
-      // Update candidate data if we have new info
-      const updateData = {};
-      if (candidateData.email && !matchedCandidate.email) updateData.email = candidateData.email;
-      if (candidateData.phone && !matchedCandidate.phone) updateData.phone = candidateData.phone;
-      if (candidateData.linkedinUrl && !matchedCandidate.linkedin_url) updateData.linkedin_url = candidateData.linkedinUrl;
-      if (candidateData.state && !matchedCandidate.state) updateData.state = candidateData.state;
-      if (candidateData.city && !matchedCandidate.city) updateData.city = candidateData.city;
+      // Use data enrichment to fill missing fields
+      const { enriched, enrichedFields } = enrichCandidateData(matchedCandidate, inputData);
       
-      if (Object.keys(updateData).length > 0) {
-        await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, updateData);
+      if (Object.keys(enriched).length > 0) {
+        await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, enriched);
+        console.log(`[ManualAttestation] Enriched candidate with: ${enrichedFields.join(', ')}`);
       }
       
-      console.log(`Found existing candidate: ${matchedCandidate.name} (${uniqueCandidateId})`);
+      console.log(`[ManualAttestation] Found existing candidate: ${matchedCandidate.name} (${uniqueCandidateId}) with confidence ${matchConfidence}`);
     } else {
       // Create new UniqueCandidate
       const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
