@@ -188,18 +188,30 @@ Deno.serve(async (req) => {
             if (hrPhoneSource.includes(domainLower) || hrEmailSource.includes(domainLower) || 
                 domainLower.includes(empNameLower.replace(/[^a-z0-9]/g, '')) ||
                 empNameLower.includes(domainLower.replace('.com', '').replace('.org', '').replace('.net', ''))) {
-              // Map verificationOutcome to call_verification_status
-              let callStatus = emp.call_verification_status;
-              if (verificationOutcome === 1) callStatus = 'yes';
-              else if (verificationOutcome === 2) callStatus = 'no';
-              else if (verificationOutcome === 3) callStatus = 'refused_to_disclose';
+              // Map verificationOutcome based on verification type
+              const updates = { ...emp };
               
-              return {
-                ...emp,
-                call_verification_status: callStatus,
-                call_verified_date: new Date().toISOString(),
-                attestation_uid: attestationUID
-              };
+              if (verificationType === 'manual_employer') {
+                // For manual employer attestations, update the manual_employer_attestation object
+                if (updates.manual_employer_attestation) {
+                  updates.manual_employer_attestation.attestation_uid = attestationUID;
+                }
+              } else if (verificationType === 'email') {
+                updates.email_attestation_uid = attestationUID;
+                if (verificationOutcome === 1) updates.email_verification_status = 'yes';
+                else if (verificationOutcome === 2) updates.email_verification_status = 'no';
+                else if (verificationOutcome === 3) updates.email_verification_status = 'refused_to_disclose';
+                updates.email_verified_date = new Date().toISOString();
+              } else {
+                // Phone/call verification
+                if (verificationOutcome === 1) updates.call_verification_status = 'yes';
+                else if (verificationOutcome === 2) updates.call_verification_status = 'no';
+                else if (verificationOutcome === 3) updates.call_verification_status = 'refused_to_disclose';
+                updates.call_verified_date = new Date().toISOString();
+                updates.phone_attestation_uid = attestationUID;
+              }
+              
+              return updates;
             }
             return emp;
           });
