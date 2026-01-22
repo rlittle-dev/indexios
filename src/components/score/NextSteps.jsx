@@ -135,7 +135,7 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <ul className="px-5 pb-5 border-t border-indigo-500/20 space-y-3">
+            <ul className="px-5 pb-5 pt-3 space-y-3">
               {interviewQuestions.map((question, index) => (
                 <motion.li
                   key={index}
