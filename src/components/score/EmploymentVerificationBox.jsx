@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2, Send } from 'lucide-react';
+import { ChevronDown, Play, RefreshCw, Eye, CheckCircle, XCircle, Phone, PhoneCall, Loader2, Mail, Link2, Send, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -19,6 +19,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [existingAttestations, setExistingAttestations] = useState({}); // company -> attestation data
   const [existingEmailStatus, setExistingEmailStatus] = useState({}); // company -> email status
   const [blockchainAttestations, setBlockchainAttestations] = useState({}); // company -> blockchain attestation data
+  const [manualAttestations, setManualAttestations] = useState({}); // company -> manual employer attestation
 
   const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
 
@@ -32,6 +33,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         const candidate = candidates[0];
         const attestations = {};
         const emailStatuses = {};
+        const manualAtts = {};
 
         if (candidate.employers && Array.isArray(candidate.employers)) {
           for (const employer of candidate.employers) {
@@ -41,7 +43,20 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               const companyNorm = companyName.toLowerCase().trim();
 
               if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
-                // Check call verification status
+                // Check for manual employer attestation
+                if (employer.manual_employer_attestation?.status === 'verified') {
+                  const ma = employer.manual_employer_attestation;
+                  manualAtts[companyName] = {
+                    status: 'verified',
+                    attestedBy: ma.attested_by_company,
+                    attestedDate: ma.attested_date,
+                    attestationUID: ma.attestation_uid,
+                    jobTitle: ma.job_title,
+                    startDate: ma.start_date,
+                    endDate: ma.end_date
+                  };
+                }
+
                 // Check call verification status
                 if (employer.call_verification_status && 
                     employer.call_verification_status !== 'not_called' && 
@@ -91,6 +106,7 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
         setExistingAttestations(attestations);
         setExistingEmailStatus(emailStatuses);
+        setManualAttestations(manualAtts);
       }
     } catch (error) {
       console.error('[EmploymentVerification] Error checking verifications:', error);
@@ -706,8 +722,36 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
                                                     </div>
                                                   )}
 
-                                                  {/* Email Address */}
-                                                  {result.email?.address && (
+                                                  {/* Manual Employer Attestation Badge */}
+                                                    {manualAttestations[company] && (
+                                                      <div className="flex items-start gap-2 mb-2">
+                                                        <Building2 className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                                        <div className="text-xs flex-1">
+                                                          <div className="flex items-center gap-2 flex-wrap">
+                                                            <Badge className="text-xs bg-emerald-900/60 text-emerald-200 border border-emerald-700">
+                                                              <CheckCircle className="w-3 h-3 mr-1" />
+                                                              Employer Verified
+                                                            </Badge>
+                                                            {manualAttestations[company].attestationUID && (
+                                                              <OnChainBadge 
+                                                                attestationUID={manualAttestations[company].attestationUID}
+                                                                status="YES"
+                                                              />
+                                                            )}
+                                                          </div>
+                                                          <p className="text-emerald-300/80 mt-1">
+                                                            Attested by {manualAttestations[company].attestedBy}
+                                                            {manualAttestations[company].jobTitle && ` • ${manualAttestations[company].jobTitle}`}
+                                                          </p>
+                                                          <p className="text-white/50 text-[10px]">
+                                                            {new Date(manualAttestations[company].attestedDate).toLocaleDateString()}
+                                                          </p>
+                                                        </div>
+                                                      </div>
+                                                    )}
+
+                                                    {/* Email Address */}
+                                                    {result.email?.address && (
                                                     <div className="flex items-start justify-between gap-2">
                                                       <div className="flex items-start gap-2">
                                                         <Mail className="w-3 h-3 text-blue-400 mt-0.5 flex-shrink-0" />
