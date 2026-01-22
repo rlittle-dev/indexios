@@ -55,7 +55,7 @@ export default function NextSteps({ nextSteps, interviewQuestions, isLocked }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-emerald-500/30"
+          className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-zinc-800"
         >
           <button
             onClick={() => setNextStepsExpanded(!nextStepsExpanded)}
