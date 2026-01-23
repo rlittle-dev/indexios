@@ -182,12 +182,17 @@ export default function AttestationPortal() {
 
   const handleVerifyWorkplace = async () => {
     if (!selectedEmail) return;
+    if (!manualHREmail || !manualHREmail.includes('@')) {
+      alert('Please enter a valid HR email address');
+      return;
+    }
     
     setSendingVerification(true);
     try {
       const response = await base44.functions.invoke('sendWorkplaceVerificationEmail', {
         companyName: selectedEmail.company,
-        companyDomain: selectedEmail.domain
+        companyDomain: selectedEmail.domain,
+        companyEmail: manualHREmail.trim()
       });
 
       if (response.data?.success) {
@@ -201,6 +206,7 @@ export default function AttestationPortal() {
         setEmailOptions([]);
         setSelectedEmail(null);
         setCompanySearch('');
+        setManualHREmail('');
       } else {
         alert(response.data?.error || 'Failed to send verification email');
       }
