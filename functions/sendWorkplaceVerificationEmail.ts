@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
               <!-- Content -->
               <div style="background-color: #27272a; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
                 <p style="color: #a1a1aa; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-                  <strong style="color: #ffffff;">${user.full_name || user.email}</strong> is requesting authorization to represent <strong style="color: #ffffff;">${companyName}</strong> on the Indexios employment attestation platform.
+                  <strong style="color: #ffffff;">${user.full_name || 'A user'}</strong> (${user.email}) is requesting authorization to represent <strong style="color: #ffffff;">${companyName}</strong> on the Indexios employment attestation platform.
                 </p>
                 
                 <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6; margin: 0;">
