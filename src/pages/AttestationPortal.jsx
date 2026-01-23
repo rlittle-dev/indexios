@@ -24,7 +24,6 @@ export default function AttestationPortal() {
   const [sendingVerification, setSendingVerification] = useState(false);
   const [verificationProcessing, setVerificationProcessing] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const [manualHREmail, setManualHREmail] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -182,17 +181,12 @@ export default function AttestationPortal() {
 
   const handleVerifyWorkplace = async () => {
     if (!selectedEmail) return;
-    if (!manualHREmail || !manualHREmail.includes('@')) {
-      alert('Please enter a valid HR email address');
-      return;
-    }
     
     setSendingVerification(true);
     try {
       const response = await base44.functions.invoke('sendWorkplaceVerificationEmail', {
         companyName: selectedEmail.company,
-        companyDomain: selectedEmail.domain,
-        companyEmail: manualHREmail.trim()
+        companyDomain: selectedEmail.domain
       });
 
       if (response.data?.success) {
@@ -206,7 +200,6 @@ export default function AttestationPortal() {
         setEmailOptions([]);
         setSelectedEmail(null);
         setCompanySearch('');
-        setManualHREmail('');
       } else {
         alert(response.data?.error || 'Failed to send verification email');
       }
@@ -488,39 +481,27 @@ export default function AttestationPortal() {
                   </div>
 
                   {selectedEmail && (
-                    <div className="mt-4 space-y-3">
-                      <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-                        <p className="text-white/70 text-sm mb-3">
-                          Enter the HR or verification email for <span className="text-white font-medium">{selectedEmail.company}</span>:
-                        </p>
-                        <Input
-                          type="email"
-                          placeholder="hr@company.com"
-                          value={manualHREmail}
-                          onChange={(e) => setManualHREmail(e.target.value)}
-                          className="bg-zinc-900 border-zinc-600 text-white placeholder:text-zinc-500"
-                        />
-                        <p className="text-white/50 text-xs mt-2">
-                          This should be someone at {selectedEmail.company} who can verify your employment there.
-                        </p>
-                      </div>
+                    <div className="mt-4">
                       <Button
                         onClick={handleVerifyWorkplace}
-                        disabled={sendingVerification || !manualHREmail.includes('@')}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
+                        disabled={sendingVerification}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
                       >
                         {sendingVerification ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Sending Verification...
+                            Finding HR Contact & Sending...
                           </>
                         ) : (
                           <>
                             <Send className="w-4 h-4 mr-2" />
-                            Send Verification Request
+                            Request Verification for {selectedEmail.company}
                           </>
                         )}
                       </Button>
+                      <p className="text-white/50 text-xs mt-2 text-center">
+                        We'll automatically find and contact {selectedEmail.company}'s HR department
+                      </p>
                     </div>
                   )}
                 </div>
