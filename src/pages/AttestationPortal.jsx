@@ -330,6 +330,47 @@ export default function AttestationPortal() {
             )}
           </div>
 
+          {/* Verification Result Banner */}
+          {verificationResult && (
+            <div className={`mb-6 p-4 rounded-xl border ${
+              verificationResult.success 
+                ? verificationResult.action === 'approved'
+                  ? 'bg-green-900/20 border-green-500/30'
+                  : 'bg-orange-900/20 border-orange-500/30'
+                : 'bg-red-900/20 border-red-500/30'
+            }`}>
+              {verificationResult.success ? (
+                verificationResult.action === 'approved' ? (
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <p className="text-green-300">
+                      <strong>{verificationResult.userName}</strong> has been authorized to represent <strong>{verificationResult.company}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <XCircle className="w-5 h-5 text-orange-400" />
+                    <p className="text-orange-300">
+                      Authorization request for <strong>{verificationResult.company}</strong> was denied
+                    </p>
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center gap-3">
+                  <XCircle className="w-5 h-5 text-red-400" />
+                  <p className="text-red-300">{verificationResult.error}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {verificationProcessing && (
+            <div className="mb-6 p-6 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
+              <Loader2 className="w-8 h-8 text-blue-400 animate-spin mx-auto mb-3" />
+              <p className="text-white">Processing verification...</p>
+            </div>
+          )}
+
           {verified && verifiedWorkplace ? (
             <div className="bg-green-900/20 border border-green-500/30 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
@@ -358,6 +399,39 @@ export default function AttestationPortal() {
               <p className="text-green-300/80 text-sm">
                 Your workplace has been verified. You can now create and manage attestations.
               </p>
+            </div>
+          ) : pendingVerification ? (
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="w-6 h-6 text-blue-400" />
+                <div>
+                  <p className="text-white font-medium">Awaiting Company Verification</p>
+                  <p className="text-white/60 text-sm">{pendingVerification.company}</p>
+                </div>
+              </div>
+              <div className="bg-zinc-800/50 rounded-lg p-4 mb-4">
+                <p className="text-white/70 text-sm mb-2">
+                  A verification email has been sent to:
+                </p>
+                <p className="text-blue-300 font-medium">{pendingVerification.company_email}</p>
+              </div>
+              <p className="text-blue-300/80 text-sm mb-4">
+                Once someone at {pendingVerification.company} approves your request, you'll be able to create attestations. 
+                This typically takes 1-2 business days.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (confirm('Cancel your pending verification request?')) {
+                    await base44.auth.updateMe({ pending_workplace_verification: null });
+                    setPendingVerification(null);
+                  }
+                }}
+                className="border-zinc-600 text-white/70 hover:bg-zinc-800"
+              >
+                Cancel Request
+              </Button>
             </div>
           ) : (
             <>
