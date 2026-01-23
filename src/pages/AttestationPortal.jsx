@@ -490,25 +490,29 @@ export default function AttestationPortal() {
                   {selectedEmail && (
                     <div className="mt-4 space-y-3">
                       <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
-                        <p className="text-white/70 text-sm mb-2">
-                          We'll find the HR or employment verification email for:
+                        <p className="text-white/70 text-sm mb-3">
+                          Enter the HR or verification email for <span className="text-white font-medium">{selectedEmail.company}</span>:
                         </p>
-                        <p className="text-blue-300 font-medium">
-                          {selectedEmail.company}
-                        </p>
+                        <Input
+                          type="email"
+                          placeholder="hr@company.com"
+                          value={manualHREmail}
+                          onChange={(e) => setManualHREmail(e.target.value)}
+                          className="bg-zinc-900 border-zinc-600 text-white placeholder:text-zinc-500"
+                        />
                         <p className="text-white/50 text-xs mt-2">
-                          A verification email will be sent requesting authorization to create employment attestations on behalf of {selectedEmail.company}.
+                          This should be someone at {selectedEmail.company} who can verify your employment there.
                         </p>
                       </div>
                       <Button
                         onClick={handleVerifyWorkplace}
-                        disabled={sendingVerification}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                        disabled={sendingVerification || !manualHREmail.includes('@')}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
                       >
                         {sendingVerification ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Finding HR Contact & Sending...
+                            Sending Verification...
                           </>
                         ) : (
                           <>
