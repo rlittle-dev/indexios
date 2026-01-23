@@ -182,23 +182,18 @@ export default function AttestationPortal() {
   const handleVerifyWorkplace = async () => {
     if (!selectedEmail) return;
     
-    // Build company email from user's email username + company domain
-    const userEmailUsername = user.email.split('@')[0];
-    const companyEmail = `hr${selectedEmail.domain}`;
-    
     setSendingVerification(true);
     try {
       const response = await base44.functions.invoke('sendWorkplaceVerificationEmail', {
         companyName: selectedEmail.company,
-        companyDomain: selectedEmail.domain,
-        companyEmail: companyEmail
+        companyDomain: selectedEmail.domain
       });
 
       if (response.data?.success) {
         setPendingVerification({
           company: selectedEmail.company,
           domain: selectedEmail.domain,
-          company_email: companyEmail,
+          company_email: response.data.sentTo,
           requested_date: new Date().toISOString(),
           status: 'pending'
         });
