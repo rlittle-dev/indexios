@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLink, UserPlus, Clock, XCircle, Send } from 'lucide-react';
+import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLink, UserPlus, Clock, XCircle, Send, Upload, FileText, ArrowLeft } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import AddEmployeeModal from '@/components/attestation/AddEmployeeModal';
@@ -24,6 +25,12 @@ export default function AttestationPortal() {
   const [sendingVerification, setSendingVerification] = useState(false);
   const [verificationProcessing, setVerificationProcessing] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
+  const [discoveredHREmail, setDiscoveredHREmail] = useState(null);
+  const [showAltVerification, setShowAltVerification] = useState(false);
+  const [altVerificationMethod, setAltVerificationMethod] = useState(null);
+  const [workEmail, setWorkEmail] = useState('');
+  const [uploadedDoc, setUploadedDoc] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -179,14 +186,42 @@ export default function AttestationPortal() {
     setSearching(false);
   };
 
-  const handleVerifyWorkplace = async () => {
+  const handleDiscoverHREmail = async () => {
     if (!selectedEmail) return;
+    
+    setSendingVerification(true);
+    try {
+      const response = await base44.functions.invoke('discoverCompanyHREmail', {
+        companyName: selectedEmail.company,
+        companyDomain: selectedEmail.domain
+      });
+
+      if (response.data?.email) {
+        setDiscoveredHREmail({
+          email: response.data.email,
+          source: response.data.source,
+          confidence: response.data.confidence
+        });
+      } else {
+        // If no email found, go directly to alternative methods
+        setShowAltVerification(true);
+      }
+    } catch (error) {
+      console.error('HR email discovery error:', error);
+      setShowAltVerification(true);
+    }
+    setSendingVerification(false);
+  };
+
+  const handleSendToDiscoveredEmail = async () => {
+    if (!discoveredHREmail || !selectedEmail) return;
     
     setSendingVerification(true);
     try {
       const response = await base44.functions.invoke('sendWorkplaceVerificationEmail', {
         companyName: selectedEmail.company,
-        companyDomain: selectedEmail.domain
+        companyDomain: selectedEmail.domain,
+        hrEmail: discoveredHREmail.email
       });
 
       if (response.data?.success) {
@@ -197,9 +232,7 @@ export default function AttestationPortal() {
           requested_date: new Date().toISOString(),
           status: 'pending'
         });
-        setEmailOptions([]);
-        setSelectedEmail(null);
-        setCompanySearch('');
+        resetVerificationState();
       } else {
         alert(response.data?.error || 'Failed to send verification email');
       }
@@ -208,6 +241,101 @@ export default function AttestationPortal() {
       alert('Failed to send verification email');
     }
     setSendingVerification(false);
+  };
+
+  const handleWorkEmailVerification = async () => {
+    if (!workEmail || !selectedEmail) return;
+    
+    // Validate email matches company domain
+    const emailDomain = '@' + workEmail.split('@')[1];
+    if (emailDomain.toLowerCase() !== selectedEmail.domain.toLowerCase()) {
+      alert(`Email must be from ${selectedEmail.domain}`);
+      return;
+    }
+    
+    setSendingVerification(true);
+    try {
+      const response = await base44.functions.invoke('sendWorkEmailVerification', {
+        companyName: selectedEmail.company,
+        companyDomain: selectedEmail.domain,
+        workEmail: workEmail.trim()
+      });
+
+      if (response.data?.success) {
+        setPendingVerification({
+          company: selectedEmail.company,
+          domain: selectedEmail.domain,
+          company_email: workEmail,
+          requested_date: new Date().toISOString(),
+          status: 'pending',
+          method: 'work_email'
+        });
+        resetVerificationState();
+      } else {
+        alert(response.data?.error || 'Failed to send verification email');
+      }
+    } catch (error) {
+      console.error('Work email verification error:', error);
+      alert('Failed to send verification email');
+    }
+    setSendingVerification(false);
+  };
+
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingDoc(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUploadedDoc({ url: file_url, name: file.name });
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload document');
+    }
+    setUploadingDoc(false);
+  };
+
+  const handleDocumentVerification = async () => {
+    if (!uploadedDoc || !selectedEmail) return;
+    
+    setSendingVerification(true);
+    try {
+      const response = await base44.functions.invoke('submitDocumentVerification', {
+        companyName: selectedEmail.company,
+        companyDomain: selectedEmail.domain,
+        documentUrl: uploadedDoc.url,
+        documentName: uploadedDoc.name
+      });
+
+      if (response.data?.success) {
+        setPendingVerification({
+          company: selectedEmail.company,
+          domain: selectedEmail.domain,
+          requested_date: new Date().toISOString(),
+          status: 'pending',
+          method: 'document_review'
+        });
+        resetVerificationState();
+      } else {
+        alert(response.data?.error || 'Failed to submit for review');
+      }
+    } catch (error) {
+      console.error('Document verification error:', error);
+      alert('Failed to submit for review');
+    }
+    setSendingVerification(false);
+  };
+
+  const resetVerificationState = () => {
+    setEmailOptions([]);
+    setSelectedEmail(null);
+    setCompanySearch('');
+    setDiscoveredHREmail(null);
+    setShowAltVerification(false);
+    setAltVerificationMethod(null);
+    setWorkEmail('');
+    setUploadedDoc(null);
   };
 
   if (loading) {
@@ -480,28 +608,241 @@ export default function AttestationPortal() {
                     ))}
                   </div>
 
-                  {selectedEmail && (
+                  {selectedEmail && !discoveredHREmail && !showAltVerification && (
                     <div className="mt-4">
                       <Button
-                        onClick={handleVerifyWorkplace}
+                        onClick={handleDiscoverHREmail}
                         disabled={sendingVerification}
                         className="w-full bg-blue-600 hover:bg-blue-500 text-white"
                       >
                         {sendingVerification ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Finding HR Contact & Sending...
+                            Finding HR Contact...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-4 h-4 mr-2" />
+                            Find {selectedEmail.company}'s HR Contact
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Discovered HR Email */}
+                  {selectedEmail && discoveredHREmail && !showAltVerification && (
+                    <div className="mt-4 space-y-4">
+                      <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700">
+                        <p className="text-white/70 text-sm mb-2">We found this HR contact:</p>
+                        <div className="flex items-center gap-3 bg-zinc-900 rounded-lg p-3">
+                          <Mail className="w-5 h-5 text-blue-400" />
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{discoveredHREmail.email}</p>
+                            <p className="text-white/50 text-xs">{discoveredHREmail.source}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        onClick={handleSendToDiscoveredEmail}
+                        disabled={sendingVerification}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                      >
+                        {sendingVerification ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Sending Verification...
                           </>
                         ) : (
                           <>
                             <Send className="w-4 h-4 mr-2" />
-                            Request Verification for {selectedEmail.company}
+                            Send Verification Request
                           </>
                         )}
                       </Button>
-                      <p className="text-white/50 text-xs mt-2 text-center">
-                        We'll automatically find and contact {selectedEmail.company}'s HR department
-                      </p>
+                      
+                      <button
+                        onClick={() => {
+                          setDiscoveredHREmail(null);
+                          setShowAltVerification(true);
+                        }}
+                        className="w-full text-center text-white/50 hover:text-white/70 text-sm py-2"
+                      >
+                        Not your company's email? Try alternative verification →
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Alternative Verification Methods */}
+                  {selectedEmail && showAltVerification && (
+                    <div className="mt-4 space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <button
+                          onClick={() => {
+                            setShowAltVerification(false);
+                            setAltVerificationMethod(null);
+                            setWorkEmail('');
+                            setUploadedDoc(null);
+                          }}
+                          className="text-white/50 hover:text-white"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                        </button>
+                        <p className="text-white font-medium">Alternative Verification</p>
+                      </div>
+
+                      {!altVerificationMethod && (
+                        <div className="space-y-3">
+                          <button
+                            onClick={() => setAltVerificationMethod('work_email')}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/50 border border-zinc-700 hover:border-zinc-600 text-left"
+                          >
+                            <div className="p-2 rounded-lg bg-blue-500/20">
+                              <Mail className="w-5 h-5 text-blue-400" />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">Work Email Verification</p>
+                              <p className="text-white/50 text-sm">Verify using your {selectedEmail.domain} email address</p>
+                            </div>
+                          </button>
+                          
+                          <button
+                            onClick={() => setAltVerificationMethod('document')}
+                            className="w-full flex items-center gap-4 p-4 rounded-xl bg-zinc-800/50 border border-zinc-700 hover:border-zinc-600 text-left"
+                          >
+                            <div className="p-2 rounded-lg bg-purple-500/20">
+                              <FileText className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">Document Verification</p>
+                              <p className="text-white/50 text-sm">Upload business documents for manual review</p>
+                            </div>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Work Email Method */}
+                      {altVerificationMethod === 'work_email' && (
+                        <div className="space-y-4">
+                          <button
+                            onClick={() => setAltVerificationMethod(null)}
+                            className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                          >
+                            <ArrowLeft className="w-3 h-3" /> Back to options
+                          </button>
+                          
+                          <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700">
+                            <p className="text-white/70 text-sm mb-3">
+                              Enter your work email at <span className="text-white font-medium">{selectedEmail.company}</span>:
+                            </p>
+                            <Input
+                              type="email"
+                              placeholder={`you${selectedEmail.domain}`}
+                              value={workEmail}
+                              onChange={(e) => setWorkEmail(e.target.value)}
+                              className="bg-zinc-900 border-zinc-600 text-white placeholder:text-zinc-500"
+                            />
+                            <p className="text-white/50 text-xs mt-2">
+                              We'll send a verification link to confirm you have access to this email.
+                            </p>
+                          </div>
+                          
+                          <Button
+                            onClick={handleWorkEmailVerification}
+                            disabled={sendingVerification || !workEmail.includes('@')}
+                            className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                          >
+                            {sendingVerification ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4 mr-2" />
+                                Send Verification Link
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Document Method */}
+                      {altVerificationMethod === 'document' && (
+                        <div className="space-y-4">
+                          <button
+                            onClick={() => setAltVerificationMethod(null)}
+                            className="text-white/50 hover:text-white text-sm flex items-center gap-1"
+                          >
+                            <ArrowLeft className="w-3 h-3" /> Back to options
+                          </button>
+                          
+                          <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700">
+                            <p className="text-white/70 text-sm mb-3">
+                              Upload official business documentation:
+                            </p>
+                            <ul className="text-white/50 text-xs mb-4 space-y-1">
+                              <li>• Business license or incorporation papers</li>
+                              <li>• Official company letterhead with your name</li>
+                              <li>• Employment verification letter</li>
+                            </ul>
+                            
+                            {!uploadedDoc ? (
+                              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-zinc-600 rounded-xl cursor-pointer hover:border-zinc-500 bg-zinc-900/50">
+                                <input
+                                  type="file"
+                                  accept=".pdf,.png,.jpg,.jpeg"
+                                  onChange={handleDocumentUpload}
+                                  className="hidden"
+                                />
+                                {uploadingDoc ? (
+                                  <Loader2 className="w-6 h-6 text-white/40 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Upload className="w-6 h-6 text-white/40 mb-2" />
+                                    <p className="text-white/50 text-sm">Click to upload document</p>
+                                    <p className="text-white/30 text-xs">PDF, PNG, JPG up to 10MB</p>
+                                  </>
+                                )}
+                              </label>
+                            ) : (
+                              <div className="flex items-center gap-3 bg-zinc-900 rounded-lg p-3">
+                                <FileText className="w-5 h-5 text-green-400" />
+                                <p className="text-white text-sm flex-1 truncate">{uploadedDoc.name}</p>
+                                <button
+                                  onClick={() => setUploadedDoc(null)}
+                                  className="text-white/50 hover:text-white"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                            
+                            <p className="text-white/50 text-xs mt-3">
+                              Documents will be manually reviewed by our team (1-3 business days).
+                            </p>
+                          </div>
+                          
+                          <Button
+                            onClick={handleDocumentVerification}
+                            disabled={sendingVerification || !uploadedDoc}
+                            className="w-full bg-purple-600 hover:bg-purple-500 text-white"
+                          >
+                            {sendingVerification ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Submitting...
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="w-4 h-4 mr-2" />
+                                Submit for Review
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
