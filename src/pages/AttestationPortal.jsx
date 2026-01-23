@@ -486,13 +486,36 @@ export default function AttestationPortal() {
                   </div>
 
                   {selectedEmail && (
-                    <Button
-                      onClick={handleVerifyWorkplace}
-                      className="w-full bg-green-600 hover:bg-green-500 text-white mt-4"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Verify Workplace
-                    </Button>
+                    <div className="mt-4 space-y-3">
+                      <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+                        <p className="text-white/70 text-sm mb-2">
+                          A verification email will be sent to:
+                        </p>
+                        <p className="text-blue-300 font-medium">
+                          hr{selectedEmail.domain}
+                        </p>
+                        <p className="text-white/50 text-xs mt-2">
+                          This email explains that you're requesting authorization to create employment attestations for {selectedEmail.company}.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleVerifyWorkplace}
+                        disabled={sendingVerification}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white"
+                      >
+                        {sendingVerification ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Sending Verification...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Verification Request
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
