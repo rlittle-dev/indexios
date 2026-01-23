@@ -221,9 +221,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       message: 'Verification email sent',
-      sentTo: companyEmail,
-      emailSource: hrEmailResult.source,
-      emailConfidence: hrEmailResult.confidence
+      sentTo: companyEmail
     });
 
   } catch (error) {
