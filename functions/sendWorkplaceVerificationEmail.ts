@@ -76,17 +76,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Enterprise subscription required' }, { status: 403 });
     }
 
-    const { companyName, companyDomain } = await req.json();
+    const { companyName, companyDomain, hrEmail } = await req.json();
 
-    if (!companyName || !companyDomain) {
-      return Response.json({ error: 'Company name and domain are required' }, { status: 400 });
+    if (!companyName || !companyDomain || !hrEmail) {
+      return Response.json({ error: 'Company name, domain, and HR email are required' }, { status: 400 });
     }
 
-    // Auto-discover HR email using LLM web search
-    const hrEmailResult = await findCompanyHREmail(base44, companyName, companyDomain);
-    const companyEmail = hrEmailResult.email;
-
-    console.log(`[WorkplaceVerification] Found HR email: ${companyEmail} (source: ${hrEmailResult.source}, confidence: ${hrEmailResult.confidence})`)
+    const companyEmail = hrEmail;
+    console.log(`[WorkplaceVerification] Sending to discovered HR email: ${companyEmail}`)
 
     // Generate verification token
     const verificationToken = crypto.randomUUID();
