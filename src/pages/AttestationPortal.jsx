@@ -38,6 +38,8 @@ export default function AttestationPortal() {
             setVerifiedWorkplace(currentUser.verified_workplace);
             // Fetch employees attested by this company
             fetchAttestedEmployees(currentUser.verified_workplace.company);
+          } else if (currentUser.pending_workplace_verification?.status === 'pending') {
+            setPendingVerification(currentUser.pending_workplace_verification);
           }
         }
       } catch (error) {
@@ -46,7 +48,57 @@ export default function AttestationPortal() {
       setLoading(false);
     };
     fetchUser();
+
+    // Check for verification token in URL (from email link)
+    const urlParams = new URLSearchParams(window.location.search);
+    const verifyToken = urlParams.get('verify_token');
+    const action = urlParams.get('action');
+    
+    if (verifyToken && action) {
+      processVerificationFromUrl(verifyToken, action);
+    }
   }, []);
+
+  const processVerificationFromUrl = async (token, action) => {
+    setVerificationProcessing(true);
+    try {
+      const response = await base44.functions.invoke('processWorkplaceVerification', { token, action });
+      
+      if (response.data?.success) {
+        setVerificationResult({
+          success: true,
+          action: response.data.action,
+          company: response.data.company,
+          userName: response.data.userName
+        });
+        
+        // If approved and this is the user's own verification, refresh their data
+        if (response.data.action === 'approved') {
+          const currentUser = await base44.auth.me();
+          if (currentUser.verified_workplace) {
+            setVerified(true);
+            setVerifiedWorkplace(currentUser.verified_workplace);
+            setPendingVerification(null);
+            fetchAttestedEmployees(currentUser.verified_workplace.company);
+          }
+        }
+      } else {
+        setVerificationResult({
+          success: false,
+          error: response.data?.error || 'Verification failed'
+        });
+      }
+    } catch (error) {
+      setVerificationResult({
+        success: false,
+        error: error.message || 'Verification failed'
+      });
+    }
+    setVerificationProcessing(false);
+    
+    // Clear URL params
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
 
   const fetchAttestedEmployees = async (companyName) => {
     try {
