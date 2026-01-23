@@ -484,13 +484,13 @@ export default function AttestationPortal() {
                     <div className="mt-4 space-y-3">
                       <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
                         <p className="text-white/70 text-sm mb-2">
-                          A verification email will be sent to:
+                          We'll find the HR or employment verification email for:
                         </p>
                         <p className="text-blue-300 font-medium">
-                          hr{selectedEmail.domain}
+                          {selectedEmail.company}
                         </p>
                         <p className="text-white/50 text-xs mt-2">
-                          This email explains that you're requesting authorization to create employment attestations for {selectedEmail.company}.
+                          A verification email will be sent requesting authorization to create employment attestations on behalf of {selectedEmail.company}.
                         </p>
                       </div>
                       <Button
@@ -501,7 +501,7 @@ export default function AttestationPortal() {
                         {sendingVerification ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Sending Verification...
+                            Finding HR Contact & Sending...
                           </>
                         ) : (
                           <>
