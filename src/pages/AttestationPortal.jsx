@@ -182,24 +182,37 @@ export default function AttestationPortal() {
   const handleVerifyWorkplace = async () => {
     if (!selectedEmail) return;
     
-    // For now, just mark as verified (email verification to be implemented)
+    // Build company email from user's email username + company domain
+    const userEmailUsername = user.email.split('@')[0];
+    const companyEmail = `hr${selectedEmail.domain}`;
+    
+    setSendingVerification(true);
     try {
-      await base44.auth.updateMe({
-        verified_workplace: {
+      const response = await base44.functions.invoke('sendWorkplaceVerificationEmail', {
+        companyName: selectedEmail.company,
+        companyDomain: selectedEmail.domain,
+        companyEmail: companyEmail
+      });
+
+      if (response.data?.success) {
+        setPendingVerification({
           company: selectedEmail.company,
           domain: selectedEmail.domain,
-          verified_date: new Date().toISOString()
-        }
-      });
-      setVerified(true);
-      setVerifiedWorkplace({
-        company: selectedEmail.company,
-        domain: selectedEmail.domain,
-        verified_date: new Date().toISOString()
-      });
+          company_email: companyEmail,
+          requested_date: new Date().toISOString(),
+          status: 'pending'
+        });
+        setEmailOptions([]);
+        setSelectedEmail(null);
+        setCompanySearch('');
+      } else {
+        alert(response.data?.error || 'Failed to send verification email');
+      }
     } catch (error) {
       console.error('Verification error:', error);
+      alert('Failed to send verification email');
     }
+    setSendingVerification(false);
   };
 
   if (loading) {
