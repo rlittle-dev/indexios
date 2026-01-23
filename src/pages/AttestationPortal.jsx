@@ -20,6 +20,10 @@ export default function AttestationPortal() {
   const [verifiedWorkplace, setVerifiedWorkplace] = useState(null);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [attestedEmployees, setAttestedEmployees] = useState([]);
+  const [pendingVerification, setPendingVerification] = useState(null);
+  const [sendingVerification, setSendingVerification] = useState(false);
+  const [verificationProcessing, setVerificationProcessing] = useState(false);
+  const [verificationResult, setVerificationResult] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
