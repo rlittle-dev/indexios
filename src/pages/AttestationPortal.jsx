@@ -30,6 +30,8 @@ export default function AttestationPortal() {
   const [workEmail, setWorkEmail] = useState('');
   const [uploadedDoc, setUploadedDoc] = useState(null);
   const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [hrSearchFailed, setHrSearchFailed] = useState(false);
+  const [companyOptions, setCompanyOptions] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -131,54 +133,56 @@ export default function AttestationPortal() {
     setSearching(true);
     setEmailOptions([]);
     setSelectedEmail(null);
+    setCompanyOptions([]);
+    setHrSearchFailed(false);
     
     try {
-      // Use LLM to find common email extensions for the company
+      // Use LLM to find matching companies and their email domains
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find the most likely corporate email domain extensions for the company "${companySearch}". 
-        
-        Return common patterns like:
-        - @companyname.com
-        - @company.com
-        - Any known official domain
-        
-        Be accurate - only include domains that are likely real for this specific company.`,
+        prompt: `Search for companies matching "${companySearch}". Return the top 2-3 most likely matches with their official corporate email domains.
+
+For example, if someone searches "Google", return:
+- Google LLC with @google.com
+- Alphabet Inc with @alphabet.com (if relevant)
+
+Be accurate - only include real companies and their verified domains.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
           properties: {
-            company_name: { type: "string" },
-            email_domains: { 
+            companies: { 
               type: "array", 
-              items: { type: "string" },
-              description: "List of email domain extensions (e.g., @google.com)"
-            },
-            primary_domain: { type: "string" }
+              items: { 
+                type: "object",
+                properties: {
+                  name: { type: "string", description: "Official company name" },
+                  domain: { type: "string", description: "Primary email domain (e.g., @google.com)" }
+                }
+              },
+              description: "List of 2-3 matching companies with their email domains"
+            }
           }
         }
       });
 
-      if (result.email_domains && result.email_domains.length > 0) {
-        setEmailOptions(result.email_domains.map(domain => ({
-          domain,
-          company: result.company_name || companySearch
+      if (result.companies && result.companies.length > 0) {
+        setCompanyOptions(result.companies.map(c => ({
+          company: c.name,
+          domain: c.domain.startsWith('@') ? c.domain : `@${c.domain}`
         })));
       } else {
-        // Fallback to generated options
+        // Fallback to generated option
         const normalized = companySearch.toLowerCase().replace(/[^a-z0-9]/g, '');
-        setEmailOptions([
-          { domain: `@${normalized}.com`, company: companySearch },
-          { domain: `@${normalized}.co`, company: companySearch },
-          { domain: `@${normalized}.io`, company: companySearch }
+        setCompanyOptions([
+          { company: companySearch, domain: `@${normalized}.com` }
         ]);
       }
     } catch (error) {
       console.error('Search error:', error);
       // Fallback
       const normalized = companySearch.toLowerCase().replace(/[^a-z0-9]/g, '');
-      setEmailOptions([
-        { domain: `@${normalized}.com`, company: companySearch },
-        { domain: `@${normalized}.co`, company: companySearch }
+      setCompanyOptions([
+        { company: companySearch, domain: `@${normalized}.com` }
       ]);
     }
     
@@ -189,6 +193,7 @@ export default function AttestationPortal() {
     if (!selectedEmail) return;
     
     setSendingVerification(true);
+    setHrSearchFailed(false);
     try {
       const response = await base44.functions.invoke('discoverCompanyHREmail', {
         companyName: selectedEmail.company,
@@ -202,11 +207,13 @@ export default function AttestationPortal() {
           confidence: response.data.confidence
         });
       } else {
-        // If no email found, go directly to alternative methods
+        // If no email found, show failure message and alternative methods
+        setHrSearchFailed(true);
         setShowAltVerification(true);
       }
     } catch (error) {
       console.error('HR email discovery error:', error);
+      setHrSearchFailed(true);
       setShowAltVerification(true);
     }
     setSendingVerification(false);
@@ -335,6 +342,8 @@ export default function AttestationPortal() {
     setAltVerificationMethod(null);
     setWorkEmail('');
     setUploadedDoc(null);
+    setHrSearchFailed(false);
+    setCompanyOptions([]);
   };
 
   if (loading) {
@@ -542,7 +551,7 @@ export default function AttestationPortal() {
                 This typically takes 1-2 business days.
               </p>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={async () => {
                   if (confirm('Cancel your pending verification request?')) {
@@ -550,7 +559,7 @@ export default function AttestationPortal() {
                     setPendingVerification(null);
                   }
                 }}
-                className="border-zinc-600 text-white/70 hover:bg-zinc-800"
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
               >
                 Cancel Request
               </Button>
@@ -581,11 +590,11 @@ export default function AttestationPortal() {
                 </Button>
               </div>
 
-              {emailOptions.length > 0 && (
+              {companyOptions.length > 0 && (
                 <div className="space-y-4">
-                  <p className="text-white/70 text-sm">Select your company email domain:</p>
+                  <p className="text-white/70 text-sm">Select your company:</p>
                   <div className="grid gap-2">
-                    {emailOptions.map((option, idx) => (
+                    {companyOptions.map((option, idx) => (
                       <button
                         key={idx}
                         onClick={() => setSelectedEmail(option)}
@@ -595,7 +604,7 @@ export default function AttestationPortal() {
                             : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
                         }`}
                       >
-                        <Mail className={`w-5 h-5 ${selectedEmail?.domain === option.domain ? 'text-blue-400' : 'text-white/40'}`} />
+                        <Building2 className={`w-5 h-5 ${selectedEmail?.domain === option.domain ? 'text-blue-400' : 'text-white/40'}`} />
                         <div className="text-left">
                           <p className="text-white font-medium">{option.company}</p>
                           <p className="text-white/60 text-sm">{option.domain}</p>
@@ -676,6 +685,17 @@ export default function AttestationPortal() {
                   {/* Alternative Verification Methods */}
                   {selectedEmail && showAltVerification && (
                     <div className="mt-4 space-y-4">
+                      {hrSearchFailed && (
+                        <div className="bg-orange-900/20 border border-orange-500/30 rounded-xl p-4 mb-2">
+                          <div className="flex items-center gap-2 text-orange-300">
+                            <XCircle className="w-4 h-4" />
+                            <p className="text-sm font-medium">Couldn't find HR contact for {selectedEmail.company}</p>
+                          </div>
+                          <p className="text-orange-300/70 text-xs mt-1">
+                            Please use one of the alternative verification methods below.
+                          </p>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mb-2">
                         <button
                           onClick={() => {
@@ -683,6 +703,7 @@ export default function AttestationPortal() {
                             setAltVerificationMethod(null);
                             setWorkEmail('');
                             setUploadedDoc(null);
+                            setHrSearchFailed(false);
                           }}
                           className="text-white/50 hover:text-white"
                         >
@@ -847,7 +868,7 @@ export default function AttestationPortal() {
                 </div>
               )}
 
-              {!emailOptions.length && !searching && (
+              {!companyOptions.length && !searching && (
                 <p className="text-white/50 text-sm text-center py-4">
                   Search for your company to find available email domains for verification
                 </p>
