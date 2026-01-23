@@ -1,5 +1,68 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+/**
+ * Find HR or employment verification email for a company using LLM web search
+ */
+async function findCompanyHREmail(base44, companyName, companyDomain) {
+  try {
+    console.log(`[WorkplaceVerification] Looking up HR email for ${companyName}`);
+    
+    const emailResult = await base44.integrations.Core.InvokeLLM({
+      prompt: `Find the HR or employment verification EMAIL ADDRESS for ${companyName}.
+
+Search specifically for:
+- HR department email (e.g., hr@company.com, humanresources@company.com)
+- Employment verification email (e.g., employment.verification@company.com, verification@company.com)
+- People operations email (e.g., people@company.com, peopleops@company.com)
+- General corporate contact email that could handle HR inquiries
+- Recruiting/talent email (e.g., careers@company.com, recruiting@company.com)
+
+Many companies list HR emails on their careers page, contact page, or in job postings.
+Check ${companyName}'s official website, LinkedIn company page, and job boards.
+The company domain is ${companyDomain}.
+
+If you cannot find a specific HR email, suggest the most likely HR email format for this company (e.g., hr${companyDomain}, careers${companyDomain}).
+
+Return the best email address found for contacting HR.
+Format: JSON {email: string, source: string, confidence: "high" | "medium" | "low"}`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: 'object',
+        properties: {
+          email: { type: 'string' },
+          source: { type: 'string' },
+          confidence: { type: 'string' }
+        }
+      }
+    });
+
+    if (emailResult?.email) {
+      console.log(`[WorkplaceVerification] Found email: ${emailResult.email} (${emailResult.confidence})`);
+      return {
+        email: emailResult.email,
+        source: emailResult.source || 'Web search',
+        confidence: emailResult.confidence || 'medium'
+      };
+    }
+    
+    // Fallback to hr@domain if LLM couldn't find anything
+    console.log(`[WorkplaceVerification] No email found, using fallback: hr${companyDomain}`);
+    return {
+      email: `hr${companyDomain}`,
+      source: 'Default fallback',
+      confidence: 'low'
+    };
+  } catch (error) {
+    console.error(`[WorkplaceVerification] Email lookup error:`, error.message);
+    // Fallback to hr@domain on error
+    return {
+      email: `hr${companyDomain}`,
+      source: 'Fallback (lookup failed)',
+      confidence: 'low'
+    };
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,11 +76,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Enterprise subscription required' }, { status: 403 });
     }
 
-    const { companyName, companyDomain, companyEmail } = await req.json();
+    const { companyName, companyDomain } = await req.json();
 
-    if (!companyName || !companyDomain || !companyEmail) {
-      return Response.json({ error: 'Company name, domain, and email are required' }, { status: 400 });
+    if (!companyName || !companyDomain) {
+      return Response.json({ error: 'Company name and domain are required' }, { status: 400 });
     }
+
+    // Find HR email using web search
+    const hrEmailResult = await findCompanyHREmail(base44, companyName, companyDomain);
+    const companyEmail = hrEmailResult.email;
+    
+    console.log(`[WorkplaceVerification] Using email: ${companyEmail} (source: ${hrEmailResult.source}, confidence: ${hrEmailResult.confidence})`)
 
     // Generate verification token
     const verificationToken = crypto.randomUUID();
