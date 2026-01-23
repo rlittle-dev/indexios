@@ -24,6 +24,7 @@ export default function AttestationPortal() {
   const [sendingVerification, setSendingVerification] = useState(false);
   const [verificationProcessing, setVerificationProcessing] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
+  const [manualHREmail, setManualHREmail] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
