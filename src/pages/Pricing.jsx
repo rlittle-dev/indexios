@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PricingCard from '@/components/paywall/PricingCard';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import GradientBackground from '@/components/ui/GradientBackground';
-import SectionHeader from '@/components/ui/SectionHeader';
-import GlassCard from '@/components/ui/GlassCard';
 
 const TIERS = [
         {
@@ -134,21 +131,33 @@ export default function Pricing() {
         <meta property="og:url" content="https://www.indexios.me/Pricing" />
       </Helmet>
       
-      <GradientBackground>
-        <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" className="mb-8 text-white/60 hover:text-white hover:bg-white/5 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
+      <div className="min-h-screen bg-zinc-950">
+      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
+      
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-12">
+        <Link to={createPageUrl('Home')}>
+          <Button
+            variant="ghost"
+            className="mb-8 text-white hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
 
-          <SectionHeader
-            badge="Pricing"
-            title="Choose Your Plan"
-            subtitle="Start with 3 free scans, then upgrade for unlimited access to advanced fraud detection"
-            className="mb-12"
-          />
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
+            Choose Your Plan
+          </h1>
+          <p className="text-white/70 text-lg max-w-2xl mx-auto">
+            Start with 3 free scans, then upgrade for unlimited access to resume verification and advanced fraud detection
+          </p>
+        </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {TIERS.map((tierData, index) => (
@@ -168,56 +177,110 @@ export default function Pricing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-16"
+          className="mt-16 max-w-6xl mx-auto"
         >
-          <h2 className="text-2xl font-semibold text-white mb-8 text-center tracking-tight">Plan Comparison</h2>
-          <GlassCard className="overflow-hidden p-0">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center">Plan Comparison</h2>
+          <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                    <th className="text-left px-6 py-4 text-white font-medium">Feature</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Free</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Starter</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Professional</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Enterprise</th>
+                  <tr className="border-b border-zinc-700 bg-zinc-900">
+                    <th className="text-left px-6 py-3 text-white font-semibold">Feature</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Free</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Starter</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Professional</th>
+                    <th className="text-center px-6 py-3 text-white font-semibold">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { feature: 'Monthly Scans', free: '3', starter: '50', pro: '200', enterprise: 'Unlimited', enterpriseHighlight: true },
-                    { feature: 'Advanced Analysis', free: true, starter: true, pro: true, enterprise: true },
-                    { feature: 'Analysis Breakdown', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Next Steps & Questions', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Employment Verification', free: false, starter: false, pro: '15/month', enterprise: 'Unlimited', enterpriseHighlight: true },
-                    { feature: 'Scan History', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Save Candidates', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Share & Download', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Bulk Upload', free: false, starter: false, pro: false, enterprise: true },
-                    { feature: 'API Access', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Team Collaboration', free: false, starter: false, pro: false, enterprise: 'Up to 5', enterpriseHighlight: true },
-                    { feature: 'Support', free: '—', starter: 'Priority', pro: 'Priority', enterprise: 'Dedicated', enterpriseHighlight: true },
-                  ].map((row, idx) => (
-                    <tr key={idx} className="border-b border-white/[0.04] last:border-0">
-                      <td className="px-6 py-3.5 text-white/60">{row.feature}</td>
-                      <td className="text-center px-6 py-3.5">
-                        {typeof row.free === 'boolean' ? (row.free ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/20">—</span>) : <span className="text-white/80">{row.free}</span>}
-                      </td>
-                      <td className="text-center px-6 py-3.5">
-                        {typeof row.starter === 'boolean' ? (row.starter ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/20">—</span>) : <span className="text-white/80">{row.starter}</span>}
-                      </td>
-                      <td className="text-center px-6 py-3.5">
-                        {typeof row.pro === 'boolean' ? (row.pro ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/20">—</span>) : <span className="text-white/80">{row.pro}</span>}
-                      </td>
-                      <td className="text-center px-6 py-3.5">
-                        {typeof row.enterprise === 'boolean' ? (row.enterprise ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/20">—</span>) : <span className={row.enterpriseHighlight ? 'text-purple-400 font-medium' : 'text-white/80'}>{row.enterprise}</span>}
-                      </td>
-                    </tr>
-                  ))}
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Monthly Scans</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">3</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">50</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">200</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Advanced Analysis</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Analysis Breakdown</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Next Steps & Questions</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Employment Verification</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">15/month</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Scan History</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Save Candidates</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Share & Download</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Bulk Upload</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">API Access</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                    <td className="text-center px-6 py-3 text-purple-400">✓</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Team Collaboration</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Up to 5 members</td>
+                  </tr>
+                  <tr className="border-b border-zinc-700/50">
+                    <td className="px-6 py-3 text-white/80">Support</td>
+                    <td className="text-center px-6 py-3 text-white/50">—</td>
+                    <td className="text-center px-6 py-3 text-white">Priority</td>
+                    <td className="text-center px-6 py-3 text-white">Priority</td>
+                    <td className="text-center px-6 py-3 text-purple-400 font-semibold">Dedicated</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
 
         <motion.div
@@ -227,18 +290,18 @@ export default function Pricing() {
           className="mt-12 text-center space-y-4"
         >
           {user?.subscription_tier && user.subscription_tier !== 'free' && (
-            <GlassCard className="p-4 max-w-2xl mx-auto">
-              <p className="text-white/50 text-sm">
-                Need to cancel? Go to My Account to manage your subscription.
+            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 max-w-2xl mx-auto">
+              <p className="text-white/70 text-sm">
+                Need to cancel your subscription? Go to My Account to manage your subscription.
               </p>
-            </GlassCard>
+            </div>
           )}
-          <p className="text-white/30 text-sm">
+          <p className="text-white/50 text-sm">
             All plans include secure data handling and GDPR compliance
           </p>
         </motion.div>
-        </div>
-      </GradientBackground>
+      </div>
+    </div>
     </>
   );
 }
