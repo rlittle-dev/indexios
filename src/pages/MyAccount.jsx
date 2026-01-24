@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Switch } from '@/components/ui/switch';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import SectionHeader from '@/components/ui/SectionHeader';
 
 const getDeviceIcon = (type) => {
   if (type === 'Mobile') return <Smartphone className="w-5 h-5" />;
@@ -126,73 +129,67 @@ export default function MyAccount() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <GradientBackground>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GradientBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-      
-      <div className="relative z-10 max-w-3xl mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+    <GradientBackground>
+      <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
+        <SectionHeader
+          title="My Account"
+          subtitle="Manage your profile and account settings"
+          centered={false}
           className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-white mb-2">My Account</h1>
-          <p className="text-white/60">Manage your profile and account settings</p>
-        </motion.div>
+        />
 
         <div className="space-y-6">
           {/* Profile Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
-          >
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <GlassCard className="p-6" delay={0.1}>
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 tracking-tight">
               <User className="w-5 h-5 text-purple-400" />
               Profile Information
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-white/70 text-sm mb-2 block">Full Name</label>
+                <label className="text-white/50 text-sm mb-2 block">Full Name</label>
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="bg-zinc-800 border-zinc-700 text-white"
+                  className="bg-white/[0.03] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-purple-500/50"
                 />
               </div>
 
               <div>
-                <label className="text-white/70 text-sm mb-2 block">Email Address</label>
-                <div className="flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded-md">
-                  <Mail className="w-4 h-4 text-white/40" />
-                  <span className="text-white/60 text-sm">{user?.email}</span>
-                  <span className="ml-auto text-xs text-white/40">Cannot be changed</span>
+                <label className="text-white/50 text-sm mb-2 block">Email Address</label>
+                <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                  <Mail className="w-4 h-4 text-white/30" />
+                  <span className="text-white/50 text-sm">{user?.email}</span>
+                  <span className="ml-auto text-xs text-white/30">Cannot be changed</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-white/70 text-sm mb-2 block">Role</label>
-                <div className="flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700 rounded-md">
-                  <Shield className="w-4 h-4 text-white/40" />
-                  <span className="text-white/60 text-sm capitalize">{user?.role || 'User'}</span>
+                <label className="text-white/50 text-sm mb-2 block">Role</label>
+                <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                  <Shield className="w-4 h-4 text-white/30" />
+                  <span className="text-white/50 text-sm capitalize">{user?.role || 'User'}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-white/70 text-sm mb-2 flex items-center gap-2">
+                <label className="text-white/50 text-sm mb-2 flex items-center gap-2">
                   <Bell className="w-4 h-4" />
                   Email Notifications
                 </label>
-                <div className="flex items-center justify-between p-3 bg-zinc-800/50 border border-zinc-700 rounded-md">
-                  <span className="text-white/60 text-sm">Notify me when analysis is complete</span>
+                <div className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                  <span className="text-white/50 text-sm">Notify me when analysis is complete</span>
                   <Switch
                     checked={emailNotifications}
                     onCheckedChange={setEmailNotifications}
@@ -204,7 +201,7 @@ export default function MyAccount() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`p-3 rounded-lg text-sm ${
+                  className={`p-3 rounded-xl text-sm ${
                     message.includes('success')
                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                       : 'bg-red-500/10 text-red-400 border border-red-500/20'
@@ -217,7 +214,7 @@ export default function MyAccount() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !fullName.trim()}
-                className="bg-white hover:bg-gray-100 text-black font-medium"
+                className="bg-white hover:bg-white/90 text-black font-medium rounded-xl"
               >
                 {saving ? (
                   <>
@@ -232,82 +229,67 @@ export default function MyAccount() {
                 )}
               </Button>
             </div>
-          </motion.div>
+          </GlassCard>
 
           {/* Subscription Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
-          >
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <GlassCard className="p-6" delay={0.15}>
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 tracking-tight">
               <CreditCard className="w-5 h-5 text-purple-400" />
               Subscription
             </h2>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
                 <div>
                   <p className="text-white font-medium capitalize">
                     {user?.subscription_tier || 'Free'} Plan
                   </p>
-                  <p className="text-white/50 text-sm">
+                  <p className="text-white/40 text-sm">
                     {user?.scans_used || 0} scans used
                   </p>
                 </div>
                 <Link to={createPageUrl('Pricing')}>
-                  <Button variant="outline" className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/5 rounded-xl">
                     {user?.subscription_tier === 'free' ? 'Upgrade' : 'View Plans'}
                   </Button>
                 </Link>
               </div>
 
               {user?.subscription_tier && user.subscription_tier !== 'free' && (
-                <p className="text-white/50 text-sm">
-                  To manage your billing and payment methods, please contact support.
+                <p className="text-white/40 text-sm">
+                  To manage billing, please contact support.
                 </p>
               )}
             </div>
-          </motion.div>
+          </GlassCard>
 
           {/* Account Statistics */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
-          >
-            <h2 className="text-xl font-semibold text-white mb-4">Account Statistics</h2>
+          <GlassCard className="p-6" delay={0.2}>
+            <h2 className="text-lg font-semibold text-white mb-4 tracking-tight">Account Statistics</h2>
 
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
-                <p className="text-white/50 text-sm mb-1">Total Scans</p>
+              <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                <p className="text-white/40 text-sm mb-1">Total Scans</p>
                 <p className="text-2xl font-bold text-white">{user?.scans_used || 0}</p>
               </div>
-              <div className="p-4 bg-zinc-800/50 border border-zinc-700 rounded-lg">
-                <p className="text-white/50 text-sm mb-1">Member Since</p>
+              <div className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl">
+                <p className="text-white/40 text-sm mb-1">Member Since</p>
                 <p className="text-lg font-semibold text-white">
                   {new Date(user?.created_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </p>
               </div>
             </div>
-          </motion.div>
+          </GlassCard>
 
           {/* Active Devices */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
-          >
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <GlassCard className="p-6" delay={0.25}>
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 tracking-tight">
               <Smartphone className="w-5 h-5 text-purple-400" />
               Active Devices
             </h2>
 
             {devices.length === 0 ? (
-              <p className="text-white/60 text-sm">No devices found</p>
+              <p className="text-white/40 text-sm">No devices found</p>
             ) : (
               <div className="space-y-3">
                 {devices.map((device, index) => {
@@ -318,10 +300,10 @@ export default function MyAccount() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl"
                     >
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="p-2 rounded-lg bg-white/5">
+                        <div className="p-2 rounded-xl bg-white/[0.03]">
                           {getDeviceIcon(device.device_type)}
                         </div>
                         <div>
@@ -330,15 +312,15 @@ export default function MyAccount() {
                               {device.device_type}
                             </p>
                             {isCurrentDevice && (
-                              <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full">
+                              <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full">
                                 This Device
                               </span>
                             )}
                           </div>
-                          <p className="text-white/50 text-xs">
+                          <p className="text-white/40 text-xs">
                             {device.user_agent || `${device.device_type} device`}
                           </p>
-                          <p className="text-white/40 text-xs mt-0.5">
+                          <p className="text-white/30 text-xs mt-0.5">
                             Last active: {formatTime(device.last_active)}
                           </p>
                         </div>
@@ -348,26 +330,18 @@ export default function MyAccount() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveDevice(device.device_id, isCurrentDevice)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg"
                       >
-                        {isCurrentDevice ? (
-                          <>
-                            <LogOut className="w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            <Trash2 className="w-4 h-4" />
-                          </>
-                        )}
+                        {isCurrentDevice ? <LogOut className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                       </Button>
                     </motion.div>
                   );
                 })}
               </div>
             )}
-          </motion.div>
-          </div>
-          </div>
-          </div>
-          );
-          }
+          </GlassCard>
+        </div>
+      </div>
+    </GradientBackground>
+  );
+}
