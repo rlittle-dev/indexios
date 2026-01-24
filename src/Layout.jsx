@@ -104,9 +104,9 @@ export default function Layout({ children }) {
       {(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-purple-600/90 to-blue-600/90 backdrop-blur-sm text-white text-center py-2 px-4 text-sm font-medium border-b border-white/10">
           <span className="opacity-90">Upgrade to unlock full features </span>
-          <Link to={createPageUrl('Pricing')} className="underline font-semibold hover:opacity-80 transition-opacity">
+          <a href={createPageUrl('Pricing')} className="underline font-semibold hover:opacity-80 transition-opacity">
             View Plans →
-          </Link>
+          </a>
         </div>
       )}
 
