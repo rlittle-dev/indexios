@@ -1,168 +1,184 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Shield, Target, Users, Zap, ArrowLeft, Phone, Link2 } from 'lucide-react';
+import { Shield, Zap, Target, Users, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import SectionHeader from '@/components/ui/SectionHeader';
+import FeatureCard from '@/components/ui/FeatureCard';
 
 export default function About() {
   return (
     <>
       <Helmet>
-        <title>About Indexios - AI-Powered Resume Verification Technology</title>
-        <meta name="description" content="Learn how Indexios uses advanced AI to detect resume fraud and verify credentials. Our technology helps hiring teams make confident decisions with instant, actionable insights." />
+        <title>About Indexios - AI Resume Verification Platform</title>
+        <meta name="description" content="Learn about Indexios, the AI-powered resume verification platform helping hiring teams detect fraudulent resumes and make confident decisions." />
         <link rel="canonical" href="https://indexios.me/About" />
-        <meta property="og:title" content="About Indexios - AI-Powered Resume Verification" />
-        <meta property="og:description" content="Advanced AI technology for resume fraud detection and credential verification." />
+        <meta property="og:title" content="About Indexios - Resume Verification" />
+        <meta property="og:description" content="AI-powered fraud detection for hiring teams." />
         <meta property="og:url" content="https://www.indexios.me/About" />
       </Helmet>
       
-      <div className="min-h-screen bg-zinc-950">
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none" />
-      
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 md:py-12">
-        <Link to={createPageUrl('Home')}>
-          <Button variant="ghost" className="mb-6 text-white hover:text-white hover:bg-white/10">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
+      <GradientBackground>
+        <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+          <Link to={createPageUrl('Home')}>
+            <Button variant="ghost" className="mb-8 text-white/60 hover:text-white hover:bg-white/5 -ml-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent mb-4">
-              About Indexios
-            </h1>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              The modern resume verification platform for smart hiring decisions
-            </p>
-          </div>
+          <SectionHeader
+            badge="About Us"
+            title="Built for Modern Hiring"
+            subtitle="We're on a mission to bring trust and transparency to the hiring process through advanced verification technology."
+            className="mb-16"
+          />
 
-          <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-8 border border-zinc-800">
-            <h2 className="text-2xl font-bold text-white mb-4">Our Mission</h2>
-            <p className="text-white/70 text-lg leading-relaxed">
-              Indexios empowers hiring teams to make confident decisions by combining advanced resume analysis, automated employment verification phone calls, and blockchain-backed attestations. We help you identify the best candidates while protecting your organization from fraudulent applications with verifiable, tamper-proof records.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
-                <Shield className="w-6 h-6 text-purple-400" />
+          {/* Mission Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-16"
+          >
+            <GlassCard className="p-8 md:p-12" gradient>
+              <div className="flex items-start gap-6">
+                <div className="hidden md:flex p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10">
+                  <Shield className="w-8 h-8 text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-white mb-4 tracking-tight">Our Mission</h2>
+                  <p className="text-white/50 leading-relaxed mb-4">
+                    In today's competitive job market, resume fraud has become increasingly sophisticated. 
+                    We built Indexios to give hiring teams the tools they need to verify candidates quickly 
+                    and accurately, without the manual burden of traditional background checks.
+                  </p>
+                  <p className="text-white/50 leading-relaxed">
+                    Our AI-powered platform analyzes resumes for consistency, verifies employment through 
+                    automated phone calls, and creates permanent blockchain attestations for verified credentials.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Advanced Analysis</h3>
-              <p className="text-white/70">
-                Deep analysis of resumes to detect inconsistencies, verify credentials, and assess candidate legitimacy with precision.
-              </p>
-            </motion.div>
+            </GlassCard>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
-                <Phone className="w-6 h-6 text-green-400" />
+          {/* Values Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-16"
+          >
+            <h2 className="text-2xl font-semibold text-white mb-8 text-center tracking-tight">What We Offer</h2>
+            <div className="grid md:grid-cols-2 gap-5">
+              <FeatureCard
+                icon={Zap}
+                title="Instant Analysis"
+                description="Get comprehensive resume verification in seconds, not days. Our AI processes and analyzes credentials in real-time."
+                color="purple"
+                delay={0.1}
+              />
+              <FeatureCard
+                icon={Target}
+                title="Actionable Insights"
+                description="Receive specific recommendations and tailored interview questions based on each candidate's profile."
+                color="green"
+                delay={0.15}
+              />
+              <FeatureCard
+                icon={Shield}
+                title="Blockchain Verified"
+                description="Permanent, tamper-proof records on the Base blockchain provide irrefutable proof of verification."
+                color="blue"
+                delay={0.2}
+              />
+              <FeatureCard
+                icon={Users}
+                title="Team Collaboration"
+                description="Enterprise plans include team features for seamless collaboration on candidate verification."
+                color="orange"
+                delay={0.25}
+              />
+            </div>
+          </motion.div>
+
+          {/* Trust Indicators */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-16"
+          >
+            <GlassCard className="p-8">
+              <h3 className="text-xl font-semibold text-white mb-6 text-center tracking-tight">Why Teams Trust Indexios</h3>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  "AI-powered fraud detection",
+                  "Automated phone verification",
+                  "Blockchain attestations",
+                  "Enterprise-grade security",
+                  "GDPR compliant",
+                  "24/7 support for enterprise"
+                ].map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.05 }}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]"
+                  >
+                    <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <span className="text-white/70 text-sm">{item}</span>
+                  </motion.div>
+                ))}
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Automated Phone Verification</h3>
-              <p className="text-white/70">
-                Automated calls to HR departments verify employment history and discover company verification policies.
-              </p>
-            </motion.div>
+            </GlassCard>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
-                <Link2 className="w-6 h-6 text-blue-400" />
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <GlassCard className="p-10 text-center" gradient>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
+                Ready to Get Started?
+              </h2>
+              <p className="text-white/40 mb-8 max-w-lg mx-auto">
+                Try Indexios free with 3 resume scans. No credit card required.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to={createPageUrl('Scan')}>
+                  <Button size="lg" className="bg-white hover:bg-white/90 text-black font-semibold px-8 h-12 rounded-xl">
+                    Start Scanning
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('Pricing')}>
+                  <Button size="lg" variant="ghost" className="text-white/60 hover:text-white hover:bg-white/5 font-medium px-8 h-12 rounded-xl">
+                    View Pricing
+                  </Button>
+                </Link>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Blockchain Attestations</h3>
-              <p className="text-white/70">
-                Verified employment records are permanently recorded on-chain, creating tamper-proof, portable credentials for candidates.
-              </p>
-            </motion.div>
+            </GlassCard>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-indigo-500/10 mb-4">
-                <Zap className="w-6 h-6 text-indigo-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Instant Results</h3>
-              <p className="text-white/70">
-                Get comprehensive verification reports in seconds, not days. Speed up your hiring process without sacrificing accuracy.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-emerald-500/10 mb-4">
-                <Target className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Actionable Insights</h3>
-              <p className="text-white/70">
-                Receive detailed recommendations and interview questions tailored to each candidate for more effective evaluations.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800"
-            >
-              <div className="inline-flex p-3 rounded-xl bg-yellow-500/10 mb-4">
-                <Users className="w-6 h-6 text-yellow-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">Team Collaboration</h3>
-              <p className="text-white/70">
-                Share reports with your team, collaborate on candidate evaluations, and streamline your hiring workflow.
-              </p>
-            </motion.div>
-          </div>
-
-          <div className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-2xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-3">Trusted by Hiring Teams</h2>
-            <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-              From startups to enterprises, organizations rely on Indexios to make smarter, safer hiring decisions.
-            </p>
-            <Link to={createPageUrl('Pricing')}>
-              <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
-                Get Started Today
-              </Button>
-            </Link>
-          </div>
-
-          <div className="text-center pt-8 border-t border-zinc-800">
-            <p className="text-white/40 text-sm">
-              © {new Date().getFullYear()} Indexios LLC. All rights reserved.
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    </div>
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-center mt-12 text-white/30 text-sm"
+          >
+            © {new Date().getFullYear()} Indexios LLC. All rights reserved.
+          </motion.div>
+        </div>
+      </GradientBackground>
     </>
   );
 }
