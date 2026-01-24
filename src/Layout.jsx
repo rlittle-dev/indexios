@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X } from 'lucide-react';
+import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -93,68 +93,68 @@ export default function Layout({ children }) {
         <meta name="robots" content="index,follow" />
         <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
       </Helmet>
-      
-      <div className="min-h-screen bg-zinc-950">
+
+      <div className="min-h-screen bg-[#0a0a0f]">
         {/* Chat Bot for all users */}
         {user && (
           <ChatBot user={user} />
         )}
-      
+
       {/* Upgrade Banner for Free/Signed-Out Users */}
       {(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-red-600 to-orange-600 text-white text-center py-2 px-4 text-sm font-medium">
-          <span>Upgrade to unlock full features including scan history, saved candidates, API access, and more. </span>
-          <Link to={createPageUrl('Pricing')} className="underline font-bold hover:text-white/90">
-            View Plans
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-purple-600/90 to-blue-600/90 backdrop-blur-sm text-white text-center py-2 px-4 text-sm font-medium border-b border-white/10">
+          <span className="opacity-90">Upgrade to unlock full features </span>
+          <Link to={createPageUrl('Pricing')} className="underline font-semibold hover:opacity-80 transition-opacity">
+            View Plans →
           </Link>
         </div>
       )}
-      
+
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 ${(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'top-10' : 'top-0'}`}>
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+      <header className={`fixed left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] ${(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'top-10' : 'top-0'}`}>
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
             <Link to={createPageUrl('Home')}>
-              <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-tight cursor-pointer">
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent tracking-tight cursor-pointer hover:opacity-80 transition-opacity">
                 Indexios
               </span>
             </Link>
-            <div className="hidden md:flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-1">
               <Link to={createPageUrl('Scan')}>
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
-                  Scan Resume
+                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                  Scan
                 </Button>
               </Link>
               <Link to={createPageUrl('Pricing')}>
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
-                  Plans
+                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                  Pricing
                 </Button>
               </Link>
               <Link to={createPageUrl('About')}>
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
+                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
                   About
                 </Button>
               </Link>
               <Link to={createPageUrl('Contact')}>
-                    <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
-                      Contact
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('AttestationPortal')}>
-                    <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 text-sm">
-                      Attestations
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                  Contact
+                </Button>
+              </Link>
+              <Link to={createPageUrl('AttestationPortal')}>
+                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                  Attestations
+                </Button>
+              </Link>
+            </nav>
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-white hover:text-white hover:bg-white/10"
+              className="md:hidden text-white/60 hover:text-white hover:bg-white/5"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -162,59 +162,51 @@ export default function Layout({ children }) {
             {user && !user.isAnonymous ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10 gap-2">
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
+                  <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/5 gap-2 rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-white/70" />
                     </div>
-                    <span className="hidden sm:inline">{user.full_name || user.email}</span>
+                    <span className="hidden sm:inline text-sm font-medium">{user.full_name || user.email?.split('@')[0]}</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-white/40" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                <DropdownMenuContent align="end" className="bg-[#141419] border-white/[0.08] rounded-xl p-1 min-w-[180px]">
                   <Link to={createPageUrl('MyAccount')}>
-                    <DropdownMenuItem 
-                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <User className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                      <User className="w-4 h-4 mr-2.5 text-white/40" />
                       My Account
                     </DropdownMenuItem>
                   </Link>
                   <Link to={createPageUrl('SavedCandidates')}>
-                    <DropdownMenuItem 
-                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                      <Folder className="w-4 h-4 mr-2.5 text-white/40" />
                       Saved Candidates
                     </DropdownMenuItem>
                   </Link>
                   <Link to={createPageUrl('Team')}>
-                    <DropdownMenuItem 
-                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <Users className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                      <Users className="w-4 h-4 mr-2.5 text-white/40" />
                       Team
                     </DropdownMenuItem>
                   </Link>
                   <Link to={createPageUrl('ApiAccess')}>
-                    <DropdownMenuItem 
-                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <Key className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                      <Key className="w-4 h-4 mr-2.5 text-white/40" />
                       API Access
                     </DropdownMenuItem>
                   </Link>
                   <Link to={createPageUrl('Tickets')}>
-                    <DropdownMenuItem 
-                      className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                      <MessageCircle className="w-4 h-4 mr-2.5 text-white/40" />
                       {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
                     </DropdownMenuItem>
                   </Link>
+                  <div className="h-px bg-white/[0.06] my-1" />
                   <DropdownMenuItem 
                     onClick={handleLogout}
-                    className="text-white hover:text-white focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    className="text-red-400/80 hover:text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer rounded-lg"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
+                    <LogOut className="w-4 h-4 mr-2.5" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -222,52 +214,52 @@ export default function Layout({ children }) {
             ) : (
               <Button
                 onClick={handleLoginRedirect}
-                className="bg-white hover:bg-gray-100 text-black font-medium"
+                className="bg-white hover:bg-white/90 text-black font-medium text-sm px-5 h-9 rounded-lg"
               >
                 Sign In
               </Button>
             )}
           </div>
-        </div>
-      </header>
+          </div>
+          </header>
 
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`fixed left-0 right-0 z-40 bg-zinc-900/95 backdrop-blur-lg border-b border-zinc-800 md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
+            exit={{ opacity: 0, y: -10 }}
+            className={`fixed left-0 right-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06] md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
           >
-            <div className="px-4 py-4 space-y-2">
+            <div className="px-4 py-3 space-y-1">
               <Link to={createPageUrl('Scan')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
                   Scan Resume
                 </Button>
               </Link>
               <Link to={createPageUrl('Pricing')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
-                  Plans
+                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                  Pricing
                 </Button>
               </Link>
               <Link to={createPageUrl('About')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
+                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
                   About
                 </Button>
               </Link>
               <Link to={createPageUrl('Contact')} onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
-                      Contact
-                    </Button>
-                  </Link>
-                  <Link to={createPageUrl('AttestationPortal')} onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-white hover:text-white hover:bg-white/10">
-                      Attestations
-                    </Button>
-                  </Link>
-                </div>
-              </motion.div>
+                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                  Contact
+                </Button>
+              </Link>
+              <Link to={createPageUrl('AttestationPortal')} onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                  Attestations
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
