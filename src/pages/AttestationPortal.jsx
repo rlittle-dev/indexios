@@ -8,6 +8,9 @@ import { Lock, Building2, Search, Mail, CheckCircle, Loader2, Shield, ExternalLi
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import AddEmployeeModal from '@/components/attestation/AddEmployeeModal';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import SectionHeader from '@/components/ui/SectionHeader';
 
 export default function AttestationPortal() {
   const [user, setUser] = useState(null);
@@ -348,113 +351,90 @@ Be accurate - only include real companies and their verified domains.`,
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <GradientBackground>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </GradientBackground>
     );
   }
 
   // Lockout for non-enterprise users
   if (!user || user.subscription_tier !== 'enterprise') {
     return (
-      <div className="min-h-screen bg-zinc-950">
-        <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative z-10 max-w-2xl mx-auto px-4 py-16">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-8 md:p-12 text-center"
-          >
+      <GradientBackground>
+        <div className="max-w-2xl mx-auto px-4 py-16">
+          <GlassCard className="p-8 md:p-12 text-center" gradient>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
-              className="inline-flex p-4 rounded-full bg-purple-500/20 mb-6"
+              className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 mb-6"
             >
               <Lock className="w-8 h-8 text-purple-400" />
             </motion.div>
             
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
               Enterprise Feature
             </h1>
             
-            <p className="text-white/70 text-lg mb-6">
-              The Attestation Portal is exclusively available for Enterprise plan subscribers. 
-              Manage on-chain employment verifications and build your verified workforce.
+            <p className="text-white/50 text-lg mb-6">
+              The Attestation Portal is exclusively available for Enterprise subscribers.
             </p>
             
-            <div className="bg-zinc-800/50 rounded-xl p-6 mb-8 text-left">
-              <h3 className="text-white font-semibold mb-3">What you get with Enterprise:</h3>
-              <ul className="space-y-2 text-white/70 text-sm">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 mb-8 text-left">
+              <h3 className="text-white font-medium mb-3 text-sm">What you get with Enterprise:</h3>
+              <ul className="space-y-2 text-white/50 text-sm">
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
                   Workplace verification portal
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
                   On-chain attestation management
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
                   Unlimited employment verifications
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
                   Team collaboration (up to 5 members)
                 </li>
               </ul>
             </div>
             
             <Link to={createPageUrl('Pricing')}>
-              <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
+              <Button size="lg" className="bg-white hover:bg-white/90 text-black font-semibold rounded-xl">
                 Upgrade to Enterprise
               </Button>
             </Link>
-          </motion.div>
+          </GlassCard>
         </div>
-      </div>
+      </GradientBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent pointer-events-none" />
-      
-      <div className="relative z-10 max-w-4xl mx-auto px-4 py-12">
+    <GradientBackground>
+      <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <div className="inline-flex p-3 rounded-full bg-blue-500/20 mb-4">
-            <Shield className="w-8 h-8 text-blue-400" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            Attestation Portal
-          </h1>
-          <p className="text-white/60 max-w-xl mx-auto">
-            Verify your workplace and manage on-chain employment attestations
-          </p>
-        </motion.div>
+        <SectionHeader
+          badge="Enterprise"
+          title="Attestation Portal"
+          subtitle="Verify your workplace and manage on-chain employment attestations"
+          className="mb-12"
+        />
 
         {/* Workplace Verification Box */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8"
-        >
+        <GlassCard className="p-6 md:p-8 mb-8" delay={0.1}>
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-blue-500/20">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10">
               <Building2 className="w-5 h-5 text-blue-400" />
             </div>
-            <h2 className="text-xl font-semibold text-white">Find My Workplace</h2>
+            <h2 className="text-lg font-semibold text-white tracking-tight">Find My Workplace</h2>
             {verified && (
-              <Badge className="bg-green-500/20 text-green-300 ml-auto">
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-0 ml-auto">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Verified
               </Badge>
@@ -869,37 +849,32 @@ Be accurate - only include real companies and their verified domains.`,
               )}
 
               {!companyOptions.length && !searching && (
-                <p className="text-white/50 text-sm text-center py-4">
-                  Search for your company to find available email domains for verification
+                <p className="text-white/30 text-sm text-center py-4">
+                  Search for your company to begin verification
                 </p>
               )}
             </>
           )}
-        </motion.div>
+        </GlassCard>
 
         {/* Add Employee & My Attestations - Only show when verified */}
         {verified && (
           <>
             {/* Add Employee Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-6 md:p-8 mb-8"
-            >
+            <GlassCard className="p-6 md:p-8 mb-8" delay={0.2}>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/20">
-                    <UserPlus className="w-5 h-5 text-green-400" />
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10">
+                    <UserPlus className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-white">Add Employee</h2>
-                    <p className="text-white/60 text-sm">Attest employment for your team members</p>
+                    <h2 className="text-lg font-semibold text-white tracking-tight">Add Employee</h2>
+                    <p className="text-white/40 text-sm">Attest employment for your team</p>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowAddEmployee(true)}
-                  className="bg-green-600 hover:bg-green-500 text-white"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Add Employee
@@ -908,9 +883,9 @@ Be accurate - only include real companies and their verified domains.`,
 
               {/* Attested Employees List */}
               {attestedEmployees.length > 0 && (
-                <div className="border-t border-zinc-800 pt-4 mt-4">
-                  <p className="text-white/70 text-sm mb-3">
-                    Employees attested by {verifiedWorkplace?.company} ({attestedEmployees.length})
+                <div className="border-t border-white/[0.06] pt-4 mt-4">
+                  <p className="text-white/50 text-sm mb-3">
+                    Attested by {verifiedWorkplace?.company} ({attestedEmployees.length})
                   </p>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {attestedEmployees.map((candidate, idx) => {
@@ -919,16 +894,16 @@ Be accurate - only include real companies and their verified domains.`,
                       );
                       const ma = employer?.manual_employer_attestation;
                       return (
-                        <div key={candidate.id || idx} className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3">
+                        <div key={candidate.id || idx} className="flex items-center justify-between bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
                           <div>
-                            <p className="text-white font-medium">{candidate.name}</p>
-                            <p className="text-white/50 text-xs">
+                            <p className="text-white font-medium text-sm">{candidate.name}</p>
+                            <p className="text-white/40 text-xs">
                               {ma?.job_title && `${ma.job_title} • `}
-                              Attested {new Date(ma?.attested_date).toLocaleDateString()}
+                              {new Date(ma?.attested_date).toLocaleDateString()}
                             </p>
                           </div>
                           {ma?.attestation_uid && (
-                            <Badge className="bg-green-500/20 text-green-300 text-xs">
+                            <Badge className="bg-emerald-500/20 text-emerald-400 border-0 text-xs">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               On-chain
                             </Badge>
@@ -939,57 +914,42 @@ Be accurate - only include real companies and their verified domains.`,
                   </div>
                 </div>
               )}
-            </motion.div>
+            </GlassCard>
 
             {/* My Attestations Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 rounded-2xl p-6 md:p-8"
-            >
+            <GlassCard className="p-6 md:p-8" gradient delay={0.3}>
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">My Attestations</h3>
-                  <p className="text-white/60 text-sm">
-                    View all on-chain employment attestations you've created
+                  <h3 className="text-lg font-semibold text-white mb-1 tracking-tight">My Attestations</h3>
+                  <p className="text-white/40 text-sm">
+                    View all on-chain attestations you've created
                   </p>
                 </div>
                 <Link to={createPageUrl('MyAttestations')}>
-                  <Button className="bg-white hover:bg-gray-100 text-black font-medium">
+                  <Button className="bg-white hover:bg-white/90 text-black font-medium rounded-xl">
                     View Attestations
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
               </div>
-            </motion.div>
+            </GlassCard>
           </>
         )}
 
         {/* Info Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 bg-zinc-900/50 border border-zinc-800 rounded-xl p-6"
-        >
-          <h3 className="text-white font-semibold mb-4">About On-Chain Attestations</h3>
-          <div className="space-y-3 text-white/70 text-sm">
+        <GlassCard className="mt-8 p-6" delay={0.4}>
+          <h3 className="text-white font-medium mb-4 text-sm tracking-tight">About On-Chain Attestations</h3>
+          <div className="space-y-3 text-white/40 text-sm">
             <p>
-              On-chain attestations are permanent, tamper-proof records of employment verification 
-              stored on the Base blockchain using the Ethereum Attestation Service (EAS).
-            </p>
-            <p>
-              When you verify a candidate's employment, an attestation is created that:
+              On-chain attestations are permanent, tamper-proof records stored on Base blockchain using EAS.
             </p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Cannot be altered or deleted</li>
-              <li>Is publicly verifiable by anyone</li>
-              <li>Provides cryptographic proof of verification</li>
-              <li>Links to the verifying organization</li>
+              <li>Publicly verifiable by anyone</li>
+              <li>Cryptographic proof of verification</li>
             </ul>
           </div>
-        </motion.div>
+        </GlassCard>
       </div>
 
       {/* Add Employee Modal */}
@@ -1003,6 +963,6 @@ Be accurate - only include real companies and their verified domains.`,
           }
         }}
       />
-    </div>
+    </GradientBackground>
   );
 }
