@@ -103,7 +103,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-              Make confident hiring decisions with advanced resume verification, automated employment phone calls, and blockchain-verified attestations.
+              We score the truthfulness of employment claims using automated employer outreach and blockchain-verified attestations.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
