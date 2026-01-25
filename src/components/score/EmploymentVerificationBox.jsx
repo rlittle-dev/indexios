@@ -21,7 +21,8 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
   const [blockchainAttestations, setBlockchainAttestations] = useState({}); // company -> blockchain attestation data
   const [manualAttestations, setManualAttestations] = useState({}); // company -> manual employer attestation
 
-  const isLocked = userTier !== 'professional' && userTier !== 'enterprise';
+  // Employment verification is now available to all users
+  const isLocked = false;
 
   // Check for existing attestations and email status - with live polling
   const checkExistingVerifications = async () => {
@@ -427,11 +428,11 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
       transition={{ duration: 0.4, delay: 0.8 }}
       className="bg-zinc-900/80 backdrop-blur-sm rounded-xl border border-blue-500/30 overflow-visible"
     >
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-5 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
+      <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+        >
           <div className="p-2 rounded-lg bg-blue-500/20">
             <CheckCircle className="w-4 h-4 text-blue-400" />
           </div>
@@ -450,13 +451,50 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
               )}
             </>
           )}
+          <ChevronDown
+            className={`w-5 h-5 text-blue-400 transition-transform duration-300 ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+        
+        {/* Run Verification Button - Always visible in header */}
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleRunVerification}
+            disabled={isRunning || results !== null}
+            className="bg-blue-500 hover:bg-blue-400 text-white text-sm"
+            size="sm"
+          >
+            {isRunning ? (
+              <>
+                <Play className="w-3 h-3 mr-1 animate-pulse" />
+                Fetching...
+              </>
+            ) : results ? (
+              <>
+                <CheckCircle className="w-3 h-3 mr-1" />
+                {hasEvidence ? 'Complete' : 'No Evidence'}
+              </>
+            ) : (
+              <>
+                <Play className="w-3 h-3 mr-1" />
+                Run Verification
+              </>
+            )}
+          </Button>
+          {results && (
+            <Button
+              onClick={() => setResults(null)}
+              variant="outline"
+              className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-sm"
+              size="sm"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </Button>
+          )}
         </div>
-        <ChevronDown
-          className={`w-5 h-5 text-blue-400 transition-transform duration-300 ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
+      </div>
 
       <motion.div
         initial={false}
@@ -468,75 +506,14 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         className="overflow-visible"
       >
         <div className="px-5 pb-5 border-t border-blue-500/20 space-y-4">
-          {/* Locked State for Free/Starter */}
-          {isLocked && (
-            <div className="pt-3 pb-2">
-              <div className="bg-purple-900/40 border border-purple-500/30 rounded-lg p-4 text-center">
-                <p className="text-purple-300 text-sm font-medium mb-2">
-                  🔒 Employment Verification is a Professional+ feature
-                </p>
-                <p className="text-white/60 text-xs mb-3">
-                  Verify employment history using web evidence and public records
-                </p>
-                <Button
-                  size="sm"
-                  className="bg-white hover:bg-gray-100 text-black font-medium"
-                  onClick={() => window.location.href = '/Pricing'}
-                >
-                  Upgrade to Professional
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Run Button */}
-          {!isLocked && (
-          <div className="flex items-center gap-2 pt-3">
-            <Button
-              onClick={handleRunVerification}
-              disabled={isRunning || results !== null}
-              className="bg-blue-500 hover:bg-blue-400 text-white text-sm"
-              size="sm"
-            >
-              {isRunning ? (
-                <>
-                  <Play className="w-3 h-3 mr-1 animate-pulse" />
-                  Fetching evidence...
-                </>
-              ) : results ? (
-                <>
-                  <Play className="w-3 h-3 mr-1" />
-                  {hasEvidence ? 'Verification Complete' : 'Evidence Not Found'}
-                </>
-              ) : (
-                <>
-                  <Play className="w-3 h-3 mr-1" />
-                  Run Verification
-                </>
-              )}
-            </Button>
-            {results && (
-              <Button
-                onClick={() => setResults(null)}
-                variant="outline"
-                className="border-blue-500/30 text-blue-300 hover:bg-blue-500/10 text-sm"
-                size="sm"
-              >
-                <RefreshCw className="w-3 h-3 mr-1" />
-                Reset
-              </Button>
-            )}
-            </div>
-            )}
-
-            {!isLocked && !results && companyNames.length > 0 && (
-            <p className="text-white/60 text-xs italic pt-3 border-t border-blue-500/20">
+          {!results && companyNames.length > 0 && (
+            <p className="text-white/60 text-xs italic pt-3">
               Click "Run Verification" to fetch web evidence for employment history
             </p>
           )}
 
           {/* Results Table */}
-          {!isLocked && results && (
+          {results && (
             <div className="space-y-2">
               {companyNames.map((company, idx) => {
                 const result = results[company] || {};
