@@ -199,6 +199,305 @@ export default function About() {
         </div>
       </section>
 
+      {/* Stats Section - Fixed Gradient */}
+      <section className="relative bg-[#0a0a0a] py-16 md:py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-purple-500/[0.03] to-[#0a0a0a]" />
+        <div className="relative z-10 max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-wrap justify-center gap-8 md:gap-16"
+          >
+            {[
+              { value: '10K+', label: 'Resumes Verified' },
+              { value: '99.2%', label: 'Accuracy Rate' },
+              { value: '<30s', label: 'Analysis Time' },
+            ].map((stat, index) => (
+              <div key={stat.label} className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</p>
+                <p className="text-white/40 text-sm">{stat.label}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Sentrial-style Tabbed Visual Section */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+        </div>
+
+        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Platform Overview</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">
+              See how it<span className="font-medium"> works.</span>
+            </h2>
+          </motion.div>
+
+          {/* Tabs */}
+          <div className="flex justify-center mb-10">
+            <div className="inline-flex p-1 rounded-full bg-white/[0.03] border border-white/[0.08]">
+              {[
+                { id: 'scan', label: 'Scan' },
+                { id: 'verify', label: 'Verify' },
+                { id: 'attest', label: 'Attest' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-black'
+                      : 'text-white/50 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            {activeTab === 'scan' && (
+              <motion.div
+                key="scan"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid lg:grid-cols-2 gap-12 items-center"
+              >
+                <div className="space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-light text-white">
+                    Instant <span className="font-medium">fraud detection</span>
+                  </h3>
+                  <p className="text-white/50 leading-relaxed">
+                    Upload any resume and get a comprehensive legitimacy score within seconds. Our AI analyzes consistency, experience claims, education credentials, and skills alignment.
+                  </p>
+                  <ul className="space-y-3">
+                    {['Real-time analysis engine', 'Red & green flag detection', 'Detailed breakdown by category'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-white/70">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Analysis Complete</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-white/40">scan_7k3f2m</span>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                      <div className="flex items-center gap-3">
+                        <Shield className="w-5 h-5 text-emerald-400" />
+                        <span className="text-white font-medium">Legitimacy Score</span>
+                      </div>
+                      <span className="text-2xl font-bold text-emerald-400">87%</span>
+                    </div>
+                    {[
+                      { label: 'Consistency', score: 92 },
+                      { label: 'Experience', score: 84 },
+                      { label: 'Education', score: 88 },
+                      { label: 'Skills', score: 79 },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center justify-between py-2">
+                        <span className="text-white/60 text-sm">{item.label}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full bg-purple-400 rounded-full" style={{ width: `${item.score}%` }} />
+                          </div>
+                          <span className="text-white/80 text-sm w-8">{item.score}%</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pt-4 border-t border-white/[0.06] space-y-2">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-amber-400/80 text-xs">Gap in employment 2019-2020</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-emerald-400/80 text-xs">Education verified via LinkedIn</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'verify' && (
+              <motion.div
+                key="verify"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid lg:grid-cols-2 gap-12 items-center"
+              >
+                <div className="space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-light text-white">
+                    Automated <span className="font-medium">employment verification</span>
+                  </h3>
+                  <p className="text-white/50 leading-relaxed">
+                    Our AI-powered system contacts HR departments directly via phone and email to verify employment claims. No more manual calls or waiting for callbacks.
+                  </p>
+                  <ul className="space-y-3">
+                    {['AI phone calls to HR', 'Email verification requests', 'Web evidence discovery'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-white/70">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Verification In Progress</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-white/40">verify_9x2k1p</span>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    {[
+                      { company: 'TechCorp Inc.', status: 'verified', method: 'Phone Call', icon: PhoneCall },
+                      { company: 'DataSystems LLC', status: 'pending', method: 'Email Sent', icon: Clock },
+                      { company: 'StartupXYZ', status: 'verified', method: 'Web Evidence', icon: Search },
+                    ].map((item, index) => (
+                      <div key={item.company} className={`flex items-center gap-4 p-4 rounded-xl ${
+                        item.status === 'pending' 
+                          ? 'bg-purple-500/10 border border-purple-500/20' 
+                          : 'bg-white/[0.02]'
+                      }`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          item.status === 'verified' ? 'bg-emerald-500/20' : 'bg-purple-500/20'
+                        }`}>
+                          {item.status === 'verified' ? (
+                            <CheckCircle className="w-5 h-5 text-emerald-400" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-medium text-sm">{item.company}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <item.icon className="w-3 h-3 text-white/40" />
+                            <span className="text-white/40 text-xs">{item.method}</span>
+                          </div>
+                        </div>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          item.status === 'verified' 
+                            ? 'bg-emerald-500/20 text-emerald-400' 
+                            : 'bg-purple-500/20 text-purple-400'
+                        }`}>
+                          {item.status === 'verified' ? 'Verified' : 'Pending'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'attest' && (
+              <motion.div
+                key="attest"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4 }}
+                className="grid lg:grid-cols-2 gap-12 items-center"
+              >
+                <div className="space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-light text-white">
+                    Blockchain <span className="font-medium">attestations</span>
+                  </h3>
+                  <p className="text-white/50 leading-relaxed">
+                    Verified employment records are permanently recorded on the blockchain. Create tamper-proof, portable credentials that candidates can share with future employers.
+                  </p>
+                  <ul className="space-y-3">
+                    {['Immutable on-chain records', 'Portable credentials', 'Instant verification'].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-white/70">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-400" />
+                      <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">On-Chain Attestation</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-white/40">base_sepolia</span>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Link2 className="w-5 h-5 text-blue-400" />
+                        <span className="text-white font-medium">Attestation Created</span>
+                      </div>
+                      <div className="space-y-2 text-xs font-mono">
+                        <div className="flex justify-between">
+                          <span className="text-white/40">UID</span>
+                          <span className="text-white/70">0x7f3k...9a2c</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/40">Schema</span>
+                          <span className="text-white/70">Employment Verification</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-white/40">Network</span>
+                          <span className="text-white/70">Base Sepolia</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-white/[0.02] space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-white/40" />
+                        <span className="text-white/70 text-sm">TechCorp Inc.</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-white/40" />
+                        <span className="text-white/70 text-sm">Software Engineer</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-white/40" />
+                        <span className="text-white/70 text-sm">Jan 2021 - Present</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center pt-2">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        <span className="text-emerald-400 text-sm font-medium">Permanently Recorded</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="relative bg-[#0a0a0a] py-24 md:py-32">
         {/* Subtle grid background */}
