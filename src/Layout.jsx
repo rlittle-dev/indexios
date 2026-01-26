@@ -81,10 +81,10 @@ export default function Layout({ children }) {
   return (
     <HelmetProvider>
       <Helmet>
-        <title>Indexios - Automated Resume Verification Platform | Detect Fraudulent Resumes</title>
-                  <meta name="description" content="Indexios is an automated resume verification platform that helps hiring teams detect fraudulent resumes, verify credentials, and make confident hiring decisions with legitimacy scoring and detailed candidate analysis." />
-                  <meta property="og:title" content="Indexios - Automated Resume Verification Platform" />
-                  <meta property="og:description" content="Verify resume legitimacy with automated fraud detection and credential verification tools." />
+        <title>Indexios - Resume Verification Platform | Employment Background Checks</title>
+                  <meta name="description" content="Indexios helps hiring teams verify resumes, detect fraud, and confirm employment history. Get legitimacy scores, credential verification, and detailed candidate analysis for confident hiring decisions." />
+                  <meta property="og:title" content="Indexios - Resume Verification & Employment Background Checks" />
+                  <meta property="og:description" content="Verify resume legitimacy with fraud detection and credential verification. Trusted by hiring teams worldwide." />
                   <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" sizes="any" />
                       <link rel="icon" type="image/png" sizes="32x32" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
                       <link rel="icon" type="image/png" sizes="48x48" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
