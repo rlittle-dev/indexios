@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X, ChevronDown } from 'lucide-react';
+import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X, ChevronDown, Shield, Link2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -193,11 +193,6 @@ export default function Layout({ children }) {
                       Blog
                     </Button>
                   </Link>
-                  <Link to={createPageUrl('AttestationPortal')}>
-                    <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                      Attestations
-                    </Button>
-                  </Link>
                 </nav>
           </div>
 
@@ -223,46 +218,59 @@ export default function Layout({ children }) {
                     <ChevronDown className="w-3.5 h-3.5 text-white/40" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-[#141419] border-white/[0.08] rounded-xl p-1 min-w-[180px]">
-                  <Link to={createPageUrl('MyAccount')}>
-                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
-                      <User className="w-4 h-4 mr-2.5 text-white/40" />
-                      My Account
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to={createPageUrl('SavedCandidates')}>
-                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
-                      <Folder className="w-4 h-4 mr-2.5 text-white/40" />
-                      Saved Candidates
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to={createPageUrl('Team')}>
-                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
-                      <Users className="w-4 h-4 mr-2.5 text-white/40" />
-                      Team
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to={createPageUrl('ApiAccess')}>
-                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
-                      <Key className="w-4 h-4 mr-2.5 text-white/40" />
-                      API Access
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link to={createPageUrl('Tickets')}>
-                    <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
-                      <MessageCircle className="w-4 h-4 mr-2.5 text-white/40" />
-                      {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
-                    </DropdownMenuItem>
-                  </Link>
-                  <div className="h-px bg-white/[0.06] my-1" />
-                  <DropdownMenuItem 
-                    onClick={handleLogout}
-                    className="text-red-400/80 hover:text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer rounded-lg"
-                  >
-                    <LogOut className="w-4 h-4 mr-2.5" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
+                <DropdownMenuContent align="end" className="bg-[#141419] border-white/[0.08] rounded-xl p-1 min-w-[200px]">
+                        <Link to={createPageUrl('Scan')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <Shield className="w-4 h-4 mr-2.5 text-white/40" />
+                            Scan Resume
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link to={createPageUrl('SavedCandidates')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <Folder className="w-4 h-4 mr-2.5 text-white/40" />
+                            Saved Candidates
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link to={createPageUrl('AttestationPortal')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <Link2 className="w-4 h-4 mr-2.5 text-white/40" />
+                            Attestations
+                          </DropdownMenuItem>
+                        </Link>
+                        <div className="h-px bg-white/[0.06] my-1" />
+                        <Link to={createPageUrl('Team')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <Users className="w-4 h-4 mr-2.5 text-white/40" />
+                            Team
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link to={createPageUrl('ApiAccess')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <Key className="w-4 h-4 mr-2.5 text-white/40" />
+                            API Access
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link to={createPageUrl('Tickets')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <MessageCircle className="w-4 h-4 mr-2.5 text-white/40" />
+                            {user.role === 'admin' ? 'Support Tickets' : 'My Tickets'}
+                          </DropdownMenuItem>
+                        </Link>
+                        <div className="h-px bg-white/[0.06] my-1" />
+                        <Link to={createPageUrl('MyAccount')}>
+                          <DropdownMenuItem className="text-white/70 hover:text-white focus:text-white focus:bg-white/5 cursor-pointer rounded-lg">
+                            <User className="w-4 h-4 mr-2.5 text-white/40" />
+                            My Account
+                          </DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuItem 
+                          onClick={handleLogout}
+                          className="text-red-400/80 hover:text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer rounded-lg"
+                        >
+                          <LogOut className="w-4 h-4 mr-2.5" />
+                          Log out
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button
