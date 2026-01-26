@@ -3,7 +3,6 @@ import ApiAccess from './pages/ApiAccess';
 import AttestationPortal from './pages/AttestationPortal';
 import Contact from './pages/Contact';
 import EmailVerificationResponse from './pages/EmailVerificationResponse';
-import Home from './pages/Home';
 import ManageDevices from './pages/ManageDevices';
 import MyAccount from './pages/MyAccount';
 import MyAttestations from './pages/MyAttestations';
@@ -16,6 +15,7 @@ import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
 import Docs from './pages/Docs';
 import Blog from './pages/Blog';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -25,7 +25,6 @@ export const PAGES = {
     "AttestationPortal": AttestationPortal,
     "Contact": Contact,
     "EmailVerificationResponse": EmailVerificationResponse,
-    "Home": Home,
     "ManageDevices": ManageDevices,
     "MyAccount": MyAccount,
     "MyAttestations": MyAttestations,
@@ -38,6 +37,7 @@ export const PAGES = {
     "Tickets": Tickets,
     "Docs": Docs,
     "Blog": Blog,
+    "Home": Home,
 }
 
 export const pagesConfig = {

@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { motion } from 'framer-motion';
-import { Shield, Zap, Target, ArrowRight, Phone, Link2, CheckCircle, Sparkles, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Zap, Target, ArrowRight, Phone, Link2, CheckCircle, Sparkles, Users, FileText, Search, PhoneCall, AlertTriangle, Clock, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function About() {
+  const [activeTab, setActiveTab] = useState('scan');
+  
   return (
     <>
       <Helmet>
