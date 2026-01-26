@@ -20,12 +20,39 @@ export default function Layout({ children }) {
   const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Generate or retrieve device ID
+  const getOrCreateDeviceId = () => {
+    let deviceId = localStorage.getItem('deviceId');
+    if (!deviceId) {
+      deviceId = 'device_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+      localStorage.setItem('deviceId', deviceId);
+    }
+    return deviceId;
+  };
+
+  // Detect device type
+  const getDeviceType = () => {
+    const ua = navigator.userAgent;
+    if (/tablet|ipad|playbook|silk/i.test(ua)) return 'Tablet';
+    if (/mobile|iphone|ipod|android|blackberry|opera mini|iemobile/i.test(ua)) return 'Mobile';
+    return 'Desktop';
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const isAuthenticated = await base44.auth.isAuthenticated();
       if (isAuthenticated) {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+
+        // Register device on login
+        const deviceId = getOrCreateDeviceId();
+        const deviceType = getDeviceType();
+        try {
+          await base44.functions.invoke('registerDevice', { deviceId, deviceType });
+        } catch (error) {
+          console.error('Device registration error:', error);
+        }
       } else {
         // Explicitly set user to indicate logged out state
         setUser({ subscription_tier: 'free', isAnonymous: true });
@@ -47,7 +74,7 @@ export default function Layout({ children }) {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-    }, []);
+  }, []);
 
     // Live polling for device activity and validation every 30 seconds
     useEffect(() => {
