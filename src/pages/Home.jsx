@@ -448,8 +448,16 @@ export default function Home() {
       {/* ==================== USE CASES ==================== */}
       <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/[0.03] rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.03] rounded-full blur-[120px]" />
+          <motion.div 
+            className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[150px]"
+            animate={{ x: [0, 60, 0], y: [0, -30, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[120px]"
+            animate={{ x: [0, -40, 0], y: [0, 20, 0] }}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
