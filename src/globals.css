@@ -1,16 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@200;300;400;500;600;700;800&family=Exo+2:wght@200;300;400;500;600;700;800;900&display=swap');
+css
+@import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@200;300;400;500;600;700;800&display=swap');
 
 :root {
   --font-primary: 'Oxanium', sans-serif;
-  --font-heading: 'Exo 2', sans-serif;
+}
+
+* {
+  font-family: 'Oxanium', sans-serif !important;
 }
 
 body {
-  font-family: var(--font-primary);
+  font-family: 'Oxanium', sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, label, code, pre {
+  font-family: 'Oxanium', sans-serif;
 }
 
 /* Logo / Wordmark styling */
