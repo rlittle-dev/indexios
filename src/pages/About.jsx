@@ -5,6 +5,9 @@ import { Shield, Target, Users, Zap, ArrowLeft, Phone, Link2 } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import SectionHeader from '@/components/ui/SectionHeader';
 
 export default function About() {
   return (
