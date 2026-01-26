@@ -713,7 +713,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <AnimatedButton delay={index * 0.2}>
+                <AnimatedButton>
                   <Button onClick={() => handleSubscribe(tier.tier)} disabled={loading && processingTier === tier.tier} className={`w-full rounded-full py-5 font-semibold ${tier.popular ? 'bg-white text-black hover:bg-white/90' : user?.subscription_tier === tier.tier ? 'bg-white/10 text-white/50 cursor-default' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'}`}>
                     {loading && processingTier === tier.tier ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : user?.subscription_tier === tier.tier ? 'Current Plan' : tier.tier === 'free' ? 'Get Started' : 'Subscribe'}
                   </Button>
