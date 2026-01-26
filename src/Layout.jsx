@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
+import '@/globals.css';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X, ChevronDown, Shield, Link2 } from 'lucide-react';
