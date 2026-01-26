@@ -183,32 +183,22 @@ export default function Layout({ children }) {
                   </span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
-              <Link to={createPageUrl('Scan')}>
-                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                  Scan
-                </Button>
-              </Link>
-              <Link to={createPageUrl('Pricing')}>
-                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                  Pricing
-                </Button>
-              </Link>
-              <Link to={createPageUrl('About')}>
-                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                  About
-                </Button>
-              </Link>
-              <Link to={createPageUrl('Contact')}>
-                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                  Contact
-                </Button>
-              </Link>
-              <Link to={createPageUrl('AttestationPortal')}>
-                <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
-                  Attestations
-                </Button>
-              </Link>
-            </nav>
+                  <Link to={createPageUrl('Docs')}>
+                    <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                      Docs
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('Blog')}>
+                    <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                      Blog
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('AttestationPortal')}>
+                    <Button variant="ghost" className="text-white/50 hover:text-white hover:bg-white/5 text-sm font-medium rounded-lg px-4">
+                      Attestations
+                    </Button>
+                  </Link>
+                </nav>
           </div>
 
           <div className="flex items-center gap-3">
@@ -296,32 +286,32 @@ export default function Layout({ children }) {
             className={`fixed left-0 right-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06] md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
           >
             <div className="px-4 py-3 space-y-1">
-              <Link to={createPageUrl('Scan')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
-                  Scan Resume
-                </Button>
-              </Link>
-              <Link to={createPageUrl('Pricing')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
-                  Pricing
-                </Button>
-              </Link>
-              <Link to={createPageUrl('About')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
-                  About
-                </Button>
-              </Link>
-              <Link to={createPageUrl('Contact')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
-                  Contact
-                </Button>
-              </Link>
-              <Link to={createPageUrl('AttestationPortal')} onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
-                  Attestations
-                </Button>
-              </Link>
-            </div>
+                <Link to={createPageUrl('Scan')} onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                    Scan Resume
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('Docs')} onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                    Docs
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('Blog')} onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                    Blog
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('AttestationPortal')} onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                    Attestations
+                  </Button>
+                </Link>
+                <Link to={createPageUrl('Contact')} onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5 rounded-lg">
+                    Contact
+                  </Button>
+                </Link>
+              </div>
           </motion.div>
         )}
       </AnimatePresence>

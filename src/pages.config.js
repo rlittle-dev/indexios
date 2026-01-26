@@ -14,6 +14,8 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
+import Docs from './pages/Docs';
+import Blog from './pages/Blog';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +36,8 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
+    "Docs": Docs,
+    "Blog": Blog,
 }
 
 export const pagesConfig = {
