@@ -10,6 +10,7 @@ import { base44 } from '@/api/base44Client';
 // Animated button wrapper with circling outline on hover
 const AnimatedButton = ({ children, className = '' }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const uniqueId = useState(() => Math.random().toString(36).substr(2, 9))[0];
   
   return (
     <div 
@@ -17,36 +18,30 @@ const AnimatedButton = ({ children, className = '' }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* SVG circling outline */}
-      <svg
-        className="absolute -inset-2 w-[calc(100%+16px)] h-[calc(100%+16px)] pointer-events-none"
-        style={{ transform: 'rotate(-90deg)' }}
+      {/* Circling border animation */}
+      <div 
+        className="absolute inset-0 rounded-full pointer-events-none overflow-hidden"
+        style={{ 
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.3s ease-out'
+        }}
       >
-        <rect
-          x="2"
-          y="2"
-          width="calc(100% - 4px)"
-          height="calc(100% - 4px)"
-          rx="9999"
-          ry="9999"
-          fill="none"
-          stroke="url(#gradient)"
-          strokeWidth="2"
-          strokeDasharray="300"
-          strokeDashoffset={isHovered ? "0" : "300"}
+        <div 
+          className="absolute inset-[-2px] rounded-full"
           style={{
-            transition: 'stroke-dashoffset 0.8s ease-out',
+            background: `conic-gradient(from 0deg, transparent, #a855f7, #3b82f6, #a855f7, transparent)`,
+            animation: isHovered ? 'spin 1.5s linear infinite' : 'none',
           }}
         />
-        <defs>
-          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.8" />
-          </linearGradient>
-        </defs>
-      </svg>
+        <div className="absolute inset-[2px] rounded-full bg-[#0a0a0a]" />
+      </div>
       <div className="relative">{children}</div>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
