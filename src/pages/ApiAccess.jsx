@@ -44,7 +44,7 @@ export default function ApiAccess() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const hasApiAccess = user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise';
+  const hasApiAccess = user?.subscription_tier === 'professional' || user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise';
 
   if (loading) {
     return (
@@ -88,7 +88,7 @@ export default function ApiAccess() {
              </div>
               <h3 className="text-white text-2xl font-bold mb-2">API Access Required</h3>
               <p className="text-white/60 mb-6">
-                Upgrade to Professional or Enterprise to access the API
+                Upgrade to Professional, Corporate, or Enterprise to access the API
               </p>
               <Link to={createPageUrl('Pricing')}>
                 <Button className="bg-white hover:bg-gray-100 text-black font-medium">
@@ -236,6 +236,7 @@ Content-Type: application/json`}
                     <h3 className="text-white font-semibold mb-2">Plan Limits</h3>
                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white/80 space-y-1">
                       <p>• <strong>Professional:</strong> 200 scans/month, 100 API requests/hour</p>
+                      <p>• <strong>Corporate:</strong> 1,000 scans/month, 500 API requests/hour</p>
                       <p>• <strong>Enterprise:</strong> Unlimited scans, 1,000 API requests/hour</p>
                     </div>
                   </div>
