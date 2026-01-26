@@ -465,14 +465,14 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         <div className="flex items-center gap-2">
           <Button
             onClick={handleRunVerification}
-            disabled={isRunning || results !== null}
+            disabled={isRunning}
             className="bg-blue-500 hover:bg-blue-400 text-white text-sm"
             size="sm"
           >
             {isRunning ? (
               <>
-                <Play className="w-3 h-3 mr-1 animate-pulse" />
-                Fetching...
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                Verifying...
               </>
             ) : results ? (
               <>
