@@ -634,27 +634,37 @@ export default function Home() {
                   ))}
                 </ul>
                 <AnimatedButton>
-                  <Button 
-                    onClick={() => handleSubscribe(tier.tier)} 
-                    disabled={(loading && processingTier === tier.tier) || !canSelectTier(tier.tier)} 
-                    className={`w-full rounded-full py-5 font-semibold ${
-                      user?.subscription_tier === tier.tier 
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default' 
-                        : !canSelectTier(tier.tier)
-                          ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                          : tier.popular 
-                            ? 'bg-white text-black hover:bg-white/90' 
-                            : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    {loading && processingTier === tier.tier 
-                      ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> 
-                      : user?.subscription_tier === tier.tier 
-                        ? 'Current Plan' 
-                        : !canSelectTier(tier.tier)
-                          ? 'Included'
-                          : 'Upgrade'}
-                  </Button>
+                  {tier.contact ? (
+                    <Link to={createPageUrl('Contact')}>
+                      <Button 
+                        className="w-full rounded-full py-5 font-semibold bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90"
+                      >
+                        Contact Sales
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      onClick={() => handleSubscribe(tier.tier)} 
+                      disabled={(loading && processingTier === tier.tier) || !canSelectTier(tier.tier)} 
+                      className={`w-full rounded-full py-5 font-semibold ${
+                        user?.subscription_tier === tier.tier 
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default' 
+                          : !canSelectTier(tier.tier)
+                            ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                            : tier.popular 
+                              ? 'bg-white text-black hover:bg-white/90' 
+                              : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      {loading && processingTier === tier.tier 
+                        ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> 
+                        : user?.subscription_tier === tier.tier 
+                          ? 'Current Plan' 
+                          : !canSelectTier(tier.tier)
+                            ? 'Included'
+                            : 'Upgrade'}
+                    </Button>
+                  )}
                 </AnimatedButton>
               </motion.div>
             ))}
