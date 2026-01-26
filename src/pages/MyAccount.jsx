@@ -25,7 +25,7 @@ export default function MyAccount() {
   const fetchDevices = async (userEmail) => {
     try {
       const allDevices = await base44.entities.Device.filter(
-        { user_email: userEmail },
+        { user_email: userEmail, is_active: true },
         '-last_active'
       );
       
