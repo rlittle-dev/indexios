@@ -313,15 +313,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check tier access
+    // Check usage limits based on tier
     const userTier = user.subscription_tier || 'free';
-    if (userTier !== 'professional' && userTier !== 'enterprise') {
-      return Response.json({ 
-        error: 'Employment Verification requires Professional or Enterprise plan' 
-      }, { status: 403 });
-    }
-
-    // Check usage limits for Professional tier
     const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
     const resetMonth = user.employment_verifications_reset_month;
     let verificationsUsed = user.employment_verifications_used || 0;
@@ -335,10 +328,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Professional tier has 15 monthly limit, Enterprise is unlimited
-    if (userTier === 'professional' && verificationsUsed >= 15) {
+    // Define limits per tier: free=3, starter=5, professional=15, enterprise=unlimited
+    const tierLimits = {
+      free: 3,
+      starter: 5,
+      professional: 15,
+      enterprise: 999999
+    };
+    const limit = tierLimits[userTier] || 3;
+
+    if (verificationsUsed >= limit) {
       return Response.json({
-        error: 'Monthly employment verification limit reached (15/15 used). Upgrade to Enterprise for unlimited verifications.',
+        error: `Monthly employment verification limit reached (${verificationsUsed}/${limit} used). Upgrade your plan for more verifications.`,
         limit_reached: true
       }, { status: 429 });
     }
