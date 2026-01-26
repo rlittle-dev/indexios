@@ -178,9 +178,9 @@ export default function Layout({ children }) {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to={createPageUrl('Home')}>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-tight cursor-pointer hover:opacity-80 transition-opacity pr-1">
-                    Indexios
-                  </span>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-[0.05em] cursor-pointer hover:opacity-80 transition-opacity pr-1" style={{ fontFamily: "'Oxanium', sans-serif" }}>
+                                    Indexios
+                                  </span>
             </Link>
             <nav className="hidden md:flex items-center gap-1">
                   <Link to={createPageUrl('Docs')}>
