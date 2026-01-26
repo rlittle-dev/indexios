@@ -139,7 +139,7 @@ export default function Team() {
     }
   };
 
-  const hasTeamAccess = user?.subscription_tier === 'enterprise';
+  const hasTeamAccess = user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise';
 
   const teamCapacity = 5;
 
@@ -192,16 +192,16 @@ export default function Team() {
               </motion.div>
               
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                Enterprise Feature
+                Corporate / Enterprise Feature
               </h2>
-              
+
               <p className="text-white/80 text-lg mb-6 max-w-md mx-auto">
-                Team collaboration is available on the Enterprise plan
+                Team collaboration is available on Corporate and Enterprise plans
               </p>
 
               <Link to={createPageUrl('Pricing')}>
                 <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
-                  Upgrade to Enterprise
+                  Upgrade Now
                 </Button>
               </Link>
             </motion.div>

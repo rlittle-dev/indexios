@@ -51,7 +51,7 @@ export default function SavedCandidates() {
     fetchUser();
   }, []);
 
-  const hasAccess = user && (user.subscription_tier === 'professional' || user.subscription_tier === 'enterprise');
+  const hasAccess = user && (user.subscription_tier === 'professional' || user.subscription_tier === 'corporate' || user.subscription_tier === 'enterprise');
 
   const { data: folders = [] } = useQuery({
     queryKey: ['folders'],

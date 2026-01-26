@@ -359,8 +359,8 @@ Be accurate - only include real companies and their verified domains.`,
     );
   }
 
-  // Lockout for non-enterprise users
-  if (!user || user.subscription_tier !== 'enterprise') {
+  // Lockout for non-corporate/enterprise users
+  if (!user || (user.subscription_tier !== 'corporate' && user.subscription_tier !== 'enterprise')) {
     return (
       <GradientBackground>
         <div className="max-w-2xl mx-auto px-4 py-16">
@@ -375,11 +375,11 @@ Be accurate - only include real companies and their verified domains.`,
             </motion.div>
             
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
-              Enterprise Feature
+              Corporate / Enterprise Feature
             </h1>
-            
+
             <p className="text-white/50 text-lg mb-6">
-              The Attestation Portal is exclusively available for Enterprise subscribers.
+              The Attestation Portal is available for Corporate and Enterprise subscribers.
             </p>
             
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 mb-8 text-left">
@@ -406,7 +406,7 @@ Be accurate - only include real companies and their verified domains.`,
             
             <Link to={createPageUrl('Pricing')}>
               <Button size="lg" className="bg-white hover:bg-white/90 text-black font-semibold rounded-xl">
-                Upgrade to Enterprise
+                Upgrade Now
               </Button>
             </Link>
           </GlassCard>

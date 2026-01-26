@@ -17,7 +17,7 @@ import NextSteps from '@/components/score/NextSteps';
 import EmploymentVerificationBox from '@/components/score/EmploymentVerificationBox';
 import { toast } from 'sonner';
 
-const TIER_LIMITS = { free: 1, starter: 50, professional: 200, enterprise: 999999 };
+const TIER_LIMITS = { free: 1, starter: 50, professional: 200, corporate: 1000, enterprise: 999999 };
 
 export default function Scan() {
   const [currentView, setCurrentView] = useState('upload');
@@ -66,7 +66,7 @@ export default function Scan() {
     queryKey: ['candidates', userTeams],
     queryFn: async () => {
       const personalScans = await base44.entities.Candidate.filter({ created_by: user.email }, '-created_date', 50);
-      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
+      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
         const teamScans = await Promise.all(userTeams.map(membership => base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)));
         const allTeamScans = teamScans.flat();
         const allScans = [...personalScans, ...allTeamScans];
@@ -103,7 +103,7 @@ export default function Scan() {
 
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       let teamId = null;
-      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
+      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
         teamId = userTeams[0].team_id;
       }
 
@@ -373,7 +373,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
               <p className="text-white/40 text-sm">
                 <span className="font-semibold text-white/70">{user?.scans_used || 0}</span>
                 <span className="mx-1">/</span>
-                <span>{user?.subscription_tier === 'enterprise' ? '∞' : TIER_LIMITS[user?.subscription_tier || 'free']}</span>
+                <span>{user?.subscription_tier === 'enterprise' ? '∞' : TIER_LIMITS[user?.subscription_tier || 'free'] || TIER_LIMITS.free}</span>
                 <span className="ml-1">scans used</span>
               </p>
               {isAuthenticated ? (
@@ -388,7 +388,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
             {/* Upload View */}
             {currentView === 'upload' && (
               <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                {user?.subscription_tier === 'enterprise' && (
+                {(user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border border-purple-500/30 rounded-2xl p-5 mb-6">
                     <div className="flex items-start gap-3">
                       <div className="bg-purple-500/20 rounded-full p-2"><Sparkles className="w-5 h-5 text-purple-400" /></div>

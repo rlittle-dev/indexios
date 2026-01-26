@@ -31,11 +31,19 @@ const TIERS = [
     features: ['All Starter features, plus:', '200 resume scans per month', 'Next steps recommendations', 'Interview question generation', '15 employment verifications/month', 'Save candidates to folders', 'API access']
   },
   {
+    tier: 'corporate',
+    name: 'Corporate',
+    price: 299,
+    scans: 1000,
+    features: ['All Professional features, plus:', '1000 resume scans per month', '100 employment verifications/month', 'Bulk upload', 'Team collaboration (up to 5 members)', 'Dedicated support']
+  },
+  {
     tier: 'enterprise',
     name: 'Enterprise',
-    price: 299,
-    scans: 'Unlimited',
-    features: ['All Professional features, plus:', 'Unlimited resume scans', 'Unlimited employment verifications', 'Bulk upload', 'Team collaboration (up to 5 members)', 'Dedicated support', 'Custom integrations']
+    price: null,
+    scans: 'Custom',
+    features: ['All Corporate features, plus:', 'Unlimited resume scans', 'Unlimited employment verifications', 'Custom integrations', 'SLA & priority support'],
+    contact: true
   }
 ];
 
@@ -64,7 +72,7 @@ export default function Pricing() {
       return;
     }
 
-    const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+    const tierLevels = { free: 0, starter: 1, professional: 2, corporate: 3, enterprise: 4 };
     const currentLevel = tierLevels[user?.subscription_tier || 'free'];
     const targetLevel = tierLevels[tier];
 
@@ -164,8 +172,14 @@ export default function Pricing() {
                 <div className="mb-6">
                   <h3 className="text-xl font-medium text-white mb-2">{tierData.name}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">${tierData.price}</span>
-                    {tierData.price > 0 && <span className="text-white/40">/mo</span>}
+                    {tierData.price === null ? (
+                      <span className="text-4xl font-bold text-white">Custom</span>
+                    ) : (
+                      <>
+                        <span className="text-4xl font-bold text-white">${tierData.price}</span>
+                        {tierData.price > 0 && <span className="text-white/40">/mo</span>}
+                      </>
+                    )}
                   </div>
                   <p className="text-white/40 text-sm mt-2">
                     {typeof tierData.scans === 'number' ? `${tierData.scans} scans/month` : tierData.scans}
@@ -181,27 +195,35 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <Button
-                  onClick={() => handleSubscribe(tierData.tier)}
-                  disabled={loading && processingTier === tierData.tier}
-                  className={`w-full rounded-full py-5 font-semibold transition-all duration-200 ${
-                    tierData.popular
-                      ? 'bg-white text-black hover:bg-white/90'
-                      : user?.subscription_tier === tierData.tier
-                      ? 'bg-white/10 text-white/50 cursor-default'
-                      : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20'
-                  }`}
-                >
-                  {loading && processingTier === tierData.tier ? (
-                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : user?.subscription_tier === tierData.tier ? (
-                    'Current Plan'
-                  ) : tierData.tier === 'free' ? (
-                    'Get Started'
-                  ) : (
-                    'Subscribe'
-                  )}
-                </Button>
+                {tierData.contact ? (
+                  <Link to={createPageUrl('Contact')}>
+                    <Button className="w-full rounded-full py-5 font-semibold bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90">
+                      Contact Sales
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => handleSubscribe(tierData.tier)}
+                    disabled={loading && processingTier === tierData.tier}
+                    className={`w-full rounded-full py-5 font-semibold transition-all duration-200 ${
+                      tierData.popular
+                        ? 'bg-white text-black hover:bg-white/90'
+                        : user?.subscription_tier === tierData.tier
+                        ? 'bg-white/10 text-white/50 cursor-default'
+                        : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    {loading && processingTier === tierData.tier ? (
+                      <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : user?.subscription_tier === tierData.tier ? (
+                      'Current Plan'
+                    ) : tierData.tier === 'free' ? (
+                      'Get Started'
+                    ) : (
+                      'Subscribe'
+                    )}
+                  </Button>
+                )}
               </motion.div>
             ))}
           </div>
@@ -246,23 +268,24 @@ export default function Pricing() {
                     <th className="text-center px-6 py-4 text-white font-medium">Free</th>
                     <th className="text-center px-6 py-4 text-white font-medium">Starter</th>
                     <th className="text-center px-6 py-4 text-white font-medium">Professional</th>
+                    <th className="text-center px-6 py-4 text-white font-medium">Corporate</th>
                     <th className="text-center px-6 py-4 text-white font-medium">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { feature: 'Monthly Scans', free: '1', starter: '50', pro: '200', enterprise: 'Unlimited' },
-                    { feature: 'Advanced Analysis', free: true, starter: true, pro: true, enterprise: true },
-                    { feature: 'Analysis Breakdown', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Next Steps & Questions', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Employment Verification', free: false, starter: false, pro: '15/month', enterprise: 'Unlimited' },
-                    { feature: 'Scan History', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Save Candidates', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Share & Download', free: false, starter: true, pro: true, enterprise: true },
-                    { feature: 'Bulk Upload', free: false, starter: false, pro: false, enterprise: true },
-                    { feature: 'API Access', free: false, starter: false, pro: true, enterprise: true },
-                    { feature: 'Team Collaboration', free: false, starter: false, pro: false, enterprise: 'Up to 5' },
-                    { feature: 'Support', free: '—', starter: 'Priority', pro: 'Priority', enterprise: 'Dedicated' },
+                    { feature: 'Monthly Scans', free: '1', starter: '50', pro: '200', corporate: '1,000', enterprise: 'Unlimited' },
+                    { feature: 'Advanced Analysis', free: true, starter: true, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Analysis Breakdown', free: false, starter: true, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Next Steps & Questions', free: false, starter: false, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Employment Verification', free: false, starter: false, pro: '15/month', corporate: '100/month', enterprise: 'Unlimited' },
+                    { feature: 'Scan History', free: false, starter: true, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Save Candidates', free: false, starter: false, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Share & Download', free: false, starter: true, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Bulk Upload', free: false, starter: false, pro: false, corporate: true, enterprise: true },
+                    { feature: 'API Access', free: false, starter: false, pro: true, corporate: true, enterprise: true },
+                    { feature: 'Team Collaboration', free: false, starter: false, pro: false, corporate: 'Up to 5', enterprise: 'Custom' },
+                    { feature: 'Support', free: '—', starter: 'Priority', pro: 'Priority', corporate: 'Dedicated', enterprise: 'SLA' },
                   ].map((row, i) => (
                     <tr key={i} className="border-b border-white/[0.04]">
                       <td className="px-6 py-4 text-white/70">{row.feature}</td>
@@ -288,10 +311,17 @@ export default function Pricing() {
                         )}
                       </td>
                       <td className="text-center px-6 py-4">
+                        {typeof row.corporate === 'boolean' ? (
+                          row.corporate ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
+                        ) : (
+                          <span className={row.corporate === 'Unlimited' || row.corporate === 'Dedicated' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.corporate}</span>
+                        )}
+                      </td>
+                      <td className="text-center px-6 py-4">
                         {typeof row.enterprise === 'boolean' ? (
                           row.enterprise ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
                         ) : (
-                          <span className={row.enterprise === 'Unlimited' || row.enterprise === 'Dedicated' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.enterprise}</span>
+                          <span className={row.enterprise === 'Unlimited' || row.enterprise === 'SLA' || row.enterprise === 'Custom' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.enterprise}</span>
                         )}
                       </td>
                     </tr>
