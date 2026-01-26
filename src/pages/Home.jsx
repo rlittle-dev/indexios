@@ -700,6 +700,7 @@ export default function Home() {
           <p className="text-center text-white/30 text-sm">© {new Date().getFullYear()} Indexios LLC. All rights reserved.</p>
         </div>
       </section>
+      </div>
     </>
   );
 }
