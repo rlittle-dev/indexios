@@ -330,7 +330,9 @@ export default function Layout({ children }) {
       <main className={(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'pt-[104px]' : 'pt-16'}>
         {children}
       </main>
-    </div>
-    </HelmetProvider>
-  );
-}
+
+      {/* Global Footer - only shown on pages that don't have their own */}
+      </div>
+      </HelmetProvider>
+      );
+      }

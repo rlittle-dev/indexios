@@ -1,71 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Shield, Zap, Target, ArrowRight, User, Briefcase, GraduationCap, Sparkles, Phone, Link2 } from 'lucide-react';
+import { Shield, ArrowRight, Phone, Link2, CheckCircle, FileText, Zap, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import ScoreCircle from '@/components/score/ScoreCircle';
-import AnalysisCard from '@/components/score/AnalysisCard';
-import FlagsList from '@/components/score/FlagsList';
-import NextSteps from '@/components/score/NextSteps';
-import GradientBackground from '@/components/ui/GradientBackground';
-import GlassCard from '@/components/ui/GlassCard';
 
 export default function Home() {
-  // Example scan data for demonstration
-  const exampleScan = {
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    legitimacy_score: 87,
-    analysis: {
-      consistency_score: 92,
-      consistency_details: "Sarah's employment timeline demonstrates excellent consistency throughout her career. She maintained continuous employment from June 2018 to present with only one minor 2-month gap between her position at TechCorp (ended March 2023) and her current role at InnovateLabs (started May 2023). This brief gap is well within acceptable industry standards and was likely used for transition and potential skill development. All employment dates align perfectly with her education completion (MIT, graduated May 2018), with her first role starting immediately after graduation. There are no overlapping employment periods, and career progression follows a logical trajectory from Junior Software Engineer to Senior positions.",
-      experience_verification: 85,
-      experience_details: "Sarah demonstrates strong verifiable experience with concrete, quantifiable achievements. At TechCorp, she led the development of a payment processing system that handled $50M+ in transactions and increased processing speed by 35%, a specific metric that shows genuine impact. Her role involved leading a team of 5 engineers, which is appropriate for her Mid-level to Senior progression. At DataSystems Inc., she shipped 3 major product features and improved system reliability from 95% to 99.7%, another precise metric. Her current role shows continued growth with responsibility for architecture decisions. Most accomplishments include specific numbers, team sizes, or measurable outcomes rather than vague claims.",
-      education_verification: 88,
-      education_details: "Sarah holds a Bachelor of Science in Computer Science from MIT, graduating in May 2018 with a 3.8 GPA. MIT is a top-tier, globally recognized institution (#1-5 for Computer Science programs), which significantly strengthens credential verification. The graduation date aligns perfectly with her employment timeline, with her first professional role starting June 2018, immediately following graduation. Her degree is directly relevant to her software engineering career path. She also mentions relevant coursework in Distributed Systems and Machine Learning, which align with her professional experience in backend systems and data processing.",
-      skills_alignment: 83,
-      skills_details: "Skills demonstrate clear progression and strong alignment with her roles. She lists Python, Java, and JavaScript as primary languages, all of which are standard for backend/full-stack engineering roles she's held. Advanced skills like AWS, Docker, Kubernetes, and microservices architecture align with her senior-level positions and infrastructure work mentioned in her experience. Database technologies (PostgreSQL, MongoDB, Redis) match the data-intensive roles described. Her machine learning skills (TensorFlow, PyTorch) connect to her MIT coursework and recent projects. The progression from basic programming languages in earlier roles to advanced cloud architecture in senior positions shows natural skill development over 5+ years.",
-      red_flags: [
-        "Minor 2-month gap between TechCorp and InnovateLabs (Mar-May 2023)",
-        "One AWS certification mentioned but lacks specific credential ID for verification"
-      ],
-      green_flags: [
-        "✅ Employment verified via automated HR phone call (TechCorp confirmed)",
-        "✅ Verification attestation recorded on blockchain",
-        "5+ years consistent tenure at each company (no job hopping)",
-        "Quantified achievements with specific metrics (35% speed increase, 99.7% reliability)",
-        "Elite university credentials from MIT with strong GPA (3.8)",
-        "Clear career progression from Junior to Senior Software Engineer",
-        "Published 2 research papers on distributed systems",
-        "Specific team sizes and budget responsibilities mentioned ($50M+ transactions)"
-      ],
-      summary: "Sarah Johnson presents as a strong candidate with highly verifiable credentials and an impressive track record. Her MIT Computer Science degree from a top-tier institution, combined with 5+ years of progressive experience at reputable tech companies, establishes excellent credibility. The resume demonstrates genuine expertise through specific, quantifiable achievements like increasing processing speed by 35% and managing systems handling $50M+ in transactions. Her career progression is logical and consistent, with appropriate skill development from Junior to Senior roles. The only minor concerns are a brief 2-month employment gap, which falls well within acceptable standards and likely represents a transition period, and one certification that could benefit from additional verification details. Overall, this candidate shows strong legitimacy with concrete evidence of expertise and minimal fraud risk.",
-      next_steps: [
-        "Verify MIT degree and graduation date with the university registrar",
-        "Conduct reference checks with managers at TechCorp and DataSystems Inc.",
-        "Request AWS certification credential ID for independent verification",
-        "Ask about the 2-month gap (Mar-May 2023) during phone screening",
-        "Review published research papers on distributed systems to confirm authorship",
-        "Verify employment dates with previous companies during background check",
-        "Ask for specific examples of the $50M transaction system during technical interview"
-      ],
-      interview_questions: [
-        "Can you walk me through the architecture of the payment processing system you built that handled $50M+ in transactions?",
-        "You mentioned improving system reliability from 95% to 99.7% - what specific strategies did you implement to achieve this?",
-        "What did you focus on during the gap between TechCorp and InnovateLabs (March-May 2023)?",
-        "Your resume mentions leading a team of 5 engineers - can you describe your leadership approach and a challenging situation you navigated?",
-        "Tell me about your published research on distributed systems - what problem were you solving?",
-        "How do you approach making architecture decisions for large-scale systems?",
-        "What was the most significant technical challenge you faced at TechCorp and how did you overcome it?",
-        "Can you provide examples of how you've applied your machine learning knowledge from MIT in your professional work?",
-        "How do you stay current with rapidly evolving technologies in cloud infrastructure and DevOps?",
-        "Describe a situation where you had to balance technical debt with feature delivery - what trade-offs did you make?"
-      ]
-    }
-  };
-
   return (
     <>
       <Helmet>
@@ -78,8 +19,6 @@ export default function Home() {
         <meta property="og:url" content="https://indexios.me/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Indexios - Resume Verification Platform" />
-        <meta name="twitter:description" content="Verify resume authenticity and employment history. Free scan available." />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -88,233 +27,280 @@ export default function Home() {
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "description": "Resume verification and employment background check platform for hiring teams",
-            "offers": {
-              "@type": "Offer",
-              "price": "0",
-              "priceCurrency": "USD"
-            }
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
           })}
         </script>
       </Helmet>
       
-      <GradientBackground variant="purple">
-        <div className="max-w-6xl mx-auto px-4 py-12 md:py-20">
-          
-          {/* Hero Section */}
+      {/* Hero Section */}
+      <section className="relative min-h-screen bg-[#0a0a0a] overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.2
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/80 via-[#0a0a0a]/60 to-[#0a0a0a]" />
+        </div>
+
+        {/* Radial Vignette */}
+        <div 
+          className="absolute inset-0 pointer-events-none z-[2]"
+          style={{
+            background: 'radial-gradient(70% 50%, transparent 0%, rgba(10, 10, 10, 0.5) 60%, rgba(10, 10, 10, 0.98) 100%)'
+          }}
+        />
+
+        {/* Floating Glow Orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-purple-500/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[120px]" />
+          <div className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-emerald-500/[0.03] rounded-full blur-[100px]" />
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 min-h-screen flex items-center">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-20 md:py-28 w-full">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              
+              {/* Left Column - Text */}
+              <div className="space-y-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="space-y-5"
+                >
+                  {/* Badge */}
+                  <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10">
+                    <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                    <span className="text-sm font-medium text-purple-300">Advanced Resume Verification</span>
+                  </div>
+
+                  {/* Headline */}
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-[1.1]">
+                    <span className="text-white/60 block">Don't just trust.</span>
+                    <span className="text-white block mt-2 font-medium">Verify it.</span>
+                  </h1>
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="text-lg md:text-xl lg:text-[1.35rem] text-white/50 max-w-xl leading-relaxed"
+                >
+                  Indexios detects resume fraud in real-time and automatically verifies employment through phone calls and blockchain attestations.
+                  <span className="text-white/80"> Stop guessing. Start verifying.</span>
+                </motion.p>
+
+                {/* CTA Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                  className="flex flex-wrap items-center gap-4"
+                >
+                  <Link to={createPageUrl('Scan')}>
+                    <Button className="group inline-flex items-center gap-2 px-7 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]">
+                      Get Started
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl('About')}>
+                    <Button variant="ghost" className="inline-flex items-center gap-2 px-6 py-6 text-sm text-white/60 hover:text-white transition-all duration-200 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
+                      Read the Docs
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                </motion.div>
+
+                {/* Install Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  className="pt-4"
+                >
+                  <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-full bg-white/[0.03] border border-white/10">
+                    <div className="relative w-4 h-4">
+                      <div className="absolute inset-0 rounded-full border border-white/30 border-t-emerald-400 animate-spin" style={{ animationDuration: '1.5s' }} />
+                    </div>
+                    <code className="text-sm font-mono text-white/50">Free scan • No login required</code>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Right Column - Visual */}
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="flex justify-center lg:justify-end"
+              >
+                <div className="w-full max-w-[550px]">
+                  <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
+                    {/* Terminal Header */}
+                    <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Live Verification</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-white/40">session_ix92kf</span>
+                    </div>
+                    
+                    {/* Terminal Content */}
+                    <div className="p-6 space-y-4">
+                      {[
+                        { label: 'Resume Analysis', status: 'complete', score: '87%' },
+                        { label: 'Employment Verification', status: 'complete', company: 'TechCorp' },
+                        { label: 'HR Phone Call', status: 'active', duration: '0:42' },
+                        { label: 'Blockchain Attestation', status: 'pending' },
+                      ].map((step, index) => (
+                        <motion.div
+                          key={step.label}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.5, delay: 0.8 + index * 0.15 }}
+                          className={`flex items-center gap-4 p-3 rounded-lg ${
+                            step.status === 'active' 
+                              ? 'bg-purple-500/10 border border-purple-500/20' 
+                              : step.status === 'complete'
+                              ? 'bg-white/[0.02]'
+                              : 'bg-white/[0.01] opacity-50'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            step.status === 'complete' 
+                              ? 'bg-emerald-500/20' 
+                              : step.status === 'active'
+                              ? 'bg-purple-500/20'
+                              : 'bg-white/5'
+                          }`}>
+                            {step.status === 'complete' ? (
+                              <CheckCircle className="w-4 h-4 text-emerald-400" />
+                            ) : step.status === 'active' ? (
+                              <div className="w-3 h-3 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
+                            ) : (
+                              <div className="w-2 h-2 rounded-full bg-white/20" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`text-sm font-medium ${step.status === 'pending' ? 'text-white/40' : 'text-white/80'}`}>{step.label}</p>
+                            {step.score && <p className="text-xs text-emerald-400/80">Score: {step.score}</p>}
+                            {step.company && <p className="text-xs text-white/40">Verified: {step.company}</p>}
+                            {step.duration && <p className="text-xs text-purple-400/80">Call duration: {step.duration}</p>}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
+        <div 
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }}
+        />
+
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16 md:mb-20"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="inline-flex px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
-            >
-              <span className="text-purple-300 text-sm font-medium">Advanced Resume Verification</span>
-            </motion.div>
-            
-            <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-purple-400 via-white to-purple-400 bg-clip-text text-transparent mb-6 leading-tight">
-              Verify Resume<br />Authenticity
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-8 leading-relaxed">
-              We score the truthfulness of employment claims using automated employer outreach and blockchain-verified attestations.
+            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">How It Works</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">
+              Verification that<span className="font-medium"> actually works.</span>
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {[
+              { icon: Shield, color: 'purple', title: 'Fraud Detection', description: 'Advanced AI analysis identifies inconsistencies, fabricated credentials, and inflated claims with surgical precision.' },
+              { icon: Phone, color: 'emerald', title: 'Automated Phone Verification', description: 'AI-powered calls to HR departments verify employment history and discover company verification policies.' },
+              { icon: Link2, color: 'blue', title: 'Blockchain Attestations', description: 'Verified records are permanently recorded on-chain, creating tamper-proof, portable credentials.' },
+              { icon: Zap, color: 'amber', title: 'Instant Results', description: 'Get comprehensive verification reports in seconds, not days. Speed without sacrificing accuracy.' },
+              { icon: Target, color: 'rose', title: 'Actionable Insights', description: "Receive tailored interview questions and next steps based on each candidate's unique profile." },
+              { icon: FileText, color: 'cyan', title: 'Detailed Reports', description: 'Download and share comprehensive reports with your team for collaborative hiring decisions.' }
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group relative p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300"
+              >
+                <div className={`inline-flex p-3 rounded-xl bg-${feature.color}-500/10 mb-5`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                </div>
+                <h3 className="text-xl font-medium text-white mb-3">{feature.title}</h3>
+                <p className="text-white/50 leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-500/[0.05] rounded-full blur-[150px]" />
+        </div>
+
+        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
+          >
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">
+              Ready to hire with<span className="font-medium"> confidence?</span>
+            </h2>
+            <p className="text-lg text-white/50 max-w-lg mx-auto">
+              Join hundreds of teams who trust Indexios to make smarter, safer hiring decisions every day.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-wrap justify-center gap-4">
               <Link to={createPageUrl('Scan')}>
-                <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold text-lg px-8 py-6">
-                  Scan Resume Now
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                <Button className="group inline-flex items-center gap-2 px-8 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]">
+                  Start Free Scan
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
                 </Button>
               </Link>
               <Link to={createPageUrl('Pricing')}>
-                <Button size="lg" variant="outline" className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10 hover:border-white/40 text-lg px-8 py-6">
+                <Button variant="ghost" className="inline-flex items-center gap-2 px-7 py-6 text-sm text-white/60 hover:text-white transition-all duration-200 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
                   View Pricing
                 </Button>
               </Link>
             </div>
-            
-            <p className="text-white/50 text-sm mt-6">
-              Start with a free scan • No credit card required • No login required
-            </p>
           </motion.div>
-
-          {/* Example Scan Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-20"
-          >
-            <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                See How It Works
-              </h2>
-              <p className="text-white/60 text-lg">
-                Here's an example of our detailed resume analysis
-              </p>
-            </div>
-
-            <GlassCard className="p-6 md:p-10 rounded-3xl space-y-6" gradient>
-              {/* Example Header */}
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <ScoreCircle score={exampleScan.legitimacy_score} />
-                
-                <div className="flex-1 text-center md:text-left">
-                  <div className="inline-flex px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-2">
-                    <span className="text-emerald-300 text-xs font-medium">Example Analysis</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-1">
-                    {exampleScan.name}
-                  </h3>
-                  <p className="text-white/60 mb-3">{exampleScan.email}</p>
-                  <p className="text-white/70 text-sm leading-relaxed">
-                    {exampleScan.analysis.summary}
-                  </p>
-                </div>
-              </div>
-
-              {/* Analysis Breakdown with dropdowns */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <AnalysisCard
-                  title="Consistency"
-                  score={exampleScan.analysis.consistency_score}
-                  details={exampleScan.analysis.consistency_details}
-                  icon={User}
-                  delay={0}
-                />
-                <AnalysisCard
-                  title="Experience"
-                  score={exampleScan.analysis.experience_verification}
-                  details={exampleScan.analysis.experience_details}
-                  icon={Briefcase}
-                  delay={0.1}
-                />
-                <AnalysisCard
-                  title="Education"
-                  score={exampleScan.analysis.education_verification}
-                  details={exampleScan.analysis.education_details}
-                  icon={GraduationCap}
-                  delay={0.2}
-                />
-                <AnalysisCard
-                  title="Skills Alignment"
-                  score={exampleScan.analysis.skills_alignment}
-                  details={exampleScan.analysis.skills_details}
-                  icon={Sparkles}
-                  delay={0.3}
-                />
-              </div>
-
-              {/* Flags */}
-              <FlagsList
-                redFlags={exampleScan.analysis.red_flags}
-                greenFlags={exampleScan.analysis.green_flags}
-              />
-
-              {/* Next Steps and Interview Questions */}
-              <NextSteps
-                nextSteps={exampleScan.analysis.next_steps}
-                interviewQuestions={exampleScan.analysis.interview_questions}
-              />
-
-              <div className="text-center pt-4">
-                <Link to={createPageUrl('Scan')}>
-                  <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold">
-                    Try It With Your Resume
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </GlassCard>
-          </motion.div>
-
-          {/* Features Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mb-20"
-          >
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
-                Why Choose Indexios?
-              </h2>
-              <p className="text-white/60 text-lg">
-                See beyond the résumé
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <GlassCard className="p-6" delay={0.1} hover>
-                <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
-                  <Shield className="w-6 h-6 text-purple-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Fraud Detection</h3>
-                <p className="text-white/70">
-                  Identify inconsistencies, fabricated credentials, and inflated claims with advanced verification analysis
-                </p>
-              </GlassCard>
-
-              <GlassCard className="p-6" delay={0.15} hover>
-                <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
-                  <Phone className="w-6 h-6 text-green-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Automated Phone Verification</h3>
-                <p className="text-white/70">
-                  Automated calls to HR departments verify employment history and discover company policies
-                </p>
-              </GlassCard>
-
-              <GlassCard className="p-6" delay={0.2} hover>
-                <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
-                  <Link2 className="w-6 h-6 text-blue-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Blockchain Attestations</h3>
-                <p className="text-white/70">
-                  Verified employment records are permanently recorded on-chain for tamper-proof, portable credentials
-                </p>
-              </GlassCard>
-
-              <GlassCard className="p-6" delay={0.25} hover>
-                <div className="inline-flex p-3 rounded-xl bg-orange-500/10 mb-4">
-                  <Target className="w-6 h-6 text-orange-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Actionable Insights</h3>
-                <p className="text-white/70">
-                  Receive detailed recommendations and interview questions tailored to each candidate
-                </p>
-              </GlassCard>
-            </div>
-          </motion.div>
-
-          {/* CTA Section */}
-          <GlassCard className="p-10 md:p-16 text-center rounded-3xl" gradient delay={0.4}>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Ready to Make Smarter Hiring Decisions?
-            </h2>
-            <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-              Join teams already using Indexios to verify resumes and protect against fraud
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to={createPageUrl('Scan')}>
-                <Button size="lg" className="bg-white hover:bg-gray-100 text-black font-semibold text-lg px-8">
-                  Start Free Scan
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to={createPageUrl('About')}>
-                <Button size="lg" variant="outline" className="border-white/40 bg-transparent text-white hover:text-white hover:bg-white/10 text-lg px-8">
-                  Learn More
-                </Button>
-              </Link>
-            </div>
-          </GlassCard>
         </div>
-      </GradientBackground>
+
+        {/* Footer */}
+        <div className="relative z-10 mt-24 pt-8 border-t border-white/[0.06] max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
+          <p className="text-center text-white/30 text-sm">
+            © {new Date().getFullYear()} Indexios LLC. All rights reserved.
+          </p>
+        </div>
+      </section>
     </>
   );
 }
