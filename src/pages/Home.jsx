@@ -649,26 +649,39 @@ export default function Home() {
       </section>
 
       {/* ==================== FINAL CTA ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-500/[0.05] rounded-full blur-[150px]" />
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <motion.div 
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-500/[0.05] rounded-full blur-[150px]"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.04, 0.06, 0.04] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]"
+            animate={{ x: [0, 50, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
         <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-8">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Ready to hire with<span className="font-medium"> confidence?</span></h2>
             <p className="text-lg text-white/50 max-w-lg mx-auto">Join hundreds of teams who trust Indexios to make smarter, safer hiring decisions.</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Link to={createPageUrl('Scan')}>
-                <Button className="group inline-flex items-center gap-2 px-8 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02]">
-                  Start Free Scan
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-                </Button>
-              </Link>
-              <Link to={createPageUrl('Contact')}>
-                <Button variant="ghost" className="inline-flex items-center gap-2 px-7 py-6 text-sm text-white/60 hover:text-white rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
-                  Contact Sales
-                </Button>
-              </Link>
+              <AnimatedButton delay={0}>
+                <Link to={createPageUrl('Scan')}>
+                  <Button className="group inline-flex items-center gap-2 px-8 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02]">
+                    Start Free Scan
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Button>
+                </Link>
+              </AnimatedButton>
+              <AnimatedButton delay={0.3}>
+                <Link to={createPageUrl('Contact')}>
+                  <Button variant="ghost" className="inline-flex items-center gap-2 px-7 py-6 text-sm text-white/60 hover:text-white rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
+                    Contact Sales
+                  </Button>
+                </Link>
+              </AnimatedButton>
             </div>
           </motion.div>
         </div>
