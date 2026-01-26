@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, FolderPlus, CheckCircle2, Mail } from 'lucide-react';
+import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -16,26 +16,17 @@ import UpgradePrompt from '@/components/paywall/UpgradePrompt';
 import NextSteps from '@/components/score/NextSteps';
 import EmploymentVerificationBox from '@/components/score/EmploymentVerificationBox';
 import { toast } from 'sonner';
-import GradientBackground from '@/components/ui/GradientBackground';
-import GlassCard from '@/components/ui/GlassCard';
-import SectionHeader from '@/components/ui/SectionHeader';
 
-const TIER_LIMITS = {
-  free: 1,
-  starter: 50,
-  professional: 200,
-  enterprise: 999999
-};
+const TIER_LIMITS = { free: 1, starter: 50, professional: 200, enterprise: 999999 };
 
 export default function Scan() {
-  const [currentView, setCurrentView] = useState('upload'); // 'upload', 'result', 'history', 'bulk-results'
+  const [currentView, setCurrentView] = useState('upload');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [bulkResults, setBulkResults] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -47,22 +38,16 @@ export default function Scan() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } else {
-        // Get anonymous scan count
         try {
           const { data } = await base44.functions.invoke('getAnonymousScans');
           setUser({ scans_used: data.scansUsed, subscription_tier: 'free' });
         } catch (error) {
-          console.error('Error fetching anonymous scans:', error);
           setUser({ scans_used: 0, subscription_tier: 'free' });
         }
       }
       setAuthLoading(false);
-      
-      // Load bulk results from localStorage if available
       const stored = localStorage.getItem('bulkResults');
-      if (stored) {
-        setBulkResults(JSON.parse(stored));
-      }
+      if (stored) setBulkResults(JSON.parse(stored));
     };
     checkAuth();
   }, []);
@@ -71,10 +56,7 @@ export default function Scan() {
     queryKey: ['userTeams'],
     queryFn: async () => {
       if (!user) return [];
-      const memberships = await base44.entities.TeamMember.filter({ 
-        user_email: user.email,
-        status: 'active'
-      });
+      const memberships = await base44.entities.TeamMember.filter({ user_email: user.email, status: 'active' });
       return memberships;
     },
     enabled: isAuthenticated && !!user,
@@ -83,24 +65,14 @@ export default function Scan() {
   const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
     queryKey: ['candidates', userTeams],
     queryFn: async () => {
-      // Get personal scans created by this user
       const personalScans = await base44.entities.Candidate.filter({ created_by: user.email }, '-created_date', 50);
-      
-      // If professional+ user with team, get team scans too
       if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
-        const teamScans = await Promise.all(
-          userTeams.map(membership => 
-            base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)
-          )
-        );
+        const teamScans = await Promise.all(userTeams.map(membership => base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)));
         const allTeamScans = teamScans.flat();
-        
-        // Combine and deduplicate
         const allScans = [...personalScans, ...allTeamScans];
         const uniqueScans = Array.from(new Map(allScans.map(s => [s.id, s])).values());
         return uniqueScans.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
       }
-      
       return personalScans;
     },
     enabled: isAuthenticated && !!user,
@@ -108,9 +80,7 @@ export default function Scan() {
 
   const analyzeResume = async (file) => {
     setIsUploading(true);
-    
     try {
-      // Check scan limit for anonymous users
       if (!isAuthenticated) {
         const trackResponse = await base44.functions.invoke('trackAnonymousScan');
         if (!trackResponse.data.allowed) {
@@ -119,14 +89,11 @@ export default function Scan() {
           setCurrentView('upgrade');
           return;
         }
-        // Update local user state
         setUser(prev => ({ ...prev, scans_used: trackResponse.data.scansUsed }));
       } else {
-        // Check scan limit for authenticated users
         const userTier = user?.subscription_tier || 'free';
         const scansUsed = user?.scans_used || 0;
         const scanLimit = TIER_LIMITS[userTier];
-
         if (scansUsed >= scanLimit) {
           setIsUploading(false);
           setCurrentView('upgrade');
@@ -134,201 +101,77 @@ export default function Scan() {
         }
       }
 
-      // Upload the file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Get team ID if professional+ user has a team
       let teamId = null;
       if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
         teamId = userTeams[0].team_id;
       }
 
-      // Only create candidate record for authenticated users
       let candidate = null;
       if (isAuthenticated) {
-        candidate = await base44.entities.Candidate.create({
-          resume_url: file_url,
-          status: 'pending',
-          team_id: teamId
-        });
+        candidate = await base44.entities.Candidate.create({ resume_url: file_url, status: 'pending', team_id: teamId });
       }
     
-      // Use advanced analysis for all users
       const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-      COMPANY EXTRACTION (CRITICAL):
-      Extract the company name for EACH position listed in the work experience section.
+COMPANY EXTRACTION (CRITICAL):
+Extract the company name for EACH position listed in the work experience section.
+Return company_names as an array.
 
-      PROCESS:
-      1. EXTRACT ALL COMPANY NAMES from work experience (e.g., "Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force")
-      2. Return these as an array in company_names field - this is the ONLY phone-related extraction you do in this analysis
+CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
 
-      OUTPUT FORMAT:
-      Return company_names as an array:
-      ["Edgewell Personal Care", "Victoria's Secret & Co.", "HSN", "Elizabeth Arden", "Procter & Gamble", "United States Air Force"]
+CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
+- ALWAYS extract exact name/email from resume text
+- Apply IDENTICAL methodology to every resume
+- Score independently before reviewing
+- Use explicit rubric - removes subjectivity
+- Scoring should be 100% reproducible
+- BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
 
-      NOTE: Do NOT attempt to find phone numbers in this analysis. Phone numbers will be looked up separately via external sources.
-
-      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]} (use this to evaluate if dates are past, present, or future)
-
-      CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
-      - ALWAYS extract exact name/email from resume text
-      - Apply IDENTICAL methodology to every resume
-      - Score independently before reviewing
-      - Use explicit rubric - removes subjectivity
-      - Scoring should be 100% reproducible
-      - BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
-
-      IMPORTANT: Provide COMPREHENSIVE, DETAILED explanations for each category. Each detail field should be 3-5 paragraphs minimum, thoroughly explaining your analysis with specific examples from the resume.
-
-      DETAILED SCORING RUBRIC (BE HARSH ON SPARSE/VAGUE CANDIDATES):
-
+DETAILED SCORING RUBRIC:
 OVERALL LEGITIMACY SCORE (0-100):
-90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies. Demonstrates genuine expertise depth.
-75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions, minor gaps <1 month. Clearly qualified.
-60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions, minor timeline issues. Credible but not exceptional.
-45-59: Concerning. Generic descriptions dominate, vague claims, unverifiable companies, gaps/overlaps, inconsistencies present.
-30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions, major timeline issues, poor narrative.
-<30: Critical. Likely fraud - fabricated credentials, impossible timeline, severe inconsistencies.
+90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies.
+75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions.
+60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions.
+45-59: Concerning. Generic descriptions dominate, vague claims, gaps/overlaps.
+30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions.
+<30: Critical. Likely fraud - fabricated credentials, impossible timeline.
 
-CONSISTENCY SCORE (0-100):
-90-100: Perfect alignment - precise dates, no gaps/overlaps, clear logical transitions between all roles. Dates align with education end date.
-75-89: Very good - gaps <1 month clearly explained or contextual, consistent narrative, no role overlaps
-60-74: Acceptable - gaps 1-3 months present, mostly logical transitions
-45-59: Problematic - gaps 3-6 months, role overlaps, narrative jumps
-30-44: Serious - major gaps >6 months, significant overlaps, education/employment conflicts
-<30: Critical - impossible timeline, severe overlaps, fabrication indicators
+Provide detailed scores for all 4 categories (consistency, experience, education, skills) with EXTENSIVE justifications.
 
-EXPERIENCE VERIFICATION (0-100):
-90-100: Rich specific metrics (increased X by 30%, managed $5M+ budget, led team of 20+), quantified impact evident, achievements appropriate for tenure and level
-75-89: Multiple measurable results (improved processes, shipped products, led initiatives), impact clear
-60-74: Some specific achievements, limited metrics, basic impact description
-45-59: Mostly generic language (responsible for, involved in), minimal quantification, questionable for tenure
-30-44: Vague achievements, inflated claims relative to role, no evidence of impact
-<30: Fabricated achievements, impossible claims, or zero demonstrable impact
-
-EDUCATION VERIFICATION (0-100):
-90-100: Top 50 university globally, graduation dates align perfectly with work timeline, degree directly relevant to career
-75-89: Well-known university (top 200 globally), dates reasonable, relevant degree
-60-74: Recognized university, dates mostly clear, degree related to career
-45-59: Lesser-known institution, date ambiguity, weak degree/career alignment
-30-44: Difficult to verify, credential issues, major conflicts with work history
-<30: Non-existent institution, fabricated degree, or impossible timeline
-
-SKILLS ALIGNMENT (0-100):
-90-100: Clear skill progression through roles, tools/languages match era/industry, demonstrated depth (projects, certifications), expertise evident
-75-89: Skills align with roles, reasonable progression, some depth shown
-60-74: Basic skill/role alignment, limited evidence of progression
-45-59: Weak skill/role connections, gaps in claimed expertise
-30-44: Major mismatches, unexplained skill claims
-<30: Contradictory skills/experience, false expertise claims
-
-TENURE & EXPERIENCE RIGOR (IMPORTANT):
-- Short tenure (< 2 years per role): Watch for job hopping patterns, lack of depth. Deduct 5-10 points unless each role shows significant achievement/growth. Factor this into scoring but explain it clearly.
-- New resume (< 2 years total experience): Lack of demonstrated track record naturally limits scores. Keep realistic (50-65 range typically), but don't penalize fresh starts unfairly. Note the early-career status.
-- Relatively new career entrants: Flag in analysis as "early-career" context, but judge on quality of work and clear learning trajectory. Don't artificially lower scores just for being new.
-- Strong tenure (5+ years consistently): Builds credibility if achievements are documented throughout.
-
-METHODOLOGY:
-1. Map employment timeline with exact dates - identify gaps/overlaps (be strict)
-2. Extract specific metrics from achievements - count generic vs quantified claims
-3. Verify education institutions and dates - cross-reference with employment
-4. Track skill introduction - do skills logically appear when claimed?
-5. Assess narrative coherence - does career flow make logical sense?
-6. Look for inflation indicators - claims beyond realistic scope
-7. Factor tenure and career stage realistically - less experience naturally limits ceiling, but quality and trajectory matter
-
-RED FLAGS TO IDENTIFY:
-- Any timeline gaps >3 months unexplained (be strict)
-- Employment date overlaps at 2+ companies
-- Generic job descriptions with no quantified impact
-- Vague language dominating the resume
-- Skills listed without supporting experience in timeline
-- Lesser-known or unverifiable institutions
-- Inflated achievements for job level/tenure
-- Career progression that seems unrealistic for tenure
-- Minimal detail/sparse descriptions across roles
-- Education dates conflicting with employment history
-- Frequent job changes with no clear narrative or growth
-
-GREEN FLAGS TO IDENTIFY (ONLY flag if truly impressive):
-- Specific quantified metrics (X% growth, $Y revenue, Z team members)
-- Clear, logical career progression with pattern
-- Elite/recognized institutions verifiable
-- Skills clearly demonstrated through dated roles
-- Rich detail and specificity throughout
-- Published work, rare certifications, recognized awards
-- Consistent 2+ year tenure showing stability
-- Measurable project outcomes
-- Clear learning trajectory and skill growth (especially valuable for early-career)
-
-CRITICAL ANALYSIS STANDARDS:
-- Most resumes should score 50-70 range unless exceptionally detailed
-- Early-career candidates (< 3 years) naturally score lower - this is expected and normal, explain why
-- Be thorough in explanations - cite specific evidence from the resume for each score
-- Explain what would improve the score and concrete actions to strengthen candidacy
-- Provide constructive feedback
-
-Provide detailed scores for all 4 categories with EXTENSIVE, COMPREHENSIVE justifications citing specific resume elements.
-
-CRITICAL DETAIL REQUIREMENTS:
-- consistency_details: Write 3-5 paragraphs analyzing timeline consistency, employment gaps, date overlaps, and career progression logic. Include specific dates and periods from the resume.
-- experience_details: Write 3-5 paragraphs evaluating each role's responsibilities, achievements, impact metrics, and appropriateness for the candidate's level. Quote specific accomplishments.
-- education_details: Write 3-5 paragraphs assessing institutions, degree relevance, graduation dates vs. work history, and credential verification potential. Name specific schools and degrees.
-- skills_details: Write 3-5 paragraphs examining skill-role alignment, technology/tool usage across timeline, demonstrated expertise depth, and skill progression. List specific skills mentioned.
-- summary: Write 2-3 comprehensive paragraphs providing an overall assessment, key strengths, major concerns, and hiring recommendation with clear reasoning.
-
-NEXT STEPS: 5-7 verification actions and risk mitigation strategies
-INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying impressive claims`;
+NEXT STEPS: 5-7 verification actions
+INTERVIEW QUESTIONS: 7-10 targeted questions`;
     
-        const analysis = await base44.integrations.Core.InvokeLLM({
-          prompt: analysisPrompt,
-          file_urls: [file_url],
-          response_json_schema: {
-            type: "object",
-            properties: {
-              candidate_name: { 
-                type: "string",
-                description: "Extract the candidate's full name EXACTLY as written on the resume. Look in header, top section, or contact area. ALWAYS provide this field."
-              },
-              candidate_email: { 
-                type: "string",
-                description: "Extract the email address EXACTLY as written if it appears anywhere on the resume (header, contact, footer, signature). If no email found, return empty string."
-              },
-              overall_score: { type: "number", description: "Overall legitimacy percentage 0-100" },
-              consistency_score: { type: "number" },
-              consistency_details: { type: "string", description: "Detailed explanation of the consistency score" },
-              experience_verification: { type: "number" },
-              experience_details: { type: "string", description: "Detailed explanation of the experience verification" },
-              education_verification: { type: "number" },
-              education_details: { type: "string", description: "Detailed explanation of the education verification" },
-              skills_alignment: { type: "number" },
-              skills_details: { type: "string", description: "Detailed explanation of the skills alignment" },
-              red_flags: { type: "array", items: { type: "string" } },
-              green_flags: { type: "array", items: { type: "string" } },
-              summary: { type: "string", description: "Brief summary of the analysis" },
-              next_steps: { type: "array", items: { type: "string" }, description: "Recommended next steps for hiring process" },
-              interview_questions: { type: "array", items: { type: "string" }, description: "Suggested interview questions" },
-              company_names: { type: "array", items: { type: "string" }, description: "List of all company names extracted from work experience section" }
-            },
-            required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
-          }
-        });
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: analysisPrompt,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            candidate_name: { type: "string" },
+            candidate_email: { type: "string" },
+            overall_score: { type: "number" },
+            consistency_score: { type: "number" },
+            consistency_details: { type: "string" },
+            experience_verification: { type: "number" },
+            experience_details: { type: "string" },
+            education_verification: { type: "number" },
+            education_details: { type: "string" },
+            skills_alignment: { type: "number" },
+            skills_details: { type: "string" },
+            red_flags: { type: "array", items: { type: "string" } },
+            green_flags: { type: "array", items: { type: "string" } },
+            summary: { type: "string" },
+            next_steps: { type: "array", items: { type: "string" } },
+            interview_questions: { type: "array", items: { type: "string" } },
+            company_names: { type: "array", items: { type: "string" } }
+          },
+          required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
+        }
+      });
         
-      // Extract company names from the analysis
-      let companyNames = [];
-      if (analysis.company_names && Array.isArray(analysis.company_names)) {
-        companyNames = analysis.company_names;
-      }
+      let companyNames = analysis.company_names && Array.isArray(analysis.company_names) ? analysis.company_names : [];
 
-      // Build companies array from extracted names (no phone lookups)
-      const companies = companyNames.map(name => ({
-        name,
-        phone: null,
-        phone_debug: null,
-      }));
-
-      // Build the analysis object
       const analysisData = {
         consistency_score: analysis.consistency_score,
         consistency_details: analysis.consistency_details,
@@ -347,9 +190,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
       };
 
       let updatedCandidate;
-      
       if (isAuthenticated && candidate) {
-        // Update candidate with analysis for authenticated users
         updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
           name: analysis.candidate_name || 'Unknown Candidate',
           email: analysis.candidate_email || '',
@@ -357,17 +198,10 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
           analysis: analysisData,
           status: 'analyzed'
         });
-
-        // Increment scan count for authenticated users
-        await base44.auth.updateMe({
-          scans_used: (user?.scans_used || 0) + 1
-        });
-
-        // Refresh user data
+        await base44.auth.updateMe({ scans_used: (user?.scans_used || 0) + 1 });
         const updatedUser = await base44.auth.me();
         setUser(updatedUser);
       } else {
-        // For anonymous users, create a temporary candidate object (not saved to DB)
         updatedCandidate = {
           id: 'temp-' + Date.now(),
           name: analysis.candidate_name || 'Unknown Candidate',
@@ -381,157 +215,53 @@ INTERVIEW QUESTIONS: 7-10 targeted questions addressing red flags or verifying i
       }
       
       setIsUploading(false);
-       setSelectedCandidate(updatedCandidate);
-       setCurrentView('result');
-       if (isAuthenticated) {
-         queryClient.invalidateQueries({ queryKey: ['candidates'] });
+      setSelectedCandidate(updatedCandidate);
+      setCurrentView('result');
+      if (isAuthenticated) {
+        queryClient.invalidateQueries({ queryKey: ['candidates'] });
+        if (user?.email_notifications_enabled !== false) {
+          try {
+            await base44.integrations.Core.SendEmail({
+              to: user.email,
+              subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
+              body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.`
+            });
+          } catch (error) {}
+        }
+      }
 
-         // Send email notification if enabled
-         if (user?.email_notifications_enabled !== false) {
-           try {
-             await base44.integrations.Core.SendEmail({
-               to: user.email,
-               subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
-               body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.\n\n---\nYou can disable these email notifications anytime in your account settings under "Email Notifications" in My Account.`
-             });
-           } catch (error) {
-             console.error('Error sending email:', error);
-           }
-         }
-       }
+      toast.success('Analysis complete!', { description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`, icon: <CheckCircle2 className="w-4 h-4" /> });
 
-       // Show toast notification
-       toast.success('Analysis complete!', {
-         description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`,
-         icon: <CheckCircle2 className="w-4 h-4" />
-       });
-
-       // Link scan to UniqueCandidate and Resume entities (async, don't block UI)
-       if (isAuthenticated && updatedCandidate.id && !updatedCandidate.id.startsWith('temp-')) {
-         base44.functions.invoke('linkCandidateScan', { candidateId: updatedCandidate.id })
-           .then(res => {
-             console.log('[Scan] Linked to database:', res.data);
-             // Store uniqueCandidateId on the candidate for later use
-             if (res.data?.uniqueCandidateId) {
-               setSelectedCandidate(prev => ({
-                 ...prev,
-                 unique_candidate_id: res.data.uniqueCandidateId
-               }));
-             }
-           })
-           .catch(err => console.error('[Scan] Link error:', err));
-       }
+      if (isAuthenticated && updatedCandidate.id && !updatedCandidate.id.startsWith('temp-')) {
+        base44.functions.invoke('linkCandidateScan', { candidateId: updatedCandidate.id })
+          .then(res => { if (res.data?.uniqueCandidateId) setSelectedCandidate(prev => ({ ...prev, unique_candidate_id: res.data.uniqueCandidateId })); })
+          .catch(err => {});
+      }
     } catch (error) {
-       console.error('Analysis error:', error);
-       setIsUploading(false);
-       toast.error('Analysis failed', {
-         description: 'Please check your resume and try again'
-       });
-     }
-  };
-
-  const handleUpload = async (file) => {
-    await analyzeResume(file);
-  };
-
-  const handleViewHistory = () => {
-    const userTier = user?.subscription_tier || 'free';
-    if (userTier === 'free') {
-      setCurrentView('history-locked');
-      return;
+      setIsUploading(false);
+      toast.error('Analysis failed', { description: 'Please check your resume and try again' });
     }
-    setCurrentView('history');
   };
 
+  const handleUpload = async (file) => await analyzeResume(file);
+  const handleViewHistory = () => { if ((user?.subscription_tier || 'free') === 'free') { setCurrentView('history-locked'); return; } setCurrentView('history'); };
   const handleSelectCandidate = async (candidate) => {
-    const userTier = user?.subscription_tier || 'free';
-    if (userTier === 'free') {
-      setCurrentView('upgrade');
-      return;
-    }
-    
-    // Set candidate immediately for fast UI response
+    if ((user?.subscription_tier || 'free') === 'free') { setCurrentView('upgrade'); return; }
     setSelectedCandidate(candidate);
     setCurrentView('result');
-    
-    // Then fetch/link the UniqueCandidate ID in the background if not already present
     if (!candidate.unique_candidate_id && candidate.id && !candidate.id.startsWith('temp-') && !candidate.id.startsWith('bulk-')) {
       try {
-        // Use linkCandidateScan to get/create the UniqueCandidate
         const res = await base44.functions.invoke('linkCandidateScan', { candidateId: candidate.id });
-        console.log('[Scan] Linked historical candidate:', res.data);
-        
-        if (res.data?.uniqueCandidateId) {
-          setSelectedCandidate(prev => ({
-            ...prev,
-            unique_candidate_id: res.data.uniqueCandidateId
-          }));
-        }
-      } catch (error) {
-        console.error('[Scan] Error linking UniqueCandidate:', error);
-      }
+        if (res.data?.uniqueCandidateId) setSelectedCandidate(prev => ({ ...prev, unique_candidate_id: res.data.uniqueCandidateId }));
+      } catch (error) {}
     }
   };
-
-  const handleBack = () => {
-    setCurrentView('upload');
-    setSelectedCandidate(null);
-  };
-
-  const canUpload = () => {
-    const userTier = user?.subscription_tier || 'free';
-    const scansUsed = user?.scans_used || 0;
-    const scanLimit = TIER_LIMITS[userTier];
-    return scansUsed < scanLimit;
-  };
-
-  const handleLoginRedirect = () => {
-    base44.auth.redirectToLogin(createPageUrl('Scan'));
-  };
+  const handleBack = () => { setCurrentView('upload'); setSelectedCandidate(null); };
+  const canUpload = () => (user?.scans_used || 0) < TIER_LIMITS[user?.subscription_tier || 'free'];
+  const handleLoginRedirect = () => base44.auth.redirectToLogin(createPageUrl('Scan'));
 
   const handleDownload = async (candidate) => {
-
-    // Create a text report
-    const report = `
-INDEXIOS RESUME ANALYSIS REPORT
-================================
-
-Candidate: ${candidate.name || 'Unknown'}
-Email: ${candidate.email || 'N/A'}
-Scan Date: ${new Date(candidate.created_date).toLocaleDateString()}
-
-LEGITIMACY SCORE: ${candidate.legitimacy_score}%
-
-ANALYSIS BREAKDOWN
-------------------
-Consistency: ${candidate.analysis?.consistency_score || 0}%
-${candidate.analysis?.consistency_details || ''}
-
-Experience: ${candidate.analysis?.experience_verification || 0}%
-${candidate.analysis?.experience_details || ''}
-
-Education: ${candidate.analysis?.education_verification || 0}%
-${candidate.analysis?.education_details || ''}
-
-Skills Alignment: ${candidate.analysis?.skills_alignment || 0}%
-${candidate.analysis?.skills_details || ''}
-
-RED FLAGS
----------
-${candidate.analysis?.red_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}
-
-GREEN FLAGS
------------
-${candidate.analysis?.green_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}
-
-SUMMARY
--------
-${candidate.analysis?.summary || 'N/A'}
-
----
-Report generated by Indexios Resume Verification Platform
-    `.trim();
-
+    const report = `INDEXIOS RESUME ANALYSIS REPORT\n================================\n\nCandidate: ${candidate.name || 'Unknown'}\nEmail: ${candidate.email || 'N/A'}\nScan Date: ${new Date(candidate.created_date).toLocaleDateString()}\n\nLEGITIMACY SCORE: ${candidate.legitimacy_score}%\n\nANALYSIS BREAKDOWN\n------------------\nConsistency: ${candidate.analysis?.consistency_score || 0}%\n${candidate.analysis?.consistency_details || ''}\n\nExperience: ${candidate.analysis?.experience_verification || 0}%\n${candidate.analysis?.experience_details || ''}\n\nEducation: ${candidate.analysis?.education_verification || 0}%\n${candidate.analysis?.education_details || ''}\n\nSkills Alignment: ${candidate.analysis?.skills_alignment || 0}%\n${candidate.analysis?.skills_details || ''}\n\nRED FLAGS\n---------\n${candidate.analysis?.red_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}\n\nGREEN FLAGS\n-----------\n${candidate.analysis?.green_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}\n\nSUMMARY\n-------\n${candidate.analysis?.summary || 'N/A'}\n\n---\nReport generated by Indexios`.trim();
     const blob = new Blob([report], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -544,37 +274,19 @@ Report generated by Indexios Resume Verification Platform
   };
 
   const handleShare = async (candidate) => {
-    // Check if user has shared in the last 12 hours
     const lastShareTime = localStorage.getItem(`lastShare_${candidate.id}`);
     const now = Date.now();
     const twelveHoursMs = 12 * 60 * 60 * 1000;
-
     if (lastShareTime && now - parseInt(lastShareTime) < twelveHoursMs) {
       const timeRemaining = Math.ceil((twelveHoursMs - (now - parseInt(lastShareTime))) / (60 * 60 * 1000));
-      alert(`You can share this report again in ${timeRemaining} hour${timeRemaining !== 1 ? 's' : ''}. We limit sharing to once every 12 hours to prevent misuse.`);
+      alert(`You can share this report again in ${timeRemaining} hour${timeRemaining !== 1 ? 's' : ''}.`);
       return;
     }
-
     const shareUrl = `${window.location.origin}${createPageUrl('SharedReport')}?id=${candidate.id}`;
-    const shareText = `Resume Analysis for ${candidate.name || 'Candidate'}\nLegitimacy Score: ${candidate.legitimacy_score}%\n\nView full report: ${shareUrl}`;
-
-    // Record share time
     localStorage.setItem(`lastShare_${candidate.id}`, now.toString());
-
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Indexios Scan - ${candidate.name || 'Candidate'}`,
-          text: shareText,
-          url: shareUrl
-        });
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error);
-        }
-      }
+      try { await navigator.share({ title: `Indexios Scan - ${candidate.name || 'Candidate'}`, url: shareUrl }); } catch (error) {}
     } else {
-      // Fallback: copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
       alert('Report link copied to clipboard!');
     }
@@ -587,621 +299,280 @@ Report generated by Indexios Resume Verification Platform
   });
 
   const handleSaveToFolder = async (candidate, folderId) => {
-    if (!isAuthenticated || !user) {
-      alert('Please sign in to save candidates');
-      return;
-    }
-
+    if (!isAuthenticated || !user) { alert('Please sign in to save candidates'); return; }
     try {
-      await base44.entities.SavedCandidate.create({
-        candidate_id: candidate.id,
-        folder_id: folderId,
-        user_email: user.email
-      });
+      await base44.entities.SavedCandidate.create({ candidate_id: candidate.id, folder_id: folderId, user_email: user.email });
       alert('Candidate saved to folder!');
-    } catch (error) {
-      console.error('Save error:', error);
-      alert('Failed to save candidate');
-    }
+    } catch (error) { alert('Failed to save candidate'); }
   };
 
   const handleSaveAllToFolder = async (results, folderId) => {
-    if (!isAuthenticated || !user) {
-      alert('Please sign in to save candidates');
-      return;
-    }
-
+    if (!isAuthenticated || !user) { alert('Please sign in to save candidates'); return; }
     try {
-      const savePromises = results
-        .filter(r => r.id) // Only save results that have been stored in database
-        .map(result =>
-          base44.entities.SavedCandidate.create({
-            candidate_id: result.id,
-            folder_id: folderId,
-            user_email: user.email
-          })
-        );
-
+      const savePromises = results.filter(r => r.id).map(result => base44.entities.SavedCandidate.create({ candidate_id: result.id, folder_id: folderId, user_email: user.email }));
       await Promise.all(savePromises);
-      const savedCount = savePromises.length;
-      alert(`Saved ${savedCount} candidate${savedCount !== 1 ? 's' : ''} to folder!`);
-    } catch (error) {
-      console.error('Save all error:', error);
-      alert('Failed to save candidates');
-    }
+      alert(`Saved ${savePromises.length} candidate${savePromises.length !== 1 ? 's' : ''} to folder!`);
+    } catch (error) { alert('Failed to save candidates'); }
   };
 
-  if (authLoading || isRedirectingToLogin) {
+  if (authLoading) {
     return (
-      <GradientBackground variant="scan">
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-4xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent"
-          >
-            Indexios
-          </motion.div>
-          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-        </div>
-      </GradientBackground>
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-4xl font-bold text-white">Indexios</motion.div>
+        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
-
-
 
   return (
     <>
       <Helmet>
         <title>Scan Resume - Resume Verification & Fraud Detection | Indexios</title>
-        <meta name="description" content="Upload and verify resume authenticity with advanced fraud detection. Get instant legitimacy scores, employment verification, and detailed candidate analysis." />
-        <meta name="keywords" content="resume scan, resume verification, fraud detection, employment check, credential verification" />
+        <meta name="description" content="Upload and verify resume authenticity with advanced fraud detection." />
         <link rel="canonical" href="https://indexios.me/Scan" />
-        <meta name="twitter:card" content="summary" />
       </Helmet>
       
-      <GradientBackground variant="scan">
-        <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-              <span className="bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
-                Scan Resume
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed font-medium">
-              Upload a resume to analyze for legitimacy and fraud detection
-            </p>
-          </div>
-
-        {/* Navigation */}
-        <div className="flex flex-col items-center gap-4 mb-8">
-          <div className="flex justify-center gap-2 p-1 bg-white/[0.03] rounded-xl border border-white/[0.06]">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              className={currentView === 'upload' 
-                ? 'bg-white text-black font-medium rounded-lg hover:bg-white/90' 
-                : 'text-white/60 hover:text-white hover:bg-white/5 rounded-lg'}
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              Scan
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleViewHistory}
-              className={currentView === 'history' 
-                ? 'bg-white text-black font-medium rounded-lg hover:bg-white/90' 
-                : 'text-white/60 hover:text-white hover:bg-white/5 rounded-lg'}
-            >
-              <History className="w-4 h-4 mr-2" />
-              History
-              {candidates.length > 0 && (
-                <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-full text-xs">
-                  {candidates.length}
-                </span>
-              )}
-            </Button>
-          </div>
-          
-          {/* Usage indicator */}
-          <div className="text-center">
-            <p className="text-white/40 text-sm">
-              <span className="font-semibold text-white/70">{user?.scans_used || 0}</span>
-              <span className="mx-1">/</span>
-              <span>{user?.subscription_tier === 'enterprise' ? '∞' : TIER_LIMITS[user?.subscription_tier || 'free']}</span>
-              <span className="ml-1">scans used</span>
-            </p>
-            {isAuthenticated ? (
-              <Link to={createPageUrl('Pricing')}>
-                <Button variant="link" className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto">
-                  {user?.subscription_tier === 'enterprise' ? 'View Plans' : 'Upgrade →'}
-                </Button>
-              </Link>
-            ) : (
-              <Button 
-                variant="link" 
-                onClick={handleLoginRedirect}
-                className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto"
-              >
-                Sign up for more →
-              </Button>
-            )}
-          </div>
+      <section className="relative min-h-screen bg-[#0a0a0a] overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 z-0" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15 }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/80 via-[#0a0a0a]/70 to-[#0a0a0a]" />
+        </div>
+        <div className="absolute inset-0 pointer-events-none z-[2]" style={{ background: 'radial-gradient(70% 50%, transparent 0%, rgba(10, 10, 10, 0.5) 60%, rgba(10, 10, 10, 0.98) 100%)' }} />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* Upload View */}
-          {currentView === 'upload' && (
-            <motion.div
-              key="upload"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Bulk Upload for Enterprise */}
-              {user?.subscription_tier === 'enterprise' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-xl p-5 mb-6"
-                >
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="bg-purple-500 rounded-full p-2">
-                      <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-purple-200 font-bold text-sm mb-1">Enterprise Bulk Upload</p>
-                      <p className="text-white/80 text-xs mb-3">
-                        Upload 5+ resumes at once. Results display ordered by legitimacy score.
-                      </p>
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        multiple
-                        onChange={async (e) => {
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-12 md:py-20">
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 mb-6">
+              <Shield className="w-4 h-4 text-purple-400" />
+              <span className="text-sm font-medium text-purple-300">Resume Verification</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] mb-4">
+              <span className="text-white/60">Scan &</span>
+              <span className="text-white font-medium"> Verify</span>
+            </h1>
+            <p className="text-lg md:text-xl text-white/50 max-w-xl mx-auto">Upload a resume to analyze for legitimacy and fraud detection</p>
+          </motion.div>
+
+          {/* Navigation */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col items-center gap-4 mb-10">
+            <div className="flex justify-center gap-2 p-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
+              <Button variant="ghost" onClick={handleBack} className={currentView === 'upload' ? 'bg-white text-black font-medium rounded-full hover:bg-white/90 px-6' : 'text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6'}>
+                <Shield className="w-4 h-4 mr-2" /> Scan
+              </Button>
+              <Button variant="ghost" onClick={handleViewHistory} className={currentView === 'history' ? 'bg-white text-black font-medium rounded-full hover:bg-white/90 px-6' : 'text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6'}>
+                <History className="w-4 h-4 mr-2" /> History
+                {candidates.length > 0 && <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-full text-xs">{candidates.length}</span>}
+              </Button>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-white/40 text-sm">
+                <span className="font-semibold text-white/70">{user?.scans_used || 0}</span>
+                <span className="mx-1">/</span>
+                <span>{user?.subscription_tier === 'enterprise' ? '∞' : TIER_LIMITS[user?.subscription_tier || 'free']}</span>
+                <span className="ml-1">scans used</span>
+              </p>
+              {isAuthenticated ? (
+                <Link to={createPageUrl('Home') + '#pricing'}><Button variant="link" className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto">Upgrade →</Button></Link>
+              ) : (
+                <Button variant="link" onClick={handleLoginRedirect} className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto">Sign up for more →</Button>
+              )}
+            </div>
+          </motion.div>
+
+          <AnimatePresence mode="wait">
+            {/* Upload View */}
+            {currentView === 'upload' && (
+              <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                {user?.subscription_tier === 'enterprise' && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border border-purple-500/30 rounded-2xl p-5 mb-6">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-purple-500/20 rounded-full p-2"><Sparkles className="w-5 h-5 text-purple-400" /></div>
+                      <div className="flex-1">
+                        <p className="text-purple-300 font-medium text-sm mb-1">Enterprise Bulk Upload</p>
+                        <p className="text-white/60 text-xs mb-3">Upload 5+ resumes at once. Results display ordered by legitimacy score.</p>
+                        <input type="file" accept=".pdf" multiple onChange={async (e) => {
                           const files = Array.from(e.target.files);
-                          if (files.length < 5) {
-                            alert('Please select at least 5 files for bulk upload');
-                            e.target.value = '';
-                            return;
-                          }
+                          if (files.length < 5) { alert('Please select at least 5 files for bulk upload'); e.target.value = ''; return; }
                           setIsUploading(true);
                           try {
-                            // Upload all files first
-                            const uploadPromises = files.map(file => 
-                              base44.integrations.Core.UploadFile({ file })
-                            );
+                            const uploadPromises = files.map(file => base44.integrations.Core.UploadFile({ file }));
                             const uploads = await Promise.all(uploadPromises);
                             const fileUrls = uploads.map(u => u.file_url);
-
-                            // Send URLs for bulk analysis
                             const response = await base44.functions.invoke('bulkAnalyze', { fileUrls });
-
-                            // Store bulk results and navigate to bulk results view
                             const results = response.data.analyses;
                             localStorage.setItem('bulkResults', JSON.stringify(results));
                             setBulkResults(results);
                             setCurrentView('bulk-results');
-                          } catch (error) {
-                            console.error('Bulk analysis error:', error);
-                            alert('Failed to process bulk upload. Please try again.');
-                          }
+                          } catch (error) { alert('Failed to process bulk upload. Please try again.'); }
                           setIsUploading(false);
                           e.target.value = '';
-                        }}
-                        className="hidden"
-                        id="bulk-upload"
-                      />
-                      <label htmlFor="bulk-upload">
-                        <Button 
-                          size="sm" 
-                          className="bg-purple-500 hover:bg-purple-400 text-white font-semibold cursor-pointer"
-                          asChild
-                        >
-                          <span>Select 5+ Files for Bulk Analysis</span>
-                        </Button>
-                      </label>
+                        }} className="hidden" id="bulk-upload" />
+                        <label htmlFor="bulk-upload"><Button size="sm" className="bg-purple-500 hover:bg-purple-400 text-white font-semibold cursor-pointer rounded-full" asChild><span>Select 5+ Files</span></Button></label>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {canUpload() ? (
+                  <UploadZone onUpload={handleUpload} isUploading={isUploading} />
+                ) : (
+                  <UpgradePrompt scansUsed={user?.scans_used || 0} scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']} onUpgrade={() => window.location.href = createPageUrl('Home') + '#pricing'} />
+                )}
+                
+                {candidates.length > 0 && (user?.subscription_tier && user.subscription_tier !== 'free') && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-10">
+                    <h3 className="text-white/50 text-sm font-medium mb-4 uppercase tracking-wider">Recent Scans</h3>
+                    <div className="grid gap-3">
+                      {candidates.slice(0, 3).map((candidate, index) => (
+                        <CandidateCard key={candidate.id} candidate={candidate} onClick={() => handleSelectCandidate(candidate)} onDownload={handleDownload} onShare={handleShare} delay={index * 0.1} />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Result View */}
+            {currentView === 'result' && selectedCandidate && (
+              <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <Button variant="ghost" onClick={handleBack} className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                  </Button>
+                  <div className="flex gap-2">
+                    {folders.length > 0 && (
+                      <select onChange={(e) => { if (e.target.value) { handleSaveToFolder(selectedCandidate, e.target.value); e.target.value = ''; } }} className="bg-white/5 border border-white/10 text-white rounded-full px-4 py-2 text-sm hover:bg-white/10">
+                        <option value="">Save to folder...</option>
+                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                      </select>
+                    )}
+                    <Button variant="ghost" onClick={() => handleShare(selectedCandidate)} className="border border-white/10 text-white/70 hover:text-white hover:bg-white/5 rounded-full">
+                      <Share2 className="w-4 h-4 mr-2" /> Share
+                    </Button>
+                    <Button variant="ghost" onClick={() => handleDownload(selectedCandidate)} className="border border-white/10 text-white/70 hover:text-white hover:bg-white/5 rounded-full">
+                      <Download className="w-4 h-4 mr-2" /> Download
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Candidate Header */}
+                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 md:p-8">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <ScoreCircle score={selectedCandidate.legitimacy_score || 0} />
+                    <div className="flex-1 text-center md:text-left">
+                      <h2 className="text-2xl font-medium text-white mb-1">{selectedCandidate.name || 'Unknown Candidate'}</h2>
+                      {selectedCandidate.email && <p className="text-white/40 text-sm">{selectedCandidate.email}</p>}
+                      {selectedCandidate.analysis?.summary && <p className="text-white/50 mt-3 text-sm leading-relaxed">{selectedCandidate.analysis.summary}</p>}
+                      {selectedCandidate.resume_url && (
+                        <a href={selectedCandidate.resume_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-4 text-purple-400/80 hover:text-purple-400 text-sm font-medium transition-colors">
+                          <ExternalLink className="w-4 h-4" /> View Resume
+                        </a>
+                      )}
                     </div>
                   </div>
-                </motion.div>
-              )}
+                </div>
 
-
-
-              {canUpload() ? (
-                <UploadZone onUpload={handleUpload} isUploading={isUploading} />
-              ) : (
-                <UpgradePrompt
-                  scansUsed={user?.scans_used || 0}
-                  scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']}
-                  onUpgrade={() => window.location.href = createPageUrl('Pricing')}
-                />
-              )}
-              
-              {/* Recent scans preview - only for paid users */}
-              {candidates.length > 0 && (user?.subscription_tier && user.subscription_tier !== 'free') && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-8"
-                >
-                  <h3 className="text-white/60 text-sm font-medium mb-3">Recent Scans</h3>
-                  <div className="grid gap-3">
-                    {candidates.slice(0, 3).map((candidate, index) => (
-                      <CandidateCard
-                        key={candidate.id}
-                        candidate={candidate}
-                        onClick={() => handleSelectCandidate(candidate)}
-                        onDownload={handleDownload}
-                        onShare={handleShare}
-                        delay={index * 0.1}
-                      />
-                    ))}
+                {(user?.subscription_tier === 'free' || !isAuthenticated) && (
+                  <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 p-5 text-center">
+                    <p className="text-white/60 text-sm">Upgrade to save your scan history and unlock team features</p>
+                    <Link to={createPageUrl('Home') + '#pricing'}><Button size="sm" className="mt-3 bg-white hover:bg-white/90 text-black font-medium rounded-full">View Plans</Button></Link>
                   </div>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
+                )}
 
-          {/* Result View */}
-          {currentView === 'result' && selectedCandidate && (
-            <motion.div
-              key="result"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  onClick={handleBack}
-                  className="text-white hover:text-white hover:bg-white/10 -ml-2"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-                
-                <div className="flex gap-2">
+                {selectedCandidate.analysis && (
+                  <>
+                    <EmploymentVerificationBox companyNames={selectedCandidate.analysis.company_names || []} candidateId={selectedCandidate.id} candidateName={selectedCandidate.name} uniqueCandidateId={selectedCandidate.unique_candidate_id} userTier={user?.subscription_tier || 'free'} />
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <AnalysisCard title="Consistency" score={selectedCandidate.analysis.consistency_score || 0} details={selectedCandidate.analysis.consistency_details} icon={User} delay={0} />
+                      <AnalysisCard title="Experience" score={selectedCandidate.analysis.experience_verification || 0} details={selectedCandidate.analysis.experience_details} icon={Briefcase} delay={0.1} />
+                      <AnalysisCard title="Education" score={selectedCandidate.analysis.education_verification || 0} details={selectedCandidate.analysis.education_details} icon={GraduationCap} delay={0.2} />
+                      <AnalysisCard title="Skills Alignment" score={selectedCandidate.analysis.skills_alignment || 0} details={selectedCandidate.analysis.skills_details} icon={Sparkles} delay={0.3} />
+                    </div>
+
+                    <FlagsList redFlags={selectedCandidate.analysis.red_flags || []} greenFlags={selectedCandidate.analysis.green_flags || []} />
+                    <NextSteps nextSteps={selectedCandidate.analysis.next_steps} interviewQuestions={selectedCandidate.analysis.interview_questions} />
+                  </>
+                )}
+              </motion.div>
+            )}
+
+            {/* Upgrade View */}
+            {currentView === 'upgrade' && (
+              <motion.div key="upgrade" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <Button variant="ghost" onClick={handleBack} className="mb-6 text-white/60 hover:text-white hover:bg-white/5 rounded-full"><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
+                <UpgradePrompt scansUsed={user?.scans_used || 0} scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']} onUpgrade={() => window.location.href = createPageUrl('Home') + '#pricing'} reason={(user?.scans_used || 0) >= TIER_LIMITS[user?.subscription_tier || 'free'] ? 'scan limit' : 'feature access'} />
+              </motion.div>
+            )}
+
+            {/* Bulk Results View */}
+            {currentView === 'bulk-results' && (
+              <motion.div key="bulk-results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <Button variant="ghost" onClick={handleBack} className="mb-6 text-white/60 hover:text-white hover:bg-white/5 rounded-full"><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
+                <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-medium text-white mb-2">Bulk Analysis Results</h2>
+                    <p className="text-white/50">Sorted by legitimacy score (highest to lowest)</p>
+                  </div>
                   {folders.length > 0 && (
-                    <select
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          handleSaveToFolder(selectedCandidate, e.target.value);
-                          e.target.value = '';
-                        }
-                      }}
-                      className="bg-zinc-800 border border-white/20 text-white rounded-md px-3 py-2 text-sm hover:bg-zinc-700"
-                    >
-                      <option value="">Save to folder...</option>
-                      {folders.map(f => (
-                        <option key={f.id} value={f.id}>{f.name}</option>
-                      ))}
+                    <select onChange={(e) => { if (e.target.value) { handleSaveAllToFolder(bulkResults, e.target.value); e.target.value = ''; } }} className="bg-white/5 border border-white/10 text-white rounded-full px-4 py-2 text-sm hover:bg-white/10">
+                      <option value="">Save all to folder...</option>
+                      {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                     </select>
                   )}
-                  <Button
-                    variant="outline"
-                    onClick={() => handleShare(selectedCandidate)}
-                    className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10 hover:border-white/40"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDownload(selectedCandidate)}
-                    className="border-white/20 bg-transparent text-white hover:text-white hover:bg-white/10 hover:border-white/40"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </Button>
                 </div>
-              </div>
+                <div className="space-y-4">
+                  {bulkResults.map((candidate, index) => (
+                    <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 cursor-pointer hover:border-white/[0.12] transition-colors" onClick={() => { setSelectedCandidate({ id: `bulk-${index}`, name: candidate.name, email: candidate.email, legitimacy_score: candidate.overall_score, analysis: { consistency_score: candidate.consistency_score, consistency_details: candidate.consistency_details, experience_verification: candidate.experience_verification, experience_details: candidate.experience_details, education_verification: candidate.education_verification, education_details: candidate.education_details, skills_alignment: candidate.skills_alignment, skills_details: candidate.skills_details, red_flags: candidate.red_flags || [], green_flags: candidate.green_flags || [], summary: candidate.summary } }); setCurrentView('result'); }}>
+                      <div className="flex items-start gap-6">
+                        <div className="flex-shrink-0"><ScoreCircle score={candidate.overall_score || 0} /></div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-medium text-white mb-1">{candidate.name || 'Unknown'}</h3>
+                          {candidate.email && <p className="text-white/50 mb-2">{candidate.email}</p>}
+                          {candidate.summary && <p className="text-white/60 text-sm leading-relaxed">{candidate.summary}</p>}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
-              {/* Candidate Header */}
-              <GlassCard className="p-6" gradient>
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <ScoreCircle score={selectedCandidate.legitimacy_score || 0} />
+            {/* History Locked */}
+            {currentView === 'history-locked' && (
+              <motion.div key="history-locked" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-12 text-center">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }} className="inline-flex p-4 rounded-2xl bg-red-500/10 mb-6"><Lock className="w-8 h-8 text-red-400" /></motion.div>
+                  <h2 className="text-2xl font-medium text-white mb-4">History Locked</h2>
+                  <p className="text-white/50 mb-6 max-w-md mx-auto">Upgrade to access your scan history and unlock advanced features</p>
+                  <Link to={createPageUrl('Home') + '#pricing'}><Button className="bg-white hover:bg-white/90 text-black font-semibold rounded-full px-8 py-5">View Plans</Button></Link>
+                </div>
+              </motion.div>
+            )}
 
-                  <div className="flex-1 text-center md:text-left">
-                    <h2 className="text-2xl font-semibold text-white mb-1 tracking-tight">
-                      {selectedCandidate.name || 'Unknown Candidate'}
-                    </h2>
-                    {selectedCandidate.email && (
-                      <p className="text-white/40 text-sm">{selectedCandidate.email}</p>
-                    )}
-                    {selectedCandidate.analysis?.summary && (
-                      <p className="text-white/50 mt-3 text-sm leading-relaxed">
-                        {selectedCandidate.analysis.summary}
-                      </p>
-                    )}
-                    {selectedCandidate.resume_url && (
-                      <a
-                        href={selectedCandidate.resume_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 mt-4 text-purple-400/80 hover:text-purple-400 text-sm font-medium transition-colors"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        View Resume
-                      </a>
-                    )}
+            {/* History View */}
+            {currentView === 'history' && (
+              <motion.div key="history" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                {candidatesLoading ? (
+                  <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /></div>
+                ) : candidates.length > 0 ? (
+                  <div className="grid gap-3">{candidates.map((candidate, index) => <CandidateCard key={candidate.id} candidate={candidate} onClick={() => handleSelectCandidate(candidate)} onDownload={handleDownload} onShare={handleShare} delay={index * 0.05} />)}</div>
+                ) : (
+                  <div className="text-center py-16">
+                    <div className="p-4 rounded-2xl bg-white/5 inline-block mb-4"><History className="w-8 h-8 text-white/40" /></div>
+                    <p className="text-white/50">No scanned resumes yet</p>
                   </div>
-                </div>
-              </GlassCard>
-
-              {/* Free Tier Upgrade Banner */}
-              {(user?.subscription_tier === 'free' || !isAuthenticated) && (
-                <GlassCard className="p-5 text-center" gradient>
-                  <p className="text-white/60 text-sm">
-                    Upgrade to save your scan history and unlock team features
-                  </p>
-                  <Link to={createPageUrl('Pricing')}>
-                    <Button size="sm" className="mt-3 bg-white hover:bg-white/90 text-black font-medium rounded-lg">
-                      View Plans
-                    </Button>
-                  </Link>
-                </GlassCard>
-              )}
-
-              {/* Analysis Breakdown */}
-              {selectedCandidate.analysis && (
-                <>
-                  <EmploymentVerificationBox
-                    companyNames={selectedCandidate.analysis.company_names || []}
-                    candidateId={selectedCandidate.id}
-                    candidateName={selectedCandidate.name}
-                    uniqueCandidateId={selectedCandidate.unique_candidate_id}
-                    userTier={user?.subscription_tier || 'free'}
-                  />
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <AnalysisCard
-                      title="Consistency"
-                      score={selectedCandidate.analysis.consistency_score || 0}
-                      details={selectedCandidate.analysis.consistency_details}
-                      icon={User}
-                      delay={0}
-                    />
-                    <AnalysisCard
-                      title="Experience"
-                      score={selectedCandidate.analysis.experience_verification || 0}
-                      details={selectedCandidate.analysis.experience_details}
-                      icon={Briefcase}
-                      delay={0.1}
-                    />
-                    <AnalysisCard
-                      title="Education"
-                      score={selectedCandidate.analysis.education_verification || 0}
-                      details={selectedCandidate.analysis.education_details}
-                      icon={GraduationCap}
-                      delay={0.2}
-                    />
-                    <AnalysisCard
-                      title="Skills Alignment"
-                      score={selectedCandidate.analysis.skills_alignment || 0}
-                      details={selectedCandidate.analysis.skills_details}
-                      icon={Sparkles}
-                      delay={0.3}
-                    />
-                  </div>
-
-                  <FlagsList
-                    redFlags={selectedCandidate.analysis.red_flags || []}
-                    greenFlags={selectedCandidate.analysis.green_flags || []}
-                  />
-
-                  <NextSteps
-                    nextSteps={selectedCandidate.analysis.next_steps}
-                    interviewQuestions={selectedCandidate.analysis.interview_questions}
-                  />
-                </>
-              )}
-                  </motion.div>
-                  )}
-
-          {/* Upgrade View */}
-          {currentView === 'upgrade' && (
-            <motion.div
-              key="upgrade"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="mb-6 text-white hover:text-white hover:bg-white/10"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-
-              <UpgradePrompt
-                scansUsed={user?.scans_used || 0}
-                scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']}
-                onUpgrade={() => window.location.href = createPageUrl('Pricing')}
-                reason={(user?.scans_used || 0) >= TIER_LIMITS[user?.subscription_tier || 'free'] ? 'scan limit' : 'feature access'}
-              />
-            </motion.div>
-          )}
-
-          {/* Bulk Results View */}
-          {currentView === 'bulk-results' && (
-            <motion.div
-              key="bulk-results"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="mb-6 text-white hover:text-white hover:bg-white/10"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-
-              <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">Bulk Analysis Results</h2>
-                  <p className="text-white/60">Sorted by legitimacy score (highest to lowest)</p>
-                </div>
-                {folders.length > 0 && (
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        handleSaveAllToFolder(bulkResults, e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                    className="bg-zinc-800 border border-white/20 text-white rounded-md px-3 py-2 text-sm hover:bg-zinc-700 h-fit"
-                  >
-                    <option value="">Save all to folder...</option>
-                    {folders.map(f => (
-                      <option key={f.id} value={f.id}>{f.name}</option>
-                    ))}
-                  </select>
                 )}
-              </div>
-
-              <div className="space-y-4">
-                {bulkResults.map((candidate, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors"
-                    onClick={() => {
-                      setSelectedCandidate({
-                        id: `bulk-${index}`,
-                        name: candidate.name,
-                        email: candidate.email,
-                        legitimacy_score: candidate.overall_score,
-                        analysis: {
-                          consistency_score: candidate.consistency_score,
-                          consistency_details: candidate.consistency_details,
-                          experience_verification: candidate.experience_verification,
-                          experience_details: candidate.experience_details,
-                          education_verification: candidate.education_verification,
-                          education_details: candidate.education_details,
-                          skills_alignment: candidate.skills_alignment,
-                          skills_details: candidate.skills_details,
-                          red_flags: candidate.red_flags || [],
-                          green_flags: candidate.green_flags || [],
-                          summary: candidate.summary
-                        }
-                      });
-                      setCurrentView('result');
-                    }}
-                  >
-                    <div className="flex items-start gap-6">
-                      <div className="flex-shrink-0">
-                        <ScoreCircle score={candidate.overall_score || 0} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-white mb-1">
-                          {candidate.name || 'Unknown'}
-                        </h3>
-                        {candidate.email && (
-                          <p className="text-white/60 mb-2">{candidate.email}</p>
-                        )}
-                        {candidate.summary && (
-                          <p className="text-white/70 text-sm leading-relaxed">
-                            {candidate.summary}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-           {/* History Locked View for Free Users */}
-           {currentView === 'history-locked' && (
-            <motion.div
-              key="history-locked"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <GlassCard className="p-8 md:p-12 text-center" gradient>
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring" }}
-                  className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 mb-6"
-                >
-                  <Lock className="w-8 h-8 text-red-400" />
-                </motion.div>
-                
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 tracking-tight">
-                  History Locked
-                </h2>
-                
-                <p className="text-white/50 text-lg mb-6 max-w-md mx-auto">
-                  Upgrade to access your scan history and unlock advanced features
-                </p>
-
-                <Link to={createPageUrl('Pricing')}>
-                  <Button size="lg" className="bg-white hover:bg-white/90 text-black font-semibold rounded-xl">
-                    View Plans
-                  </Button>
-                </Link>
-              </GlassCard>
-            </motion.div>
-          )}
-
-          {/* History View */}
-          {currentView === 'history' && (
-           <motion.div
-             key="history"
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             exit={{ opacity: 0, y: -20 }}
-             transition={{ duration: 0.3 }}
-           >
-             {candidatesLoading ? (
-               <div className="flex justify-center py-12">
-                 <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-               </div>
-             ) : candidates.length > 0 ? (
-               <div className="grid gap-3">
-                 {candidates.map((candidate, index) => (
-                   <CandidateCard
-                     key={candidate.id}
-                     candidate={candidate}
-                     onClick={() => handleSelectCandidate(candidate)}
-                     onDownload={handleDownload}
-                     onShare={handleShare}
-                     delay={index * 0.05}
-                   />
-                 ))}
-               </div>
-             ) : (
-               <div className="text-center py-16">
-                 <div className="p-4 rounded-2xl bg-zinc-900 inline-block mb-4">
-                   <History className="w-8 h-8 text-white/40" />
-                 </div>
-                 <p className="text-white/60">No scanned resumes yet</p>
-               </div>
-             )}
-           </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </GradientBackground>
+      </section>
     </>
   );
 }
