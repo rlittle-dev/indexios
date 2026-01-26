@@ -576,21 +576,7 @@ export default function Home() {
       </section>
 
       {/* ==================== CONNECT WITH US ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0">
-          <motion.div 
-            className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/[0.04] rounded-full blur-[150px]"
-            animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
-            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[120px]"
-            animate={{ x: [0, -30, 0], y: [0, -15, 0] }}
-            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        
+      <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Connect With Us</span>
