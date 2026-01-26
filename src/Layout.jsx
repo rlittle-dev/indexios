@@ -158,10 +158,10 @@ export default function Layout({ children }) {
                 <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+                <link href="https://fonts.cdnfonts.com/css/eurostile" rel="stylesheet" />
               </Helmet>
 
-      <div className="min-h-screen bg-[#0a0a0f]" style={{ fontFamily: "'Oxanium', sans-serif" }}>
+      <div className="min-h-screen bg-[#0a0a0f]" style={{ fontFamily: "'Eurostile', sans-serif" }}>
         {/* Chat Bot for all users */}
         {user && (
           <ChatBot user={user} />
@@ -182,7 +182,7 @@ export default function Layout({ children }) {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to={createPageUrl('Home')}>
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-[0.05em] cursor-pointer hover:opacity-80 transition-opacity pr-1" style={{ fontFamily: "'Oxanium', sans-serif" }}>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-white bg-clip-text text-transparent tracking-[0.05em] cursor-pointer hover:opacity-80 transition-opacity pr-1" style={{ fontFamily: "'Eurostile', sans-serif" }}>
                                     Indexios
                                   </span>
             </Link>
