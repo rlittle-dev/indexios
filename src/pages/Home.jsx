@@ -347,20 +347,20 @@ export default function Home() {
         {/* ==================== STATS SECTION ==================== */}
         <section className="relative py-16 md:py-20 overflow-hidden">
           <div className="relative z-10 max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="flex flex-wrap justify-center gap-8 md:gap-16">
-            {[
-              { value: '10K+', label: 'Resumes Verified' },
-              { value: '99.2%', label: 'Accuracy Rate' },
-              { value: '<30s', label: 'Analysis Time' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</p>
-                <p className="text-white/40 text-sm">{stat.label}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="flex flex-wrap justify-center gap-8 md:gap-16">
+              {[
+                { value: '10K+', label: 'Resumes Verified' },
+                { value: '99.2%', label: 'Accuracy Rate' },
+                { value: '<30s', label: 'Analysis Time' },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</p>
+                  <p className="text-white/40 text-sm">{stat.label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
 
       {/* ==================== TABBED VISUAL SECTION ==================== */}
       <section className="relative py-24 md:py-32 overflow-hidden">
