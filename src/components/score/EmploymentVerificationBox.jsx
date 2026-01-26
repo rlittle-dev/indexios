@@ -538,16 +538,9 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
 
                       {/* Status, Evidence Count & Button - stacked on mobile */}
                       <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          {getStatusIcon(status)}
-                          <Badge className={`text-xs ${getStatusColor(status)}`}>
-                            {status === 'verified' ? 'Verified' : 'Not found'}
-                          </Badge>
-                        </div>
-
-                        <span className="text-white/70 text-xs">
-                          {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''}
-                        </span>
+                        <Badge className={`text-xs ${hasEvidence ? 'bg-blue-900/40 text-blue-300' : 'bg-zinc-700/60 text-white/60'}`}>
+                          🔍 Webscrape: {result.evidence_count || 0} source{(result.evidence_count || 0) !== 1 ? 's' : ''} found
+                        </Badge>
 
                         {hasEvidence && (
                           <Button
