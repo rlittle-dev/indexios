@@ -91,22 +91,25 @@ export default function Home() {
       </Helmet>
       
       {/* ==================== HERO SECTION ==================== */}
-      <section className="relative min-h-screen bg-[#0a0a0f] overflow-hidden">
-        {/* Ocean/ambient gradient background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628] via-[#0d1a2d] to-[#0a0a0f]" />
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-transparent to-blue-900/10" />
+      <section className="relative min-h-screen bg-[#0a0a0a] overflow-hidden">
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.2
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/80 via-[#0a0a0a]/60 to-[#0a0a0a]" />
         </div>
 
-        {/* Flowing ambient orbs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-          <div className="absolute top-1/4 left-1/4 w-[800px] h-[800px] bg-cyan-500/[0.06] rounded-full blur-[180px] animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute top-1/2 right-1/4 w-[600px] h-[600px] bg-blue-500/[0.05] rounded-full blur-[150px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
-          <div className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] bg-teal-500/[0.04] rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '4s' }} />
-          <div className="absolute top-1/3 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.03] rounded-full blur-[120px]" />
-        </div>
+        <div className="absolute inset-0 pointer-events-none z-[2]" style={{ background: 'radial-gradient(70% 50%, transparent 0%, rgba(10, 10, 10, 0.5) 60%, rgba(10, 10, 10, 0.98) 100%)' }} />
 
-        <div className="absolute inset-0 pointer-events-none z-[2]" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 40%, transparent 0%, rgba(10, 10, 15, 0.4) 50%, rgba(10, 10, 15, 0.95) 100%)' }} />
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-purple-500/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[120px]" />
+        </div>
 
         <div className="relative z-10 min-h-screen flex items-center">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-20 md:py-28 w-full">
@@ -198,12 +201,8 @@ export default function Home() {
       </section>
 
       {/* ==================== HOW IT WORKS ==================== */}
-      <section className="relative bg-[#0a0a0f] py-24 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0f] via-[#0d1520] to-[#0a0a0f]" />
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/[0.03] rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
-        </div>
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16 md:mb-20">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">How It Works</span>
@@ -212,16 +211,16 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[
-              { icon: Shield, title: 'Fraud Detection', description: 'Advanced AI identifies inconsistencies, fabricated credentials, and inflated claims.', iconBg: 'bg-purple-500/10', iconColor: 'text-purple-400' },
-              { icon: Phone, title: 'Automated Phone Verification', description: 'AI-powered calls to HR departments verify employment history automatically.', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400' },
-              { icon: Link2, title: 'Blockchain Attestations', description: 'Verified records are recorded on-chain for tamper-proof credentials.', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-400' },
-              { icon: Zap, title: 'Instant Results', description: 'Get comprehensive verification reports in seconds, not days.', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-400' },
-              { icon: Target, title: 'Actionable Insights', description: 'Receive tailored interview questions based on each profile.', iconBg: 'bg-rose-500/10', iconColor: 'text-rose-400' },
-              { icon: FileText, title: 'Detailed Reports', description: 'Download and share comprehensive reports with your team.', iconBg: 'bg-cyan-500/10', iconColor: 'text-cyan-400' }
+              { icon: Shield, color: 'purple', title: 'Fraud Detection', description: 'Advanced AI identifies inconsistencies, fabricated credentials, and inflated claims.' },
+              { icon: Phone, color: 'emerald', title: 'Automated Phone Verification', description: 'AI-powered calls to HR departments verify employment history automatically.' },
+              { icon: Link2, color: 'blue', title: 'Blockchain Attestations', description: 'Verified records are recorded on-chain for tamper-proof credentials.' },
+              { icon: Zap, color: 'amber', title: 'Instant Results', description: 'Get comprehensive verification reports in seconds, not days.' },
+              { icon: Target, color: 'rose', title: 'Actionable Insights', description: 'Receive tailored interview questions based on each profile.' },
+              { icon: FileText, color: 'cyan', title: 'Detailed Reports', description: 'Download and share comprehensive reports with your team.' }
             ].map((feature, index) => (
               <motion.div key={feature.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="group p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300">
-                <div className={`inline-flex p-3 rounded-xl ${feature.iconBg} mb-5`}>
-                  <feature.icon className={`w-6 h-6 ${feature.iconColor}`} />
+                <div className={`inline-flex p-3 rounded-xl bg-${feature.color}-500/10 mb-5`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
                 </div>
                 <h3 className="text-xl font-medium text-white mb-3">{feature.title}</h3>
                 <p className="text-white/50 leading-relaxed">{feature.description}</p>
@@ -232,16 +231,17 @@ export default function Home() {
       </section>
 
       {/* ==================== STATS SECTION ==================== */}
-      <section className="relative bg-[#0a0a0f] py-20">
+      <section className="relative bg-[#0a0a0a] py-20">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-500/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
         </div>
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { value: '10K+', label: 'Resumes Verified' },
               { value: '99.2%', label: 'Accuracy Rate' },
-              { value: '<30s', label: 'Analysis Time' }
+              { value: '<30s', label: 'Analysis Time' },
+              { value: '500+', label: 'Companies Trust Us' }
             ].map((stat, i) => (
               <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="text-center">
                 <p className="text-4xl md:text-5xl font-bold text-white mb-2">{stat.value}</p>
@@ -253,7 +253,7 @@ export default function Home() {
       </section>
 
       {/* ==================== USE CASES ==================== */}
-      <section className="relative bg-[#0a0a0f] py-24 md:py-32">
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Use Cases</span>
@@ -277,11 +277,9 @@ export default function Home() {
       </section>
 
       {/* ==================== PRICING SECTION ==================== */}
-      <section id="pricing" className="relative bg-[#0a0a0f] py-24 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0f] via-[#0c1420] to-[#0a0a0f]" />
+      <section id="pricing" className="relative bg-[#0a0a0a] py-24 md:py-32">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-cyan-500/[0.04] rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
         </div>
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
@@ -320,7 +318,7 @@ export default function Home() {
       </section>
 
       {/* ==================== FAQ SECTION ==================== */}
-      <section className="relative bg-[#0a0a0f] py-24 md:py-32">
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
         <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">FAQ</span>
@@ -342,10 +340,9 @@ export default function Home() {
       </section>
 
       {/* ==================== FINAL CTA ==================== */}
-      <section className="relative bg-[#0a0a0f] py-24 md:py-32">
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/[0.05] rounded-full blur-[150px]" />
-          <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-500/[0.05] rounded-full blur-[150px]" />
         </div>
         <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="space-y-8">
