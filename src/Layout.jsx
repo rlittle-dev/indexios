@@ -46,9 +46,29 @@ export default function Layout({ children }) {
     window.addEventListener('focus', handleFocus);
     return () => {
       window.removeEventListener('focus', handleFocus);
-
     };
-  }, []);
+    }, []);
+
+    // Live polling for device activity every 30 seconds
+    useEffect(() => {
+    if (!user || user.isAnonymous) return;
+
+    const updateDeviceActivity = async () => {
+      try {
+        await base44.functions.invoke('updateDeviceActivity');
+      } catch (error) {
+        // Silently fail - not critical
+      }
+    };
+
+    // Update immediately on mount
+    updateDeviceActivity();
+
+    // Then poll every 30 seconds
+    const interval = setInterval(updateDeviceActivity, 30000);
+
+    return () => clearInterval(interval);
+    }, [user]);
 
   const handleLogout = async () => {
     try {

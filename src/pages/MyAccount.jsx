@@ -22,6 +22,28 @@ export default function MyAccount() {
   const [message, setMessage] = useState('');
   const [devices, setDevices] = useState([]);
 
+  const fetchDevices = async (userEmail) => {
+    try {
+      const allDevices = await base44.entities.Device.filter(
+        { user_email: userEmail },
+        '-last_active'
+      );
+      
+      // Deduplicate devices by device_id, keeping the most recent one
+      const deviceMap = new Map();
+      allDevices.forEach(device => {
+        if (!deviceMap.has(device.device_id) || 
+            new Date(device.last_active) > new Date(deviceMap.get(device.device_id).last_active)) {
+          deviceMap.set(device.device_id, device);
+        }
+      });
+      
+      setDevices(Array.from(deviceMap.values()));
+    } catch (error) {
+      console.error('Error fetching devices:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -29,24 +51,7 @@ export default function MyAccount() {
         setUser(currentUser);
         setFullName(currentUser.full_name || '');
         setEmailNotifications(currentUser.email_notifications_enabled !== false);
-
-        // Fetch devices
-        const allDevices = await base44.entities.Device.filter(
-          { user_email: currentUser.email },
-          '-last_active'
-        );
-        
-        // Deduplicate devices by user_agent, keeping the most recent one
-        const seenUserAgents = new Set();
-        const uniqueDevices = allDevices.filter(device => {
-          if (seenUserAgents.has(device.user_agent)) {
-            return false;
-          }
-          seenUserAgents.add(device.user_agent);
-          return true;
-        });
-        
-        setDevices(uniqueDevices);
+        await fetchDevices(currentUser.email);
       } catch (error) {
         console.error('Error fetching user:', error);
       }
@@ -54,6 +59,17 @@ export default function MyAccount() {
     };
     fetchUser();
   }, []);
+
+  // Poll devices every 10 seconds
+  useEffect(() => {
+    if (!user?.email) return;
+    
+    const interval = setInterval(() => {
+      fetchDevices(user.email);
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [user?.email]);
 
   const handleSave = async () => {
     setSaving(true);
