@@ -161,7 +161,7 @@ export default function Layout({ children }) {
                 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
               </Helmet>
 
-      <div className="min-h-screen bg-[#0a0a0f]">
+      <div className="min-h-screen bg-[#0a0a0f]" style={{ fontFamily: "'Oxanium', sans-serif" }}>
         {/* Chat Bot for all users */}
         {user && (
           <ChatBot user={user} />
