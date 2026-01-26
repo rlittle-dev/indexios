@@ -98,6 +98,45 @@ export default function Home() {
   const [processingTier, setProcessingTier] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
   const [activeTab, setActiveTab] = useState('scan');
+  const [tabProgress, setTabProgress] = useState(0);
+  const TAB_DURATION = 10000; // 10 seconds
+
+  // Auto-cycle tabs with progress bar
+  useEffect(() => {
+    const tabs = ['scan', 'verify', 'attest'];
+    let startTime = Date.now();
+    let animationFrame;
+
+    const updateProgress = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / TAB_DURATION) * 100, 100);
+      setTabProgress(progress);
+
+      if (elapsed >= TAB_DURATION) {
+        // Switch to next tab
+        setActiveTab(prev => {
+          const currentIndex = tabs.indexOf(prev);
+          return tabs[(currentIndex + 1) % tabs.length];
+        });
+        startTime = Date.now();
+        setTabProgress(0);
+      }
+
+      animationFrame = requestAnimationFrame(updateProgress);
+    };
+
+    animationFrame = requestAnimationFrame(updateProgress);
+
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+    };
+  }, []);
+
+  // Reset progress when tab is manually changed
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    setTabProgress(0);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
