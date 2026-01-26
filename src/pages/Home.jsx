@@ -290,7 +290,16 @@ export default function Home() {
       {/* ==================== TABBED VISUAL SECTION ==================== */}
       <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+          <motion.div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/[0.04] rounded-full blur-[150px]"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.05, 0.03] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]"
+            animate={{ y: [0, 40, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
 
         <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
