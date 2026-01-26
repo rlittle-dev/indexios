@@ -125,10 +125,12 @@ export default function Pricing() {
       <Helmet>
         <title>Pricing Plans - Resume Verification Starting at $29/month | Indexios</title>
         <meta name="description" content="Choose the perfect Indexios plan for your hiring needs. Free tier available, Starter at $29/mo (50 scans), Professional at $99/mo (200 scans), or Enterprise for unlimited scans and team collaboration." />
+        <meta name="keywords" content="resume verification pricing, background check cost, hiring tools pricing, employment verification plans" />
         <link rel="canonical" href="https://indexios.me/Pricing" />
-        <meta property="og:title" content="Indexios Pricing Plans - Resume Verification" />
-        <meta property="og:description" content="Affordable resume verification plans starting at $29/month. Free tier available with 3 scans." />
-        <meta property="og:url" content="https://www.indexios.me/Pricing" />
+        <meta property="og:title" content="Indexios Pricing - Resume Verification Plans" />
+        <meta property="og:description" content="Affordable resume verification plans starting at $29/month. Free scan available." />
+        <meta property="og:url" content="https://indexios.me/Pricing" />
+        <meta name="twitter:card" content="summary" />
       </Helmet>
       
       <div className="min-h-screen bg-zinc-950">
@@ -155,7 +157,7 @@ export default function Pricing() {
             Choose Your Plan
           </h1>
           <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Start with 3 free scans, then upgrade for unlimited access to resume verification and advanced fraud detection
+            Start with a free scan, then upgrade for more resume verification and employment background checks
           </p>
         </motion.div>
 
