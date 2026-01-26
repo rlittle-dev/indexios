@@ -89,10 +89,16 @@ export default function Layout({ children }) {
           // If device was logged out remotely, logout this session
           if (response.data?.loggedOut) {
             localStorage.removeItem('deviceId');
-            await base44.auth.logout(createPageUrl('Home'));
+            // Use window.location for a clean redirect instead of auth.logout to avoid errors
+            window.location.href = createPageUrl('Home');
           }
         } catch (error) {
-          // Silently fail - not critical
+          // If we get an auth error, the user may have been logged out
+          if (error?.response?.status === 401) {
+            localStorage.removeItem('deviceId');
+            window.location.href = createPageUrl('Home');
+          }
+          // Otherwise silently fail - not critical
         }
       };
 
