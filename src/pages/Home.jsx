@@ -140,7 +140,7 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+  const tierLevels = { free: 0, starter: 1, professional: 2, corporate: 3, enterprise: 4 };
   
   const canSelectTier = (tier) => {
     const currentTierLevel = tierLevels[user?.subscription_tier || 'free'];
