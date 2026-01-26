@@ -7,6 +7,49 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 
+// Animated button wrapper with circling ring
+const AnimatedButton = ({ children, className = '', delay = 0 }) => (
+  <div className="relative inline-block group">
+    {/* Outer rotating ring */}
+    <div className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+      <div className="absolute inset-0 rounded-full border border-purple-500/50 animate-[spin_3s_linear_infinite]" />
+    </div>
+    {/* Inner pulsing ring */}
+    <motion.div 
+      className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 blur-sm"
+      animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.02, 1] }}
+      transition={{ duration: 2, repeat: Infinity, delay }}
+    />
+    <div className="relative">{children}</div>
+  </div>
+);
+
+// Floating particles component
+const FloatingParticles = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {[...Array(20)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute w-1 h-1 bg-purple-400/30 rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+        }}
+        animate={{
+          y: [0, -30, 0],
+          opacity: [0.2, 0.5, 0.2],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 2,
+        }}
+      />
+    ))}
+  </div>
+);
+
 const TIERS = [
   { tier: 'free', name: 'Free', price: 0, scans: 1, features: ['1 resume scan', 'Advanced analysis', 'Red & green flags detection'] },
   { tier: 'starter', name: 'Starter', price: 29, scans: 50, popular: true, features: ['All Free features', '50 scans/month', 'Detailed breakdown', 'Scan history', 'Share & download'] },
