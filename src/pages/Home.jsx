@@ -9,6 +9,8 @@ import ScoreCircle from '@/components/score/ScoreCircle';
 import AnalysisCard from '@/components/score/AnalysisCard';
 import FlagsList from '@/components/score/FlagsList';
 import NextSteps from '@/components/score/NextSteps';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
 
 export default function Home() {
   // Example scan data for demonstration
@@ -95,12 +97,8 @@ export default function Home() {
         </script>
       </Helmet>
       
-      <div className="min-h-screen bg-zinc-950">
-        {/* Background gradients */}
-        <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-        
-        <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-20">
+      <GradientBackground variant="purple">
+        <div className="max-w-6xl mx-auto px-4 py-12 md:py-20">
           
           {/* Hero Section */}
           <motion.div
@@ -160,7 +158,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-zinc-900/80 backdrop-blur-sm rounded-3xl p-6 md:p-10 border border-zinc-800 shadow-2xl space-y-6">
+            <GlassCard className="p-6 md:p-10 rounded-3xl space-y-6" gradient>
               {/* Example Header */}
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <ScoreCircle score={exampleScan.legitimacy_score} />
@@ -251,12 +249,7 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
-              >
+              <GlassCard className="p-6" delay={0.1} hover>
                 <div className="inline-flex p-3 rounded-xl bg-purple-500/10 mb-4">
                   <Shield className="w-6 h-6 text-purple-400" />
                 </div>
@@ -264,14 +257,9 @@ export default function Home() {
                 <p className="text-white/70">
                   Identify inconsistencies, fabricated credentials, and inflated claims with advanced verification analysis
                 </p>
-              </motion.div>
+              </GlassCard>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
-              >
+              <GlassCard className="p-6" delay={0.15} hover>
                 <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-4">
                   <Phone className="w-6 h-6 text-green-400" />
                 </div>
@@ -279,14 +267,9 @@ export default function Home() {
                 <p className="text-white/70">
                   Automated calls to HR departments verify employment history and discover company policies
                 </p>
-              </motion.div>
+              </GlassCard>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
-              >
+              <GlassCard className="p-6" delay={0.2} hover>
                 <div className="inline-flex p-3 rounded-xl bg-blue-500/10 mb-4">
                   <Link2 className="w-6 h-6 text-blue-400" />
                 </div>
@@ -294,14 +277,9 @@ export default function Home() {
                 <p className="text-white/70">
                   Verified employment records are permanently recorded on-chain for tamper-proof, portable credentials
                 </p>
-              </motion.div>
+              </GlassCard>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.75 }}
-                className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
-              >
+              <GlassCard className="p-6" delay={0.25} hover>
                 <div className="inline-flex p-3 rounded-xl bg-orange-500/10 mb-4">
                   <Target className="w-6 h-6 text-orange-400" />
                 </div>
@@ -309,17 +287,12 @@ export default function Home() {
                 <p className="text-white/70">
                   Receive detailed recommendations and interview questions tailored to each candidate
                 </p>
-              </motion.div>
+              </GlassCard>
             </div>
           </motion.div>
 
           {/* CTA Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
-            className="bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border-2 border-purple-500/60 rounded-3xl p-10 md:p-16 text-center"
-          >
+          <GlassCard className="p-10 md:p-16 text-center rounded-3xl" gradient delay={0.4}>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to Make Smarter Hiring Decisions?
             </h2>
@@ -339,9 +312,9 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-          </motion.div>
+          </GlassCard>
         </div>
-      </div>
+      </GradientBackground>
     </>
   );
 }

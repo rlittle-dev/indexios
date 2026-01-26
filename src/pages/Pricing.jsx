@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import PricingCard from '@/components/paywall/PricingCard';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import GradientBackground from '@/components/ui/GradientBackground';
+import GlassCard from '@/components/ui/GlassCard';
+import SectionHeader from '@/components/ui/SectionHeader';
 
 const TIERS = [
         {
@@ -133,33 +136,24 @@ export default function Pricing() {
         <meta name="twitter:card" content="summary" />
       </Helmet>
       
-      <div className="min-h-screen bg-zinc-950">
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 pointer-events-none" />
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
-      
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-12">
-        <Link to={createPageUrl('Home')}>
-          <Button
-            variant="ghost"
-            className="mb-8 text-white hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Button>
-        </Link>
+      <GradientBackground variant="purple">
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          <Link to={createPageUrl('Home')}>
+            <Button
+              variant="ghost"
+              className="mb-8 text-white hover:text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
 
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Start with a free scan, then upgrade for more resume verification and employment background checks
-          </p>
-        </motion.div>
+          <SectionHeader
+            title="Choose Your Plan"
+            subtitle="Start with a free scan, then upgrade for more resume verification and employment background checks"
+            centered
+            className="mb-12"
+          />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {TIERS.map((tierData, index) => (
@@ -182,7 +176,7 @@ export default function Pricing() {
           className="mt-16 max-w-6xl mx-auto"
         >
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Plan Comparison</h2>
-          <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden">
+          <GlassCard className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -282,7 +276,7 @@ export default function Pricing() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </GlassCard>
         </motion.div>
 
         <motion.div
@@ -292,18 +286,18 @@ export default function Pricing() {
           className="mt-12 text-center space-y-4"
         >
           {user?.subscription_tier && user.subscription_tier !== 'free' && (
-            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 max-w-2xl mx-auto">
+            <GlassCard className="p-4 max-w-2xl mx-auto">
               <p className="text-white/70 text-sm">
                 Need to cancel your subscription? Go to My Account to manage your subscription.
               </p>
-            </div>
+            </GlassCard>
           )}
           <p className="text-white/50 text-sm">
             All plans include secure data handling and GDPR compliance
           </p>
         </motion.div>
-      </div>
-    </div>
+        </div>
+      </GradientBackground>
     </>
   );
 }
