@@ -1,4 +1,3 @@
-import About from './pages/About';
 import ApiAccess from './pages/ApiAccess';
 import AttestationPortal from './pages/AttestationPortal';
 import Contact from './pages/Contact';
@@ -20,7 +19,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "About": About,
     "ApiAccess": ApiAccess,
     "AttestationPortal": AttestationPortal,
     "Contact": Contact,
