@@ -259,7 +259,18 @@ export default function Home() {
 
       {/* ==================== STATS SECTION ==================== */}
       <section className="relative bg-[#0a0a0a] py-16 md:py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-purple-500/[0.03] to-[#0a0a0a]" />
+        <div className="absolute inset-0">
+          <motion.div 
+            className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[150px]"
+            animate={{ x: [0, 30, 0], opacity: [0.03, 0.05, 0.03] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[120px]"
+            animate={{ x: [0, -20, 0], opacity: [0.03, 0.05, 0.03] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
         <div className="relative z-10 max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="flex flex-wrap justify-center gap-8 md:gap-16">
             {[
