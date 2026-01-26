@@ -318,21 +318,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== STATS SECTION ==================== */}
-      <section className="relative bg-[#0a0a0a] py-16 md:py-20 overflow-hidden">
-        <div className="absolute inset-0">
+      {/* Continuous flowing gradient background for all sections */}
+      <div className="relative bg-[#0a0a0a]">
+        {/* Global animated gradient orbs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
-            className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[150px]"
-            animate={{ x: [0, 30, 0], opacity: [0.03, 0.05, 0.03] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[10%] left-[20%] w-[800px] h-[800px] bg-purple-500/[0.04] rounded-full blur-[200px]"
+            animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
+            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div 
-            className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[120px]"
-            animate={{ x: [0, -20, 0], opacity: [0.03, 0.05, 0.03] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[30%] right-[10%] w-[600px] h-[600px] bg-blue-500/[0.04] rounded-full blur-[180px]"
+            animate={{ x: [0, -80, 0], y: [0, 80, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-[60%] left-[30%] w-[700px] h-[700px] bg-purple-500/[0.03] rounded-full blur-[200px]"
+            animate={{ x: [0, 60, 0], y: [0, -40, 0] }}
+            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-[80%] right-[20%] w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[150px]"
+            animate={{ x: [0, -50, 0], y: [0, 60, 0] }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
-        <div className="relative z-10 max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
+
+        {/* ==================== STATS SECTION ==================== */}
+        <section className="relative py-16 md:py-20 overflow-hidden">
+          <div className="relative z-10 max-w-[1000px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="flex flex-wrap justify-center gap-8 md:gap-16">
             {[
               { value: '10K+', label: 'Resumes Verified' },
