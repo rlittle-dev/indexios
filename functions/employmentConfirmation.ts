@@ -313,7 +313,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check usage limits based on tier - ALL tiers can use employment verification
+    // Check usage limits based on tier - all tiers can now use employment verification
     const userTier = user.subscription_tier || 'free';
     const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
     const resetMonth = user.employment_verifications_reset_month;
