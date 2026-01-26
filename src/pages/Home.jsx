@@ -374,24 +374,34 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">See how it<span className="font-medium"> works.</span></h2>
           </motion.div>
 
-          {/* Tabs */}
+          {/* Tabs with progress indicator */}
           <div className="flex justify-center mb-10">
-            <div className="inline-flex p-1 rounded-full bg-white/[0.03] border border-white/[0.08]">
-              {[
-                { id: 'scan', label: 'Scan' },
-                { id: 'verify', label: 'Verify' },
-                { id: 'attest', label: 'Attest' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                    activeTab === tab.id ? 'bg-white text-black' : 'text-white/50 hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="inline-flex flex-col items-center gap-3">
+              <div className="inline-flex p-1 rounded-full bg-white/[0.03] border border-white/[0.08]">
+                {[
+                  { id: 'scan', label: 'Scan' },
+                  { id: 'verify', label: 'Verify' },
+                  { id: 'attest', label: 'Attest' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabClick(tab.id)}
+                    className={`relative px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
+                      activeTab === tab.id ? 'bg-white text-black' : 'text-white/50 hover:text-white'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              {/* Progress bar */}
+              <div className="w-48 h-1 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                  style={{ width: `${tabProgress}%` }}
+                  transition={{ duration: 0.1 }}
+                />
+              </div>
             </div>
           </div>
 
