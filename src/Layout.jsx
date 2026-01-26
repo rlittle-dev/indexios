@@ -85,20 +85,22 @@ export default function Layout({ children }) {
 
       const updateAndValidateDevice = async () => {
         try {
+          // First check if still authenticated
+          const isAuth = await base44.auth.isAuthenticated();
+          if (!isAuth) {
+            // User logged themselves out, just clean up localStorage
+            localStorage.removeItem('deviceId');
+            return;
+          }
+
           const response = await base44.functions.invoke('updateDeviceActivity', { deviceId });
-          // If device was logged out remotely, logout this session
+          // If device was logged out remotely (by another session), redirect
           if (response.data?.loggedOut) {
             localStorage.removeItem('deviceId');
-            // Use window.location for a clean redirect instead of auth.logout to avoid errors
             window.location.href = createPageUrl('Home');
           }
         } catch (error) {
-          // If we get an auth error, the user may have been logged out
-          if (error?.response?.status === 401) {
-            localStorage.removeItem('deviceId');
-            window.location.href = createPageUrl('Home');
-          }
-          // Otherwise silently fail - not critical
+          // Silently fail - not critical
         }
       };
 
