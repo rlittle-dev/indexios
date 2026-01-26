@@ -444,9 +444,10 @@ export default function Home() {
       </section>
 
       {/* ==================== PRICING SECTION ==================== */}
-      <section id="pricing" className="relative bg-[#0a0a0a] py-24 md:py-32">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <section id="pricing" className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
           <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
         </div>
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
