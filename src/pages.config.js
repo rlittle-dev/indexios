@@ -1,7 +1,10 @@
 import ApiAccess from './pages/ApiAccess';
 import AttestationPortal from './pages/AttestationPortal';
+import Blog from './pages/Blog';
 import Contact from './pages/Contact';
+import Docs from './pages/Docs';
 import EmailVerificationResponse from './pages/EmailVerificationResponse';
+import Home from './pages/Home';
 import ManageDevices from './pages/ManageDevices';
 import MyAccount from './pages/MyAccount';
 import MyAttestations from './pages/MyAttestations';
@@ -12,17 +15,17 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
-import Docs from './pages/Docs';
-import Blog from './pages/Blog';
-import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "ApiAccess": ApiAccess,
     "AttestationPortal": AttestationPortal,
+    "Blog": Blog,
     "Contact": Contact,
+    "Docs": Docs,
     "EmailVerificationResponse": EmailVerificationResponse,
+    "Home": Home,
     "ManageDevices": ManageDevices,
     "MyAccount": MyAccount,
     "MyAttestations": MyAttestations,
@@ -33,9 +36,6 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
-    "Docs": Docs,
-    "Blog": Blog,
-    "Home": Home,
 }
 
 export const pagesConfig = {

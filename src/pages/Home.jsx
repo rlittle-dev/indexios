@@ -201,33 +201,49 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ==================== HOW IT WORKS ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
+      {/* ==================== CONNECT WITH US ==================== */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[120px]" />
+        </div>
         <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16 md:mb-20">
-            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">How It Works</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Verification that<span className="font-medium"> actually works.</span></h2>
+        
+        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Connect With Us</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Have questions?<span className="font-medium"> Let's talk.</span></h2>
+            <p className="text-lg text-white/50 mt-4 max-w-xl mx-auto">Reach out for support, partnerships, or just to say hello.</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {[
-              { icon: Shield, color: 'purple', title: 'Fraud Detection', description: 'Advanced AI identifies inconsistencies, fabricated credentials, and inflated claims.' },
-              { icon: Phone, color: 'emerald', title: 'Automated Phone Verification', description: 'AI-powered calls to HR departments verify employment history automatically.' },
-              { icon: Link2, color: 'blue', title: 'Blockchain Attestations', description: 'Verified records are recorded on-chain for tamper-proof credentials.' },
-              { icon: Zap, color: 'amber', title: 'Instant Results', description: 'Get comprehensive verification reports in seconds, not days.' },
-              { icon: Target, color: 'rose', title: 'Actionable Insights', description: 'Receive tailored interview questions based on each profile.' },
-              { icon: FileText, color: 'cyan', title: 'Detailed Reports', description: 'Download and share comprehensive reports with your team.' }
-            ].map((feature, index) => (
-              <motion.div key={feature.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="group p-6 md:p-8 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300">
-                <div className={`inline-flex p-3 rounded-xl bg-${feature.color}-500/10 mb-5`}>
-                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
-                </div>
-                <h3 className="text-xl font-medium text-white mb-3">{feature.title}</h3>
-                <p className="text-white/50 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <Link to={createPageUrl('Contact')}>
+                <Button className="group inline-flex items-center gap-2 px-7 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]">
+                  <FileText className="w-4 h-4" />
+                  Create a Ticket
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                </Button>
+              </Link>
+            </motion.div>
           </div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex items-center justify-center gap-6">
+            <a href="https://www.instagram.com/indexios" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 px-6 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.06] transition-all duration-300">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </div>
+              <span className="text-white/70 group-hover:text-white transition-colors font-medium">Instagram</span>
+            </a>
+
+            <a href="https://www.linkedin.com/company/indexios/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 px-6 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.06] transition-all duration-300">
+              <div className="p-2 rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </div>
+              <span className="text-white/70 group-hover:text-white transition-colors font-medium">LinkedIn</span>
+            </a>
+          </motion.div>
         </div>
       </section>
 
