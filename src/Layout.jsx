@@ -7,7 +7,7 @@ import { LogOut, User, Key, Folder, Users, MessageCircle, Menu, X, ChevronDown, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import ChatBot from '@/components/chat/ChatBot';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,10 +162,7 @@ export default function Layout({ children }) {
               </Helmet>
 
       <div className="min-h-screen bg-[#0a0a0f]" style={{ fontFamily: "'Eurostile', sans-serif" }}>
-        {/* Chat Bot for all users */}
-        {user && (
-          <ChatBot user={user} />
-        )}
+
 
 
 
