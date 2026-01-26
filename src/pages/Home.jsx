@@ -416,7 +416,11 @@ export default function Home() {
       </section>
 
       {/* ==================== USE CASES ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32">
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-purple-500/[0.03] rounded-full blur-[120px]" />
+        </div>
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Use Cases</span>
