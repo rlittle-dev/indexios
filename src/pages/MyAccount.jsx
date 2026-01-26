@@ -103,7 +103,8 @@ export default function MyAccount() {
       try {
         const device = devices.find(d => d.device_id === deviceId);
         if (device) {
-          await base44.entities.Device.delete(device.id);
+          // Mark device as inactive instead of deleting - this will trigger logout on that device
+          await base44.entities.Device.update(device.id, { is_active: false });
         }
 
         if (isCurrentDevice) {
@@ -115,6 +116,25 @@ export default function MyAccount() {
       } catch (error) {
         console.error('Error removing device:', error);
         alert('Failed to remove device');
+      }
+    }
+  };
+
+  const handleLogoutAllDevices = async () => {
+    if (confirm('Are you sure you want to logout all devices? You will be logged out of this device as well.')) {
+      try {
+        // Mark all devices as inactive
+        await Promise.all(
+          devices.map(device => 
+            base44.entities.Device.update(device.id, { is_active: false })
+          )
+        );
+        
+        localStorage.removeItem('deviceId');
+        await base44.auth.logout(createPageUrl('Home'));
+      } catch (error) {
+        console.error('Error logging out all devices:', error);
+        alert('Failed to logout all devices');
       }
     }
   };
@@ -317,10 +337,23 @@ export default function MyAccount() {
             transition={{ delay: 0.3 }}
             className="bg-zinc-900/80 backdrop-blur-sm rounded-xl p-6 border border-zinc-800"
           >
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-purple-400" />
-              Active Devices
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-purple-400" />
+                Active Devices
+              </h2>
+              {devices.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogoutAllDevices}
+                  className="border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/10 hover:border-red-500/50"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout All Devices
+                </Button>
+              )}
+            </div>
 
             {devices.length === 0 ? (
               <p className="text-white/60 text-sm">No devices found</p>

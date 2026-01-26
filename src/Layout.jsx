@@ -51,23 +51,26 @@ export default function Layout({ children }) {
 
     // Live polling for device activity every 30 seconds
     useEffect(() => {
-    if (!user || user.isAnonymous) return;
+      if (!user || user.isAnonymous) return;
 
-    const updateDeviceActivity = async () => {
-      try {
-        await base44.functions.invoke('updateDeviceActivity');
-      } catch (error) {
-        // Silently fail - not critical
-      }
-    };
+      const deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) return;
 
-    // Update immediately on mount
-    updateDeviceActivity();
+      const updateDeviceActivity = async () => {
+        try {
+          await base44.functions.invoke('updateDeviceActivity', { deviceId });
+        } catch (error) {
+          // Silently fail - not critical
+        }
+      };
 
-    // Then poll every 30 seconds
-    const interval = setInterval(updateDeviceActivity, 30000);
+      // Update immediately on mount
+      updateDeviceActivity();
 
-    return () => clearInterval(interval);
+      // Then poll every 30 seconds
+      const interval = setInterval(updateDeviceActivity, 30000);
+
+      return () => clearInterval(interval);
     }, [user]);
 
   const handleLogout = async () => {
