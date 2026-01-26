@@ -542,19 +542,7 @@ export default function Home() {
       </section>
 
       {/* ==================== FAQ SECTION ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0">
-          <motion.div 
-            className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.04] rounded-full blur-[120px]"
-            animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/[0.03] rounded-full blur-[100px]"
-            animate={{ x: [0, -25, 0] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
+      <section className="relative py-24 md:py-32 overflow-hidden">
         <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">FAQ</span>
