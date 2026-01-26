@@ -481,11 +481,134 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ==================== FAQ SECTION ==================== */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <motion.div 
+            className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.04] rounded-full blur-[120px]"
+            animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-500/[0.03] rounded-full blur-[100px]"
+            animate={{ x: [0, -25, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">FAQ</span>
+            <h2 className="text-3xl md:text-4xl font-light text-white tracking-tight">Frequently asked<span className="font-medium"> questions.</span></h2>
+          </motion.div>
+
+          <div className="space-y-4">
+            {FAQS.map((faq, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="rounded-xl border border-white/[0.06] overflow-hidden hover:border-white/[0.12] transition-colors">
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors">
+                  <span className="text-white font-medium">{faq.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-white/40 transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {openFaq === i && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 text-white/60 leading-relaxed">{faq.a}</div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== CONNECT WITH US ==================== */}
+      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0">
+          <motion.div 
+            className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-blue-500/[0.04] rounded-full blur-[150px]"
+            animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[120px]"
+            animate={{ x: [0, -30, 0], y: [0, -15, 0] }}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+        <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        
+        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Connect With Us</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Have questions?<span className="font-medium"> Let's talk.</span></h2>
+            <p className="text-lg text-white/50 mt-4 max-w-xl mx-auto">Reach out for support, partnerships, or just to say hello.</p>
+          </motion.div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+              <AnimatedButton delay={0}>
+                <Link to={createPageUrl('Contact')}>
+                  <Button className="group inline-flex items-center gap-2 px-7 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]">
+                    <FileText className="w-4 h-4" />
+                    Create a Ticket
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Button>
+                </Link>
+              </AnimatedButton>
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <motion.a 
+              href="https://www.instagram.com/indexios" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="group flex items-center gap-3 px-6 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.06] transition-all duration-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 group-hover:from-purple-500/30 group-hover:to-pink-500/30 transition-all">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              </div>
+              <span className="text-white/70 group-hover:text-white transition-colors font-medium">Instagram</span>
+            </motion.a>
+
+            <motion.a 
+              href="https://www.linkedin.com/company/indexios/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="group flex items-center gap-3 px-6 py-4 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.06] transition-all duration-300"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="p-2 rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-all">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </div>
+              <span className="text-white/70 group-hover:text-white transition-colors font-medium">LinkedIn</span>
+            </motion.a>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ==================== PRICING SECTION ==================== */}
       <section id="pricing" className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
+          <motion.div 
+            className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-purple-500/[0.04] rounded-full blur-[150px]"
+            animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[120px]"
+            animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
@@ -496,7 +619,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {TIERS.map((tier, index) => (
-              <motion.div key={tier.tier} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className={`relative rounded-2xl p-6 ${tier.popular ? 'bg-gradient-to-b from-purple-500/20 to-purple-500/5 border-2 border-purple-500/40' : 'bg-white/[0.02] border border-white/[0.06]'} hover:border-white/[0.15] transition-all`}>
+              <motion.div key={tier.tier} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} whileHover={{ y: -5 }} className={`relative rounded-2xl p-6 ${tier.popular ? 'bg-gradient-to-b from-purple-500/20 to-purple-500/5 border-2 border-purple-500/40' : 'bg-white/[0.02] border border-white/[0.06]'} hover:border-white/[0.15] transition-all`}>
                 {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-purple-500 text-white text-xs font-semibold">Most Popular</div>}
                 <div className="mb-6">
                   <h3 className="text-xl font-medium text-white mb-2">{tier.name}</h3>
@@ -514,34 +637,11 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <Button onClick={() => handleSubscribe(tier.tier)} disabled={loading && processingTier === tier.tier} className={`w-full rounded-full py-5 font-semibold ${tier.popular ? 'bg-white text-black hover:bg-white/90' : user?.subscription_tier === tier.tier ? 'bg-white/10 text-white/50 cursor-default' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'}`}>
-                  {loading && processingTier === tier.tier ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : user?.subscription_tier === tier.tier ? 'Current Plan' : tier.tier === 'free' ? 'Get Started' : 'Subscribe'}
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================== FAQ SECTION ==================== */}
-      <section className="relative bg-[#0a0a0a] py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
-        </div>
-        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">FAQ</span>
-            <h2 className="text-3xl md:text-4xl font-light text-white tracking-tight">Frequently asked<span className="font-medium"> questions.</span></h2>
-          </motion.div>
-
-          <div className="space-y-4">
-            {FAQS.map((faq, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }} className="rounded-xl border border-white/[0.06] overflow-hidden">
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left hover:bg-white/[0.02] transition-colors">
-                  <span className="text-white font-medium">{faq.q}</span>
-                  <ChevronDown className={`w-5 h-5 text-white/40 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
-                </button>
-                {openFaq === i && <div className="px-5 pb-5 text-white/60 leading-relaxed">{faq.a}</div>}
+                <AnimatedButton delay={index * 0.2}>
+                  <Button onClick={() => handleSubscribe(tier.tier)} disabled={loading && processingTier === tier.tier} className={`w-full rounded-full py-5 font-semibold ${tier.popular ? 'bg-white text-black hover:bg-white/90' : user?.subscription_tier === tier.tier ? 'bg-white/10 text-white/50 cursor-default' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'}`}>
+                    {loading && processingTier === tier.tier ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : user?.subscription_tier === tier.tier ? 'Current Plan' : tier.tier === 'free' ? 'Get Started' : 'Subscribe'}
+                  </Button>
+                </AnimatedButton>
               </motion.div>
             ))}
           </div>
