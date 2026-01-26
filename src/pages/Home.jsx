@@ -251,7 +251,7 @@ export default function Home() {
                 </motion.p>
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }} className="flex flex-wrap items-center gap-4">
-                  <AnimatedButton delay={0}>
+                  <AnimatedButton>
                     <Link to={createPageUrl('Scan')}>
                       <Button className="group inline-flex items-center gap-2 px-7 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98]">
                         Get Started
@@ -259,7 +259,7 @@ export default function Home() {
                       </Button>
                     </Link>
                   </AnimatedButton>
-                  <AnimatedButton delay={0.5}>
+                  <AnimatedButton>
                     <Link to={createPageUrl('Docs')}>
                       <Button variant="ghost" className="inline-flex items-center gap-2 px-6 py-6 text-sm text-white/60 hover:text-white transition-all duration-200 rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
                         Read the Docs
