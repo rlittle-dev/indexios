@@ -620,8 +620,14 @@ export default function Home() {
                 <div className="mb-6">
                   <h3 className="text-xl font-medium text-white mb-2">{tier.name}</h3>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">${tier.price}</span>
-                    {tier.price > 0 && <span className="text-white/40">/mo</span>}
+                    {tier.price === null ? (
+                      <span className="text-4xl font-bold text-white">Custom</span>
+                    ) : (
+                      <>
+                        <span className="text-4xl font-bold text-white">${tier.price}</span>
+                        {tier.price > 0 && <span className="text-white/40">/mo</span>}
+                      </>
+                    )}
                   </div>
                   <p className="text-white/40 text-sm mt-2">{typeof tier.scans === 'number' ? `${tier.scans} scans/month` : tier.scans}</p>
                 </div>
