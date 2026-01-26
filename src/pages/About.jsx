@@ -12,10 +12,14 @@ export default function About() {
       <Helmet>
         <title>About Indexios - Resume Verification & Employment Background Checks</title>
         <meta name="description" content="Learn how Indexios helps detect resume fraud and verify credentials. Our platform helps hiring teams make confident decisions with instant, actionable insights." />
+        <meta name="keywords" content="resume verification, employment verification, background check, hiring platform, credential verification" />
         <link rel="canonical" href="https://indexios.me/About" />
         <meta property="og:title" content="About Indexios - Resume Verification Platform" />
         <meta property="og:description" content="Advanced resume fraud detection and credential verification for hiring teams." />
-        <meta property="og:url" content="https://www.indexios.me/About" />
+        <meta property="og:url" content="https://indexios.me/About" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="About Indexios" />
+        <meta name="twitter:description" content="Resume verification and employment background check platform." />
       </Helmet>
       
       <div className="min-h-screen bg-zinc-950">

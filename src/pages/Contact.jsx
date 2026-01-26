@@ -63,12 +63,13 @@ export default function Contact() {
   return (
     <>
       <Helmet>
-        <title>Contact Indexios Support - Get Help with Resume Verification</title>
-        <meta name="description" content="Contact Indexios for support, questions, or inquiries about our resume verification platform. We're here to help with fraud detection, team collaboration, and API integration." />
+        <title>Contact Indexios Support - Resume Verification Help</title>
+        <meta name="description" content="Contact Indexios for support with resume verification, employment background checks, and hiring tools. Our team is ready to help." />
         <link rel="canonical" href="https://indexios.me/Contact" />
         <meta property="og:title" content="Contact Indexios Support" />
-        <meta property="og:description" content="Get help with resume verification, fraud detection, and platform support." />
-        <meta property="og:url" content="https://www.indexios.me/Contact" />
+        <meta property="og:description" content="Get help with resume verification, employment checks, and platform support." />
+        <meta property="og:url" content="https://indexios.me/Contact" />
+        <meta name="twitter:card" content="summary" />
       </Helmet>
       
       <div className="min-h-screen bg-zinc-950">

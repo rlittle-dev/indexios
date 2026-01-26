@@ -67,13 +67,32 @@ export default function Home() {
   return (
     <>
       <Helmet>
-        <title>Indexios - AI Resume Verification | Detect Fraudulent Resumes Instantly</title>
-        <meta name="description" content="Verify resume authenticity with AI-powered fraud detection. Indexios analyzes credentials, experience, and education to provide instant legitimacy scores. Start with 3 free scans." />
+        <title>Indexios - Resume Verification & Employment Background Check Platform</title>
+        <meta name="description" content="Verify resume authenticity and employment history with Indexios. Detect fraudulent resumes, confirm credentials, and make confident hiring decisions. Free scan available." />
+        <meta name="keywords" content="resume verification, employment verification, background check, hiring, credential verification, fraud detection, HR tools" />
         <link rel="canonical" href="https://indexios.me/" />
-        <meta property="og:title" content="Indexios - AI Resume Verification Platform" />
-        <meta property="og:description" content="Detect fraudulent resumes instantly with AI-powered verification. Free scans available." />
+        <meta property="og:title" content="Indexios - Resume Verification & Employment Background Checks" />
+        <meta property="og:description" content="Verify resumes and employment history instantly. Trusted by hiring teams for credential verification and fraud detection." />
         <meta property="og:url" content="https://indexios.me/" />
         <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Indexios - Resume Verification Platform" />
+        <meta name="twitter:description" content="Verify resume authenticity and employment history. Free scan available." />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Indexios",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "Resume verification and employment background check platform for hiring teams",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          })}
+        </script>
       </Helmet>
       
       <div className="min-h-screen bg-zinc-950">
@@ -121,7 +140,7 @@ export default function Home() {
             </div>
             
             <p className="text-white/50 text-sm mt-6">
-              Start with 3 free scans • No credit card required • No login required
+              Start with a free scan • No credit card required • No login required
             </p>
           </motion.div>
 
