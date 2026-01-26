@@ -145,18 +145,21 @@ export default function Layout({ children }) {
   return (
     <HelmetProvider>
       <Helmet>
-        <title>Indexios - Resume Verification Platform | Employment Background Checks</title>
-                  <meta name="description" content="Indexios helps hiring teams verify resumes, detect fraud, and confirm employment history. Get legitimacy scores, credential verification, and detailed candidate analysis for confident hiring decisions." />
-                  <meta property="og:title" content="Indexios - Resume Verification & Employment Background Checks" />
-                  <meta property="og:description" content="Verify resume legitimacy with fraud detection and credential verification. Trusted by hiring teams worldwide." />
-                  <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" sizes="any" />
-                      <link rel="icon" type="image/png" sizes="32x32" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
-                      <link rel="icon" type="image/png" sizes="48x48" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
-                      <link rel="apple-touch-icon" sizes="180x180" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
-        <link rel="canonical" href="https://indexios.me/" />
-        <meta name="robots" content="index,follow" />
-        <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
-      </Helmet>
+                <title>Indexios - Resume Verification Platform | Employment Background Checks</title>
+                          <meta name="description" content="Indexios helps hiring teams verify resumes, detect fraud, and confirm employment history. Get legitimacy scores, credential verification, and detailed candidate analysis for confident hiring decisions." />
+                          <meta property="og:title" content="Indexios - Resume Verification & Employment Background Checks" />
+                          <meta property="og:description" content="Verify resume legitimacy with fraud detection and credential verification. Trusted by hiring teams worldwide." />
+                          <link rel="icon" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" sizes="any" />
+                              <link rel="icon" type="image/png" sizes="32x32" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
+                              <link rel="icon" type="image/png" sizes="48x48" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
+                              <link rel="apple-touch-icon" sizes="180x180" href="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6964cbdc0ce57ade9d4f4028/79fcbc9eb_ChatGPTImageJan16202602_05_15PM.png" />
+                <link rel="canonical" href="https://indexios.me/" />
+                <meta name="robots" content="index,follow" />
+                <meta name="google-site-verification" content="e391aWsYBlZXbrEFC9-2VR5VbK6DLCyvc3ELRd2lD9Y" />
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+              </Helmet>
 
       <div className="min-h-screen bg-[#0a0a0f]">
         {/* Chat Bot for all users */}
