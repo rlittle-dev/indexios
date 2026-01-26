@@ -13,9 +13,9 @@ const TIERS = [
           tier: 'free',
           name: 'Free',
           price: 0,
-          scans: 3,
+          scans: 1,
           features: [
-            '3 resume scans per month',
+            '1 resume scan',
             'Advanced analysis for all resumes',
             'Red & green flags detection'
           ]
@@ -195,7 +195,7 @@ export default function Pricing() {
                 <tbody>
                   <tr className="border-b border-zinc-700/50">
                     <td className="px-6 py-3 text-white/80">Monthly Scans</td>
-                    <td className="text-center px-6 py-3 text-white font-semibold">3</td>
+                    <td className="text-center px-6 py-3 text-white font-semibold">1</td>
                     <td className="text-center px-6 py-3 text-white font-semibold">50</td>
                     <td className="text-center px-6 py-3 text-white font-semibold">200</td>
                     <td className="text-center px-6 py-3 text-purple-400 font-semibold">Unlimited</td>

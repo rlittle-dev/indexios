@@ -21,7 +21,7 @@ import GlassCard from '@/components/ui/GlassCard';
 import SectionHeader from '@/components/ui/SectionHeader';
 
 const TIER_LIMITS = {
-  free: 3,
+  free: 1,
   starter: 50,
   professional: 200,
   enterprise: 999999
