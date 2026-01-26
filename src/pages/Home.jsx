@@ -229,7 +229,7 @@ export default function Home() {
                   </Button>
                 </Link>
               </div>
-            </div>
+            </GlassCard>
           </motion.div>
 
           {/* Features Section */}
