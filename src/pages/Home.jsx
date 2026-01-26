@@ -46,26 +46,17 @@ const AnimatedButton = ({ children, className = '' }) => {
   );
 };
 
-// Floating particles component
+// Simplified floating particles - reduced count for performance
 const FloatingParticles = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {[...Array(20)].map((_, i) => (
-      <motion.div
+    {[...Array(6)].map((_, i) => (
+      <div
         key={i}
-        className="absolute w-1 h-1 bg-purple-400/30 rounded-full"
+        className="absolute w-1 h-1 bg-purple-400/20 rounded-full animate-pulse"
         style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-        }}
-        animate={{
-          y: [0, -30, 0],
-          opacity: [0.2, 0.5, 0.2],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{
-          duration: 3 + Math.random() * 2,
-          repeat: Infinity,
-          delay: Math.random() * 2,
+          left: `${20 + i * 15}%`,
+          top: `${30 + (i % 3) * 20}%`,
+          animationDelay: `${i * 0.5}s`,
         }}
       />
     ))}
@@ -219,16 +210,8 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none z-[2]" style={{ background: 'radial-gradient(70% 50%, transparent 0%, rgba(10, 10, 10, 0.5) 60%, rgba(10, 10, 10, 0.98) 100%)' }} />
 
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            className="absolute top-1/4 left-1/4 w-[700px] h-[700px] bg-purple-500/[0.05] rounded-full blur-[150px]"
-            animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-500/[0.05] rounded-full blur-[120px]"
-            animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-500/[0.04] rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.04] rounded-full blur-[100px]" />
         </div>
         <FloatingParticles />
 
@@ -327,28 +310,11 @@ export default function Home() {
 
       {/* Continuous flowing gradient background for all sections */}
       <div className="relative bg-[#0a0a0a]">
-        {/* Global animated gradient orbs */}
+        {/* Static gradient orbs - optimized for performance */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div 
-            className="absolute top-[10%] left-[20%] w-[800px] h-[800px] bg-purple-500/[0.04] rounded-full blur-[200px]"
-            animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-[30%] right-[10%] w-[600px] h-[600px] bg-blue-500/[0.04] rounded-full blur-[180px]"
-            animate={{ x: [0, -80, 0], y: [0, 80, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-[60%] left-[30%] w-[700px] h-[700px] bg-purple-500/[0.03] rounded-full blur-[200px]"
-            animate={{ x: [0, 60, 0], y: [0, -40, 0] }}
-            transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-[80%] right-[20%] w-[500px] h-[500px] bg-blue-500/[0.04] rounded-full blur-[150px]"
-            animate={{ x: [0, -50, 0], y: [0, 60, 0] }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute top-[40%] right-[10%] w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute top-[70%] left-[30%] w-[450px] h-[450px] bg-purple-500/[0.02] rounded-full blur-[150px]" />
         </div>
 
         {/* ==================== STATS SECTION ==================== */}

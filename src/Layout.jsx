@@ -161,7 +161,7 @@ export default function Layout({ children }) {
                 <link href="https://fonts.cdnfonts.com/css/eurostile" rel="stylesheet" />
               </Helmet>
 
-      <div className="min-h-screen bg-[#0a0a0f]" style={{ fontFamily: "'Eurostile', sans-serif" }}>
+      <div className="min-h-screen bg-[#0a0a0a]" style={{ fontFamily: "'Eurostile', sans-serif" }}>
 
 
 
