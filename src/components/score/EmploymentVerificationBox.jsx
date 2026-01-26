@@ -387,10 +387,13 @@ export default function EmploymentVerificationBox({ companyNames = [], candidate
         console.error('Verification failed:', response.data);
       }
     } catch (error) {
+      console.error('Verification error:', error);
       if (error.response?.status === 429) {
         alert(error.response.data?.error || 'Monthly verification limit reached');
+      } else if (error.response?.status === 403) {
+        alert(error.response.data?.error || 'Access denied');
       } else {
-        console.error('Verification error:', error);
+        alert('Verification failed: ' + (error.response?.data?.error || error.message || 'Unknown error'));
       }
     } finally {
       setIsRunning(false);
