@@ -10,11 +10,11 @@ export default function About() {
   return (
     <>
       <Helmet>
-        <title>About Indexios - AI-Powered Resume Verification Technology</title>
-        <meta name="description" content="Learn how Indexios uses advanced AI to detect resume fraud and verify credentials. Our technology helps hiring teams make confident decisions with instant, actionable insights." />
+        <title>About Indexios - Resume Verification & Employment Background Checks</title>
+        <meta name="description" content="Learn how Indexios helps detect resume fraud and verify credentials. Our platform helps hiring teams make confident decisions with instant, actionable insights." />
         <link rel="canonical" href="https://indexios.me/About" />
-        <meta property="og:title" content="About Indexios - AI-Powered Resume Verification" />
-        <meta property="og:description" content="Advanced AI technology for resume fraud detection and credential verification." />
+        <meta property="og:title" content="About Indexios - Resume Verification Platform" />
+        <meta property="og:description" content="Advanced resume fraud detection and credential verification for hiring teams." />
         <meta property="og:url" content="https://www.indexios.me/About" />
       </Helmet>
       
