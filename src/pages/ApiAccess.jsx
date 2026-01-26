@@ -164,10 +164,10 @@ export default function ApiAccess() {
                   </div>
 
                   <div>
-                    <h3 className="text-white font-semibold mb-2">Analyze Resume</h3>
+                    <h3 className="text-white font-semibold mb-2">Scan Resume</h3>
                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
                       <code className="text-sm text-green-400 whitespace-nowrap">
-                        POST /analyze
+                        POST /scan
                       </code>
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export default function ApiAccess() {
                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
                       <pre className="text-sm text-white">
 {`Authorization: Bearer YOUR_API_KEY
-Content-Type: multipart/form-data`}
+Content-Type: application/json`}
                       </pre>
                     </div>
                   </div>
@@ -185,9 +185,12 @@ Content-Type: multipart/form-data`}
                   <div>
                     <h3 className="text-white font-semibold mb-2">Request Body</h3>
                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 overflow-x-auto">
-                      <code className="text-sm text-white whitespace-nowrap">
-                        file: (binary) - Resume PDF file
-                      </code>
+                      <pre className="text-sm text-white">
+{`{
+  "resume_url": "https://...",
+  "callback_url": "https://..." (optional)
+}`}
+                      </pre>
                     </div>
                   </div>
 
@@ -230,10 +233,10 @@ Content-Type: multipart/form-data`}
                   </div>
 
                   <div>
-                    <h3 className="text-white font-semibold mb-2">Rate Limits</h3>
+                    <h3 className="text-white font-semibold mb-2">Plan Limits</h3>
                     <div className="bg-zinc-950 border border-zinc-700 rounded-lg p-3 text-sm text-white/80 space-y-1">
-                      <p>• <strong>Professional:</strong> 200 scans/month</p>
-                      <p>• <strong>Enterprise:</strong> Unlimited scans</p>
+                      <p>• <strong>Professional:</strong> 200 scans/month, 100 API requests/hour</p>
+                      <p>• <strong>Enterprise:</strong> Unlimited scans, 1,000 API requests/hour</p>
                     </div>
                   </div>
 

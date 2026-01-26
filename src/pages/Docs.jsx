@@ -1987,11 +1987,6 @@ Common questions answered on our website.
 
 ## Support Channels
 
-### In-App Chat
-- Available to all users
-- AI-assisted first response
-- Human escalation available
-
 ### Support Tickets
 1. Go to **My Tickets** from user dropdown
 2. Click **New Ticket**

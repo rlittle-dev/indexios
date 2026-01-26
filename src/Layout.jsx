@@ -167,18 +167,10 @@ export default function Layout({ children }) {
           <ChatBot user={user} />
         )}
 
-      {/* Upgrade Banner for Free/Signed-Out Users */}
-      {(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-purple-600/90 to-blue-600/90 backdrop-blur-sm text-white text-center py-2 px-4 text-sm font-medium border-b border-white/10">
-          <span className="opacity-90">Upgrade to unlock full features </span>
-          <a href={createPageUrl('Pricing')} className="underline font-semibold hover:opacity-80 transition-opacity">
-            View Plans →
-          </a>
-        </div>
-      )}
+
 
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] ${(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'top-10' : 'top-0'}`}>
+      <header className="fixed left-0 right-0 z-50 bg-[#0a0a0f]/80 backdrop-blur-xl border-b border-white/[0.06] top-0">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to={createPageUrl('Home')}>
@@ -295,7 +287,7 @@ export default function Layout({ children }) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className={`fixed left-0 right-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06] md:hidden ${(!user || user.subscription_tier === 'free') ? 'top-[104px]' : 'top-16'}`}
+            className="fixed left-0 right-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/[0.06] md:hidden top-16"
           >
             <div className="px-4 py-3 space-y-1">
                 <Link to={createPageUrl('Scan')} onClick={() => setMobileMenuOpen(false)}>
@@ -329,7 +321,7 @@ export default function Layout({ children }) {
       </AnimatePresence>
 
       {/* Main content with padding for fixed header */}
-      <main className={(user?.subscription_tier !== 'starter' && user?.subscription_tier !== 'professional' && user?.subscription_tier !== 'enterprise') ? 'pt-[104px]' : 'pt-16'}>
+      <main className="pt-16">
         {children}
       </main>
 
