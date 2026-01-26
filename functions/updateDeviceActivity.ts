@@ -11,14 +11,26 @@ Deno.serve(async (req) => {
 
     const { deviceId } = await req.json();
 
-    // Update the device's last active time
+    if (!deviceId) {
+      return Response.json({ error: 'Device ID required' }, { status: 400 });
+    }
+
+    // Find the device
     const devices = await base44.asServiceRole.entities.Device.filter({
       user_email: user.email,
       device_id: deviceId
     });
 
     if (devices.length > 0) {
-      await base44.asServiceRole.entities.Device.update(devices[0].id, {
+      const device = devices[0];
+      
+      // Check if device was logged out remotely
+      if (device.is_active === false) {
+        return Response.json({ loggedOut: true });
+      }
+
+      // Update the device's last active time
+      await base44.asServiceRole.entities.Device.update(device.id, {
         last_active: new Date().toISOString()
       });
     }

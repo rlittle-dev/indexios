@@ -49,26 +49,31 @@ export default function Layout({ children }) {
     };
     }, []);
 
-    // Live polling for device activity every 30 seconds
+    // Live polling for device activity and validation every 30 seconds
     useEffect(() => {
       if (!user || user.isAnonymous) return;
 
       const deviceId = localStorage.getItem('deviceId');
       if (!deviceId) return;
 
-      const updateDeviceActivity = async () => {
+      const updateAndValidateDevice = async () => {
         try {
-          await base44.functions.invoke('updateDeviceActivity', { deviceId });
+          const response = await base44.functions.invoke('updateDeviceActivity', { deviceId });
+          // If device was logged out remotely, logout this session
+          if (response.data?.loggedOut) {
+            localStorage.removeItem('deviceId');
+            await base44.auth.logout(createPageUrl('Home'));
+          }
         } catch (error) {
           // Silently fail - not critical
         }
       };
 
       // Update immediately on mount
-      updateDeviceActivity();
+      updateAndValidateDevice();
 
       // Then poll every 30 seconds
-      const interval = setInterval(updateDeviceActivity, 30000);
+      const interval = setInterval(updateAndValidateDevice, 30000);
 
       return () => clearInterval(interval);
     }, [user]);
