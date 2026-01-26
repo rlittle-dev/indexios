@@ -313,7 +313,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check usage limits based on tier
+    // Check usage limits based on tier - ALL tiers can use employment verification
     const userTier = user.subscription_tier || 'free';
     const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
     const resetMonth = user.employment_verifications_reset_month;
@@ -460,115 +460,115 @@ Deno.serve(async (req) => {
         const status = snippets.length > 0 ? 'verified' : 'not_found';
 
         // Get HR/verification phone number and email
-                  const contactInfo = await getCompanyContact(base44, employer.name);
+        const contactInfo = await getCompanyContact(base44, employer.name);
 
-                  results[employer.name] = {
-                    status,
-                    evidence_count: snippets.length,
-                    sources: snippets,
-                    has_evidence: webSources.length > 0,
-                    phone: contactInfo?.phone || null,
-                    email: contactInfo?.email || null,
-                    cached: false,
-                    debug: snippets.length > 0 
-                      ? `matched on ${snippets.length} source(s)`
-                      : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
-                  };
+        results[employer.name] = {
+          status,
+          evidence_count: snippets.length,
+          sources: snippets,
+          has_evidence: webSources.length > 0,
+          phone: contactInfo?.phone || null,
+          email: contactInfo?.email || null,
+          cached: false,
+          debug: snippets.length > 0 
+            ? `matched on ${snippets.length} source(s)`
+            : (webSources.length === 0 ? 'No evidence collected' : 'no snippet contained employer string')
+        };
 
         // Save to VerifiedEmployment cache
-                      try {
-                        await base44.asServiceRole.entities.VerifiedEmployment.create({
-                          candidate_name: candidateName,
-                          candidate_name_normalized: normalize(candidateName),
-                          employer_name: employer.name,
-                          employer_name_normalized: normalize(employer.name),
-                          status,
-                          sources: snippets,
-                          phone: contactInfo?.phone || null,
-                          email: contactInfo?.email || null,
-                          verified_date: new Date().toISOString()
-                        });
-              console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
-          } catch (error) {
-            console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
+        try {
+          await base44.asServiceRole.entities.VerifiedEmployment.create({
+            candidate_name: candidateName,
+            candidate_name_normalized: normalize(candidateName),
+            employer_name: employer.name,
+            employer_name_normalized: normalize(employer.name),
+            status,
+            sources: snippets,
+            phone: contactInfo?.phone || null,
+            email: contactInfo?.email || null,
+            verified_date: new Date().toISOString()
+          });
+          console.log(`[EmploymentConfirmation] Saved to cache: ${employer.name}`);
+        } catch (error) {
+          console.error(`[EmploymentConfirmation] Cache save error for ${employer.name}:`, error.message);
+        }
+
+        // Update UniqueCandidate with employer verification data (phone, email, evidence)
+        // Use the passed uniqueCandidateId first, otherwise fall back to name matching
+        try {
+          let matchingCandidate = targetUniqueCandidate;
+          
+          if (!matchingCandidate) {
+            const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
+            matchingCandidate = existingCandidates.find(c => 
+              normalize(c.name) === normalize(candidateName)
+            );
           }
 
-          // Update UniqueCandidate with employer verification data (phone, email, evidence)
-          // Use the passed uniqueCandidateId first, otherwise fall back to name matching
-          try {
-            let matchingCandidate = targetUniqueCandidate;
-            
-            if (!matchingCandidate) {
-              const existingCandidates = await base44.asServiceRole.entities.UniqueCandidate.filter({});
-              matchingCandidate = existingCandidates.find(c => 
-                normalize(c.name) === normalize(candidateName)
-              );
-            }
+          if (matchingCandidate) {
+            const existingEmployers = matchingCandidate.employers || [];
+            const employerIndex = existingEmployers.findIndex(e => 
+              normalize(e.employer_name) === normalize(employer.name)
+            );
 
-            if (matchingCandidate) {
-              const existingEmployers = matchingCandidate.employers || [];
-              const employerIndex = existingEmployers.findIndex(e => 
-                normalize(e.employer_name) === normalize(employer.name)
-              );
+            let updatedEmployers = [...existingEmployers];
 
-              let updatedEmployers = [...existingEmployers];
-
-              if (employerIndex >= 0) {
-                // Update existing employer record with new verification data
-                updatedEmployers[employerIndex] = {
-                  ...updatedEmployers[employerIndex],
-                  employer_name: employer.name,
-                  web_evidence_status: status === 'verified' ? 'yes' : 'no',
-                  evidence_count: snippets.length,
-                  hr_phone: contactInfo?.phone || updatedEmployers[employerIndex].hr_phone || null,
-                  hr_email: contactInfo?.email || updatedEmployers[employerIndex].hr_email || null,
-                  web_verified_date: new Date().toISOString()
-                };
-                console.log(`[EmploymentConfirmation] Updated employer ${employer.name} with phone: ${contactInfo?.phone?.number}, email: ${contactInfo?.email?.address}`);
-              } else {
-                // Add new employer record
-                updatedEmployers.push({
-                  employer_name: employer.name,
-                  web_evidence_status: status === 'verified' ? 'yes' : 'no',
-                  call_verification_status: 'not_called',
-                  evidence_count: snippets.length,
-                  hr_phone: contactInfo?.phone || null,
-                  hr_email: contactInfo?.email || null,
-                  web_verified_date: new Date().toISOString(),
-                  call_verified_date: null
-                });
-                console.log(`[EmploymentConfirmation] Added new employer ${employer.name} with phone: ${contactInfo?.phone?.number}, email: ${contactInfo?.email?.address}`);
-              }
-
-              await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
-                employers: updatedEmployers
-              });
-              
-              // Update the cached reference so subsequent employers use the latest data
-              targetUniqueCandidate = { ...matchingCandidate, employers: updatedEmployers };
-              
-              console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with ${updatedEmployers.length} employers`);
+            if (employerIndex >= 0) {
+              // Update existing employer record with new verification data
+              updatedEmployers[employerIndex] = {
+                ...updatedEmployers[employerIndex],
+                employer_name: employer.name,
+                web_evidence_status: status === 'verified' ? 'yes' : 'no',
+                evidence_count: snippets.length,
+                hr_phone: contactInfo?.phone || updatedEmployers[employerIndex].hr_phone || null,
+                hr_email: contactInfo?.email || updatedEmployers[employerIndex].hr_email || null,
+                web_verified_date: new Date().toISOString()
+              };
+              console.log(`[EmploymentConfirmation] Updated employer ${employer.name} with phone: ${contactInfo?.phone?.number}, email: ${contactInfo?.email?.address}`);
             } else {
-              // Create new UniqueCandidate with this employer
-              const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
-                name: candidateName,
-                employers: [{
-                  employer_name: employer.name,
-                  web_evidence_status: status === 'verified' ? 'yes' : 'no',
-                  call_verification_status: 'not_called',
-                  evidence_count: snippets.length,
-                  hr_phone: contactInfo?.phone || null,
-                  hr_email: contactInfo?.email || null,
-                  web_verified_date: new Date().toISOString(),
-                  call_verified_date: null
-                }]
+              // Add new employer record
+              updatedEmployers.push({
+                employer_name: employer.name,
+                web_evidence_status: status === 'verified' ? 'yes' : 'no',
+                call_verification_status: 'not_called',
+                evidence_count: snippets.length,
+                hr_phone: contactInfo?.phone || null,
+                hr_email: contactInfo?.email || null,
+                web_verified_date: new Date().toISOString(),
+                call_verified_date: null
               });
-              targetUniqueCandidate = newCandidate;
-              console.log(`[EmploymentConfirmation] Created UniqueCandidate ${newCandidate.id} for ${candidateName}`);
+              console.log(`[EmploymentConfirmation] Added new employer ${employer.name} with phone: ${contactInfo?.phone?.number}, email: ${contactInfo?.email?.address}`);
             }
-          } catch (ucError) {
-            console.error(`[EmploymentConfirmation] UniqueCandidate update error:`, ucError.message);
+
+            await base44.asServiceRole.entities.UniqueCandidate.update(matchingCandidate.id, {
+              employers: updatedEmployers
+            });
+            
+            // Update the cached reference so subsequent employers use the latest data
+            targetUniqueCandidate = { ...matchingCandidate, employers: updatedEmployers };
+            
+            console.log(`[EmploymentConfirmation] Updated UniqueCandidate ${matchingCandidate.id} with ${updatedEmployers.length} employers`);
+          } else {
+            // Create new UniqueCandidate with this employer
+            const newCandidate = await base44.asServiceRole.entities.UniqueCandidate.create({
+              name: candidateName,
+              employers: [{
+                employer_name: employer.name,
+                web_evidence_status: status === 'verified' ? 'yes' : 'no',
+                call_verification_status: 'not_called',
+                evidence_count: snippets.length,
+                hr_phone: contactInfo?.phone || null,
+                hr_email: contactInfo?.email || null,
+                web_verified_date: new Date().toISOString(),
+                call_verified_date: null
+              }]
+            });
+            targetUniqueCandidate = newCandidate;
+            console.log(`[EmploymentConfirmation] Created UniqueCandidate ${newCandidate.id} for ${candidateName}`);
           }
+        } catch (ucError) {
+          console.error(`[EmploymentConfirmation] UniqueCandidate update error:`, ucError.message);
+        }
       }
     }
 
