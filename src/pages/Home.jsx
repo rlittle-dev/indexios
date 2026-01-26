@@ -148,18 +148,25 @@ export default function Home() {
     fetchUser();
   }, []);
 
+  const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
+  
+  const canSelectTier = (tier) => {
+    const currentTierLevel = tierLevels[user?.subscription_tier || 'free'];
+    const targetTierLevel = tierLevels[tier];
+    // Can only upgrade (target must be higher than current)
+    return targetTierLevel > currentTierLevel;
+  };
+
   const handleSubscribe = async (tier) => {
+    if (!canSelectTier(tier)) {
+      return;
+    }
     if (tier === 'free') {
       window.location.href = createPageUrl('Scan');
       return;
     }
     if (!user) {
       base44.auth.redirectToLogin(createPageUrl('Home'));
-      return;
-    }
-    const tierLevels = { free: 0, starter: 1, professional: 2, enterprise: 3 };
-    if (tierLevels[tier] < tierLevels[user?.subscription_tier || 'free']) {
-      alert('Please use My Account to manage your subscription.');
       return;
     }
     setProcessingTier(tier);
