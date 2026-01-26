@@ -743,7 +743,7 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Ready to hire with<span className="font-medium"> confidence?</span></h2>
             <p className="text-lg text-white/50 max-w-lg mx-auto">Join hundreds of teams who trust Indexios to make smarter, safer hiring decisions.</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <AnimatedButton delay={0}>
+              <AnimatedButton>
                 <Link to={createPageUrl('Scan')}>
                   <Button className="group inline-flex items-center gap-2 px-8 py-6 bg-white text-black text-sm font-semibold rounded-full transition-all duration-200 hover:bg-white/90 hover:scale-[1.02]">
                     Start Free Scan
@@ -751,7 +751,7 @@ export default function Home() {
                   </Button>
                 </Link>
               </AnimatedButton>
-              <AnimatedButton delay={0.3}>
+              <AnimatedButton>
                 <Link to={createPageUrl('Contact')}>
                   <Button variant="ghost" className="inline-flex items-center gap-2 px-7 py-6 text-sm text-white/60 hover:text-white rounded-full border border-white/10 hover:border-white/30 hover:bg-white/5">
                     Contact Sales
