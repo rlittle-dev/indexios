@@ -113,17 +113,7 @@ export default function Blog() {
               initial={{ opacity: 0, y: 20 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: 0.2 }}
-              className="prose prose-invert prose-purple max-w-none
-                prose-headings:text-white prose-headings:font-medium
-                prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
-                prose-p:text-white/70 prose-p:leading-relaxed
-                prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline
-                prose-strong:text-white prose-strong:font-semibold
-                prose-code:text-purple-300 prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-                prose-pre:bg-white/[0.03] prose-pre:border prose-pre:border-white/[0.06]
-                prose-blockquote:border-l-purple-500 prose-blockquote:text-white/60
-                prose-li:text-white/70
-                prose-hr:border-white/[0.06]"
+              className="text-white/80 leading-relaxed space-y-4 [&_h1]:text-3xl [&_h1]:font-medium [&_h1]:text-white [&_h1]:mt-8 [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-white [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-medium [&_h3]:text-white [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:text-white/70 [&_p]:leading-relaxed [&_p]:mb-4 [&_a]:text-purple-400 [&_a]:underline [&_strong]:text-white [&_strong]:font-semibold [&_code]:text-purple-300 [&_code]:bg-purple-500/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_pre]:bg-white/[0.05] [&_pre]:border [&_pre]:border-white/10 [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_blockquote]:border-l-2 [&_blockquote]:border-purple-500 [&_blockquote]:pl-4 [&_blockquote]:text-white/60 [&_blockquote]:italic [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-2 [&_li]:text-white/70 [&_hr]:border-white/10 [&_hr]:my-8"
             >
               <ReactMarkdown>{selectedPost.content}</ReactMarkdown>
             </motion.article>
