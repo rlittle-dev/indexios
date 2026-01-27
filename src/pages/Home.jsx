@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowRight, Phone, Link2, CheckCircle, FileText, Zap, Target, Check, ChevronDown, Users, Lock, Globe, AlertTriangle, Clock, Search, PhoneCall, Building2 } from 'lucide-react';
+import { Shield, ArrowRight, Phone, Link2, CheckCircle, FileText, Zap, Target, Check, ChevronDown, Users, Lock, Globe, AlertTriangle, Clock, Search, PhoneCall, Building2, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -499,9 +499,10 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Built for<span className="font-medium"> every team.</span></h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: Users, title: 'HR Teams', description: 'Streamline your hiring process with automated verification and reduce time-to-hire by 60%.' },
+              { icon: GraduationCap, title: 'Universities', description: 'Screen applicants and verify academic credentials, work experience, and professional claims.' },
               { icon: Lock, title: 'Compliance', description: 'Meet regulatory requirements with blockchain-verified employment records and audit trails.' },
               { icon: Globe, title: 'Staffing Agencies', description: 'Verify candidates at scale with bulk upload and team collaboration features.' }
             ].map((useCase, i) => (
