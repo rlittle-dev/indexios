@@ -3,7 +3,8 @@ import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, CheckCircle2, ArrowRight, BookOpen } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -27,6 +28,7 @@ export default function Scan() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isUniversityMode, setIsUniversityMode] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -112,7 +114,43 @@ export default function Scan() {
         candidate = await base44.entities.Candidate.create({ resume_url: file_url, status: 'pending', team_id: teamId });
       }
     
-      const analysisPrompt = `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
+      const analysisPrompt = isUniversityMode 
+        ? `You are an expert university admissions analyst evaluating student/applicant resumes. Perform RIGOROUS, REALISTIC analysis calibrated for students and recent graduates who may have LIMITED work experience.
+
+CONTEXT: This is a UNIVERSITY APPLICANT - expect internships, part-time jobs, volunteer work, academic projects, and extracurriculars rather than full-time professional experience.
+
+COMPANY/ORGANIZATION EXTRACTION (CRITICAL):
+Extract the organization name for EACH position listed (internships, part-time jobs, volunteer organizations, research labs, etc).
+Return company_names as an array.
+
+CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
+
+STUDENT-CALIBRATED SCORING RUBRIC:
+OVERALL LEGITIMACY SCORE (0-100):
+90-100: Outstanding student. Verifiable internships at recognized companies, specific project outcomes, leadership roles in real organizations, consistent timeline.
+75-89: Strong applicant. Good mix of internships/volunteer work, specific achievements, recognized institutions, logical progression.
+60-74: Solid applicant. Some internships or part-time work, academic projects with details, extracurriculars that can be verified.
+45-59: Average applicant. Limited experience but what's listed seems plausible, mostly academic achievements.
+30-44: Weak/Concerning. Vague claims, unverifiable organizations, inflated responsibilities for student roles.
+<30: High Risk. Fabricated internships, impossible timelines, fake organizations.
+
+IMPORTANT FOR STUDENT EVALUATION:
+- Don't penalize for lack of full-time work experience
+- Value quality internships, research experience, and meaningful volunteer work
+- Academic projects and coursework ARE valid experience for students
+- Leadership in clubs/organizations shows initiative
+- Part-time jobs (retail, food service, etc.) show work ethic - don't dismiss them
+- Gap years or study abroad are normal, not red flags
+
+CATEGORIES TO SCORE:
+1. Consistency (timeline, dates, logical progression through education)
+2. Experience (internships, part-time work, volunteer, research - calibrated for student level)
+3. Education (institution verification, GPA claims, honors, relevant coursework)
+4. Skills/Extracurriculars (clubs, sports, certifications, projects)
+
+NEXT STEPS: 5-7 verification actions appropriate for student applicants
+INTERVIEW QUESTIONS: 7-10 questions suited for student/recent grad interviews`
+        : `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
 COMPANY EXTRACTION (CRITICAL):
 Extract the company name for EACH position listed in the work experience section.
@@ -187,6 +225,7 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
         next_steps: analysis.next_steps || [],
         interview_questions: analysis.interview_questions || [],
         company_names: companyNames,
+        is_university_mode: isUniversityMode,
       };
 
       let updatedCandidate;
@@ -418,6 +457,39 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
                   </motion.div>
                 )}
 
+                {/* University Applicant Toggle */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  className="flex items-center justify-center gap-3 mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]"
+                >
+                  <Briefcase className={`w-4 h-4 transition-colors ${!isUniversityMode ? 'text-purple-400' : 'text-white/30'}`} />
+                  <span className={`text-sm transition-colors ${!isUniversityMode ? 'text-white' : 'text-white/40'}`}>Professional</span>
+                  <Switch 
+                    checked={isUniversityMode} 
+                    onCheckedChange={setIsUniversityMode}
+                    className="data-[state=checked]:bg-purple-500"
+                  />
+                  <span className={`text-sm transition-colors ${isUniversityMode ? 'text-white' : 'text-white/40'}`}>University Applicant</span>
+                  <GraduationCap className={`w-4 h-4 transition-colors ${isUniversityMode ? 'text-purple-400' : 'text-white/30'}`} />
+                </motion.div>
+
+                {isUniversityMode && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    className="mb-6 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20"
+                  >
+                    <div className="flex items-start gap-3">
+                      <BookOpen className="w-5 h-5 text-purple-400 mt-0.5" />
+                      <div>
+                        <p className="text-purple-300 font-medium text-sm">University Applicant Mode</p>
+                        <p className="text-white/50 text-xs mt-1">Scoring calibrated for students - values internships, research, volunteer work, and extracurriculars. Won't penalize for limited professional experience.</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {canUpload() ? (
                   <UploadZone onUpload={handleUpload} isUploading={isUploading} />
                 ) : (
@@ -490,9 +562,9 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
 
                     <div className="grid sm:grid-cols-2 gap-4">
                       <AnalysisCard title="Consistency" score={selectedCandidate.analysis.consistency_score || 0} details={selectedCandidate.analysis.consistency_details} icon={User} delay={0} />
-                      <AnalysisCard title="Experience" score={selectedCandidate.analysis.experience_verification || 0} details={selectedCandidate.analysis.experience_details} icon={Briefcase} delay={0.1} />
+                      <AnalysisCard title={selectedCandidate.analysis.is_university_mode ? "Experience & Activities" : "Experience"} score={selectedCandidate.analysis.experience_verification || 0} details={selectedCandidate.analysis.experience_details} icon={Briefcase} delay={0.1} />
                       <AnalysisCard title="Education" score={selectedCandidate.analysis.education_verification || 0} details={selectedCandidate.analysis.education_details} icon={GraduationCap} delay={0.2} />
-                      <AnalysisCard title="Skills Alignment" score={selectedCandidate.analysis.skills_alignment || 0} details={selectedCandidate.analysis.skills_details} icon={Sparkles} delay={0.3} />
+                      <AnalysisCard title={selectedCandidate.analysis.is_university_mode ? "Skills & Extracurriculars" : "Skills Alignment"} score={selectedCandidate.analysis.skills_alignment || 0} details={selectedCandidate.analysis.skills_details} icon={Sparkles} delay={0.3} />
                     </div>
 
                     <FlagsList redFlags={selectedCandidate.analysis.red_flags || []} greenFlags={selectedCandidate.analysis.green_flags || []} />
