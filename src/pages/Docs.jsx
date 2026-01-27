@@ -54,6 +54,7 @@ Based on all factors, we calculate component scores and an overall legitimacy sc
 ## Who Uses Indexios
 
 - **HR Teams**: Streamline candidate screening with instant verification
+- **Universities**: Screen applicants and verify academic credentials, work experience, and extracurricular claims
 - **Staffing Agencies**: Verify candidates at scale before placement
 - **Compliance Teams**: Maintain audit trails for regulatory requirements
 - **Hiring Managers**: Make confident final decisions with complete information
@@ -78,8 +79,11 @@ Get started with Indexios in under 2 minutes. This guide walks you through your 
 ## Step 1: Upload a Resume
 
 1. Navigate to the **Scan** page
-2. Drag and drop a PDF resume onto the upload zone, or click to browse files
-3. Supported formats: PDF (recommended), DOC, DOCX
+2. Choose your scanning mode:
+   - **Professional**: For candidates with work experience (default)
+   - **University Applicant**: For students and recent graduates - uses adjusted scoring that values internships, research, volunteer work, and extracurriculars
+3. Drag and drop a PDF resume onto the upload zone, or click to browse files
+4. Supported formats: PDF (recommended), DOC, DOCX
 
 > **Tip**: For best results, upload resumes in PDF format. This preserves formatting and ensures accurate parsing.
 
@@ -383,8 +387,18 @@ Likely fraudulent:
 
 ## Important Context
 
+### University Applicant Mode
+For students and recent graduates, use the **University Applicant** toggle on the Scan page. This mode:
+- Calibrates scoring for limited professional experience
+- Values internships, research positions, and volunteer work
+- Considers academic projects and coursework as valid experience
+- Recognizes extracurricular leadership
+- Won't penalize for lack of full-time employment
+
+Typical student scores range from 55-80, reflecting their career stage rather than concerns about legitimacy.
+
 ### Early-Career Candidates
-Candidates with less than 3 years of experience naturally score lower (typically 50-65). This reflects limited track record, not fraud. Evaluate trajectory and potential.
+Candidates with less than 3 years of experience naturally score lower (typically 50-65) in Professional mode. This reflects limited track record, not fraud. Consider using University Applicant mode or evaluate trajectory and potential.
 
 ### Industry Variations
 Some industries have fewer verifiable metrics. Adjust expectations for:
