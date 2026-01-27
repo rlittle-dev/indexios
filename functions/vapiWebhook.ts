@@ -192,6 +192,7 @@ Deno.serve(async (req) => {
               
               if (empIdx >= 0) {
                 updatedEmployers[empIdx].attestation_uid = attestationData.attestationUID;
+                updatedEmployers[empIdx].phone_attestation_uid = attestationData.attestationUID;
               }
               
               await base44.asServiceRole.entities.UniqueCandidate.update(normalizedData.uniqueCandidateId, {
@@ -200,6 +201,43 @@ Deno.serve(async (req) => {
                 attestation_date: new Date().toISOString()
               });
               console.log(`[VapiWebhook] Saved attestation UID to UniqueCandidate`);
+              
+              // Boost the Candidate scan's legitimacy score if verification was positive
+              if (normalizedData.verificationResult === 'YES') {
+                try {
+                  // Find the original Candidate scan that matches this candidate
+                  const candidateScans = await base44.asServiceRole.entities.Candidate.filter({});
+                  const matchingScan = candidateScans.find(scan => {
+                    const scanNameNorm = (scan.name || '').toLowerCase().trim();
+                    const candNameNorm = (candidate.name || '').toLowerCase().trim();
+                    return scanNameNorm === candNameNorm || 
+                           (candidate.email && scan.email === candidate.email);
+                  });
+                  
+                  if (matchingScan && matchingScan.legitimacy_score) {
+                    // Calculate boost: +5 to +10 points per verified company (max 100)
+                    const boostAmount = 7; // 7 points per verified company
+                    const newScore = Math.min(100, matchingScan.legitimacy_score + boostAmount);
+                    
+                    // Also boost experience verification score
+                    const currentExpScore = matchingScan.analysis?.experience_verification || 0;
+                    const newExpScore = Math.min(100, currentExpScore + 10);
+                    
+                    await base44.asServiceRole.entities.Candidate.update(matchingScan.id, {
+                      legitimacy_score: newScore,
+                      analysis: {
+                        ...matchingScan.analysis,
+                        experience_verification: newExpScore,
+                        experience_details: (matchingScan.analysis?.experience_details || '') + 
+                          `\n\n✓ Employment at ${normalizedData.companyName} verified via phone call on ${new Date().toLocaleDateString()}.`
+                      }
+                    });
+                    console.log(`[VapiWebhook] Boosted Candidate ${matchingScan.id} legitimacy score: ${matchingScan.legitimacy_score} -> ${newScore}`);
+                  }
+                } catch (boostErr) {
+                  console.error(`[VapiWebhook] Failed to boost legitimacy score:`, boostErr.message);
+                }
+              }
             }
           } catch (updateErr) {
             console.error(`[VapiWebhook] Failed to update UniqueCandidate with attestation:`, updateErr.message);

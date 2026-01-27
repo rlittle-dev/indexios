@@ -166,12 +166,52 @@ Deno.serve(async (req) => {
                 // Update employer with attestation UID
                 const finalEmployers = [...updatedEmployers];
                 finalEmployers[employerIndex].attestation_uid = attestationUID;
+                finalEmployers[employerIndex].email_attestation_uid = attestationUID;
 
                 await base44.asServiceRole.entities.UniqueCandidate.update(uniqueCandidateId, {
                   employers: finalEmployers,
                   attestation_uid: attestationUID,
                   attestation_date: new Date().toISOString()
                 });
+                
+                // Boost the Candidate scan's legitimacy score if verification was positive
+                if (verificationResult === 'YES') {
+                  try {
+                    // Find the original Candidate scan that matches this candidate
+                    const candidateScans = await base44.asServiceRole.entities.Candidate.filter({});
+                    const matchingScan = candidateScans.find(scan => {
+                      const scanNameNorm = (scan.name || '').toLowerCase().trim();
+                      const candNameNorm = (candidate.name || '').toLowerCase().trim();
+                      return scanNameNorm === candNameNorm || 
+                             (candidate.email && scan.email === candidate.email);
+                    });
+                    
+                    if (matchingScan && matchingScan.legitimacy_score) {
+                      // Calculate boost: +7 points per verified company (max 100)
+                      const boostAmount = 7;
+                      const newScore = Math.min(100, matchingScan.legitimacy_score + boostAmount);
+                      
+                      // Also boost experience verification score
+                      const currentExpScore = matchingScan.analysis?.experience_verification || 0;
+                      const newExpScore = Math.min(100, currentExpScore + 10);
+                      
+                      const companyName = finalEmployers[employerIndex].employer_name || companyNameFromToken;
+                      
+                      await base44.asServiceRole.entities.Candidate.update(matchingScan.id, {
+                        legitimacy_score: newScore,
+                        analysis: {
+                          ...matchingScan.analysis,
+                          experience_verification: newExpScore,
+                          experience_details: (matchingScan.analysis?.experience_details || '') + 
+                            `\n\n✓ Employment at ${companyName} verified via email on ${new Date().toLocaleDateString()}.`
+                        }
+                      });
+                      console.log(`[PostmarkWebhook] Boosted Candidate ${matchingScan.id} legitimacy score: ${matchingScan.legitimacy_score} -> ${newScore}`);
+                    }
+                  } catch (boostErr) {
+                    console.error(`[PostmarkWebhook] Failed to boost legitimacy score:`, boostErr.message);
+                  }
+                }
               }
             } catch (attestError) {
               console.error('[PostmarkWebhook] Attestation error:', attestError.message);
