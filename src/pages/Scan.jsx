@@ -175,6 +175,8 @@ export default function Scan() {
 
       BE THOROUGH AND DETAILED in your analysis. Each details field should be 3-5 sentences minimum explaining your assessment.
 
+      SUMMARY: Detailed 4-6 sentence overall assessment covering: (1) key strengths and positive indicators, (2) major concerns or areas needing verification, (3) verification priorities, and (4) overall admissions recommendation with confidence level
+
       NEXT STEPS: 5-7 verification actions appropriate for student applicants (contacting schools, verifying organizations, checking awards)
       INTERVIEW QUESTIONS: 7-10 questions suited for admissions interviews (about motivations, experiences, goals)`
         : `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
@@ -236,7 +238,7 @@ export default function Scan() {
 
         RED FLAGS: List specific concerns with evidence from the resume
         GREEN FLAGS: List positive indicators with evidence from the resume
-        SUMMARY: 2-3 sentence overall assessment
+        SUMMARY: Detailed 4-6 sentence overall assessment covering: (1) key strengths and positive indicators, (2) major concerns or areas needing verification, (3) verification priorities, and (4) overall hiring recommendation with confidence level
 
         NEXT STEPS: 5-7 specific verification actions (e.g., "Contact TechCorp HR to verify Senior Developer role 2019-2022")
         INTERVIEW QUESTIONS: 7-10 targeted questions based on specific resume claims that need probing`;
@@ -257,7 +259,7 @@ export default function Scan() {
             skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of clubs, sports, certifications, extracurriculars, and leadership roles" },
             red_flags: { type: "array", items: { type: "string" }, description: "List of concerns or issues found" },
             green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators and strengths" },
-            summary: { type: "string", description: "2-3 sentence overall assessment of the applicant" },
+            summary: { type: "string", description: "Detailed 4-6 sentence overall assessment covering key strengths, concerns, verification priorities, and recommendation for admission consideration" },
             next_steps: { type: "array", items: { type: "string" }, description: "5-7 verification actions for admissions" },
             interview_questions: { type: "array", items: { type: "string" }, description: "7-10 questions for admissions interview" },
             company_names: { type: "array", items: { type: "string" }, description: "All organizations, schools, companies mentioned" }
@@ -279,7 +281,7 @@ export default function Scan() {
             skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of skills vs experience match, technical relevance, and expertise indicators" },
             red_flags: { type: "array", items: { type: "string" }, description: "List of specific concerns with evidence" },
             green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators with evidence" },
-            summary: { type: "string", description: "2-3 sentence overall assessment" },
+            summary: { type: "string", description: "Detailed 4-6 sentence overall assessment covering key strengths, major concerns, verification priorities, and hiring recommendation" },
             next_steps: { type: "array", items: { type: "string" }, description: "5-7 specific verification actions" },
             interview_questions: { type: "array", items: { type: "string" }, description: "7-10 targeted questions based on resume claims" },
             company_names: { type: "array", items: { type: "string" }, description: "All company names from work experience" }
