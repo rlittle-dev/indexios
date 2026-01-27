@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { ArrowRight, Clock, User, Plus, X, Edit, Trash2 } from 'lucide-react';
+import { ArrowRight, Clock, User, Plus, X, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -14,6 +15,7 @@ export default function Blog() {
   const [showEditor, setShowEditor] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [formData, setFormData] = useState({ title: '', excerpt: '', content: '', category: '', image_url: '', read_time: '5 min read' });
+  const [selectedPost, setSelectedPost] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -65,6 +67,82 @@ export default function Blog() {
   };
 
   const isAdmin = user?.role === 'admin';
+
+  // Single post view
+  if (selectedPost) {
+    return (
+      <>
+        <Helmet>
+          <title>{selectedPost.title} - Indexios Blog</title>
+          <meta name="description" content={selectedPost.excerpt || selectedPost.title} />
+        </Helmet>
+        
+        <section className="relative bg-[#0a0a0a] min-h-screen">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+          </div>
+
+          <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-20">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSelectedPost(null)} 
+              className="mb-8 text-white/60 hover:text-white hover:bg-white/5 rounded-full"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back to Blog
+            </Button>
+
+            {selectedPost.image_url && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="aspect-video rounded-2xl overflow-hidden mb-8">
+                <img src={selectedPost.image_url} alt={selectedPost.title} className="w-full h-full object-cover" />
+              </motion.div>
+            )}
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              {selectedPost.category && (
+                <span className="text-purple-400 text-sm font-medium mb-4 block">{selectedPost.category}</span>
+              )}
+              <h1 className="text-3xl md:text-4xl font-medium text-white mb-4">{selectedPost.title}</h1>
+              <div className="flex items-center gap-4 text-sm text-white/40 mb-8 pb-8 border-b border-white/[0.06]">
+                {selectedPost.read_time && <span>{selectedPost.read_time}</span>}
+                <span>•</span>
+                <span>{new Date(selectedPost.created_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            </motion.div>
+
+            <motion.article 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: 0.2 }}
+              className="prose prose-invert prose-purple max-w-none
+                prose-headings:text-white prose-headings:font-medium
+                prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+                prose-p:text-white/70 prose-p:leading-relaxed
+                prose-a:text-purple-400 prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-white prose-strong:font-semibold
+                prose-code:text-purple-300 prose-code:bg-purple-500/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                prose-pre:bg-white/[0.03] prose-pre:border prose-pre:border-white/[0.06]
+                prose-blockquote:border-l-purple-500 prose-blockquote:text-white/60
+                prose-li:text-white/70
+                prose-hr:border-white/[0.06]"
+            >
+              <ReactMarkdown>{selectedPost.content}</ReactMarkdown>
+            </motion.article>
+
+            {isAdmin && (
+              <div className="flex gap-3 mt-12 pt-8 border-t border-white/[0.06]">
+                <Button variant="outline" onClick={() => { handleEdit(selectedPost); setSelectedPost(null); }} className="border-white/20 text-white hover:bg-white/5">
+                  <Edit className="w-4 h-4 mr-2" /> Edit Post
+                </Button>
+                <Button variant="outline" onClick={() => { deleteMutation.mutate(selectedPost.id); setSelectedPost(null); }} className="border-red-500/30 text-red-400 hover:bg-red-500/10">
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete
+                </Button>
+              </div>
+            )}
+          </div>
+        </section>
+      </>
+    );
+  }
 
   return (
     <>
@@ -152,7 +230,14 @@ export default function Blog() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.map((post, index) => (
-                <motion.article key={post.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="group rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all">
+                <motion.article 
+                  key={post.id} 
+                  initial={{ opacity: 0, y: 20 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  transition={{ delay: index * 0.05 }} 
+                  className="group rounded-2xl overflow-hidden bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] transition-all cursor-pointer"
+                  onClick={() => setSelectedPost(post)}
+                >
                   {post.image_url && (
                     <div className="aspect-video overflow-hidden">
                       <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -169,7 +254,7 @@ export default function Blog() {
                         <span>{new Date(post.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                       {isAdmin && (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(post)} className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10">
                             <Edit className="w-3 h-3" />
                           </Button>
