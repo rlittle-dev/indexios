@@ -115,41 +115,68 @@ export default function Scan() {
       }
     
       const analysisPrompt = isUniversityMode 
-        ? `You are an expert university admissions analyst evaluating student/applicant resumes. Perform RIGOROUS, REALISTIC analysis calibrated for students and recent graduates who may have LIMITED work experience.
+          ? `You are an expert university admissions analyst evaluating student/applicant resumes for prospective students and transfer applicants. Perform RIGOROUS, DETAILED, COMPREHENSIVE analysis calibrated for students and recent graduates.
 
-CONTEXT: This is a UNIVERSITY APPLICANT - expect internships, part-time jobs, volunteer work, academic projects, and extracurriculars rather than full-time professional experience.
+      CONTEXT: This is a UNIVERSITY APPLICANT (prospective student or transfer student) - expect internships, part-time jobs, volunteer work, academic projects, research positions, and extracurriculars rather than full-time professional experience.
 
-COMPANY/ORGANIZATION EXTRACTION (CRITICAL):
-Extract the organization name for EACH position listed (internships, part-time jobs, volunteer organizations, research labs, etc).
-Return company_names as an array.
+      COMPANY/ORGANIZATION EXTRACTION (CRITICAL):
+      Extract the organization name for EACH position listed (internships, part-time jobs, volunteer organizations, research labs, schools, etc).
+      Return company_names as an array.
 
-CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
+      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
 
-STUDENT-CALIBRATED SCORING RUBRIC:
-OVERALL LEGITIMACY SCORE (0-100):
-90-100: Outstanding student. Verifiable internships at recognized companies, specific project outcomes, leadership roles in real organizations, consistent timeline.
-75-89: Strong applicant. Good mix of internships/volunteer work, specific achievements, recognized institutions, logical progression.
-60-74: Solid applicant. Some internships or part-time work, academic projects with details, extracurriculars that can be verified.
-45-59: Average applicant. Limited experience but what's listed seems plausible, mostly academic achievements.
-30-44: Weak/Concerning. Vague claims, unverifiable organizations, inflated responsibilities for student roles.
-<30: High Risk. Fabricated internships, impossible timelines, fake organizations.
+      STUDENT-CALIBRATED SCORING RUBRIC:
+      OVERALL LEGITIMACY SCORE (0-100):
+      90-100: Outstanding student. Verifiable internships at recognized companies, specific project outcomes, leadership roles in real organizations, consistent timeline, strong academic record.
+      75-89: Strong applicant. Good mix of internships/volunteer work, specific achievements, recognized institutions, logical progression.
+      60-74: Solid applicant. Some internships or part-time work, academic projects with details, extracurriculars that can be verified.
+      45-59: Average applicant. Limited experience but what's listed seems plausible, mostly academic achievements.
+      30-44: Weak/Concerning. Vague claims, unverifiable organizations, inflated responsibilities for student roles.
+      <30: High Risk. Fabricated internships, impossible timelines, fake organizations.
 
-IMPORTANT FOR STUDENT EVALUATION:
-- Don't penalize for lack of full-time work experience
-- Value quality internships, research experience, and meaningful volunteer work
-- Academic projects and coursework ARE valid experience for students
-- Leadership in clubs/organizations shows initiative
-- Part-time jobs (retail, food service, etc.) show work ethic - don't dismiss them
-- Gap years or study abroad are normal, not red flags
+      IMPORTANT FOR STUDENT EVALUATION:
+      - Don't penalize for lack of full-time work experience
+      - Value quality internships, research experience, and meaningful volunteer work
+      - Academic projects and coursework ARE valid experience for students
+      - Leadership in clubs/organizations shows initiative
+      - Part-time jobs (retail, food service, etc.) show work ethic - don't dismiss them
+      - Gap years or study abroad are normal, not red flags
+      - Consider community service and extracurricular depth
 
-CATEGORIES TO SCORE:
-1. Consistency (timeline, dates, logical progression through education)
-2. Experience (internships, part-time work, volunteer, research - calibrated for student level)
-3. Education (institution verification, GPA claims, honors, relevant coursework)
-4. Skills/Extracurriculars (clubs, sports, certifications, projects)
+      CATEGORIES TO SCORE (provide DETAILED, THOROUGH analysis for each - at least 3-4 sentences per category):
 
-NEXT STEPS: 5-7 verification actions appropriate for student applicants
-INTERVIEW QUESTIONS: 7-10 questions suited for student/recent grad interviews`
+      1. TIMELINE & PROGRESSION (consistency_score, consistency_details):
+      - Evaluate the logical flow from high school through current education
+      - Check for realistic timelines between schools, activities, and positions
+      - Assess progression in responsibilities and leadership roles over time
+      - Look for gaps or overlaps that need explanation
+      - Consider study abroad, gap years as normal parts of student journeys
+
+      2. EXPERIENCE & ACTIVITIES (experience_verification, experience_details):
+      - Evaluate internships: Are they at real companies? Are responsibilities appropriate for intern level?
+      - Assess research positions: Are the labs/professors verifiable? Are claimed contributions realistic?
+      - Review volunteer work: Are the organizations real? Are hours/impact claims reasonable?
+      - Consider part-time employment: Shows work ethic and time management
+      - Look for specific, measurable outcomes vs. vague descriptions
+
+      3. ACADEMIC BACKGROUND (education_verification, education_details):
+      - Verify institution recognition and accreditation
+      - Assess GPA claims against typical distributions
+      - Evaluate honors, awards, and academic achievements
+      - Check relevance and rigor of coursework mentioned
+      - Consider test scores, AP/IB courses, academic competitions
+
+      4. SKILLS & LEADERSHIP (skills_alignment, skills_details):
+      - Evaluate club memberships and leadership positions
+      - Assess sports, arts, or other extracurricular commitments
+      - Review certifications, technical skills, and languages
+      - Consider community involvement and civic engagement
+      - Look for depth over breadth - sustained commitment vs. resume padding
+
+      BE THOROUGH AND DETAILED in your analysis. Each details field should be 3-5 sentences minimum explaining your assessment.
+
+      NEXT STEPS: 5-7 verification actions appropriate for student applicants (contacting schools, verifying organizations, checking awards)
+      INTERVIEW QUESTIONS: 7-10 questions suited for admissions interviews (about motivations, experiences, goals)`
         : `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
 COMPANY EXTRACTION (CRITICAL):
