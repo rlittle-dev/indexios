@@ -179,33 +179,67 @@ export default function Scan() {
       INTERVIEW QUESTIONS: 7-10 questions suited for admissions interviews (about motivations, experiences, goals)`
         : `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
 
-COMPANY EXTRACTION (CRITICAL):
-Extract the company name for EACH position listed in the work experience section.
-Return company_names as an array.
+        COMPANY EXTRACTION (CRITICAL):
+        Extract the company name for EACH position listed in the work experience section.
+        Return company_names as an array.
 
-CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
+        CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
 
-CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
-- ALWAYS extract exact name/email from resume text
-- Apply IDENTICAL methodology to every resume
-- Score independently before reviewing
-- Use explicit rubric - removes subjectivity
-- Scoring should be 100% reproducible
-- BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
+        CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
+        - ALWAYS extract exact name/email from resume text
+        - Apply IDENTICAL methodology to every resume
+        - Score independently before reviewing
+        - Use explicit rubric - removes subjectivity
+        - Scoring should be 100% reproducible
+        - BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
 
-DETAILED SCORING RUBRIC:
-OVERALL LEGITIMACY SCORE (0-100):
-90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies.
-75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions.
-60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions.
-45-59: Concerning. Generic descriptions dominate, vague claims, gaps/overlaps.
-30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions.
-<30: Critical. Likely fraud - fabricated credentials, impossible timeline.
+        DETAILED SCORING RUBRIC:
+        OVERALL LEGITIMACY SCORE (0-100):
+        90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies.
+        75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions.
+        60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions.
+        45-59: Concerning. Generic descriptions dominate, vague claims, gaps/overlaps.
+        30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions.
+        <30: Critical. Likely fraud - fabricated credentials, impossible timeline.
 
-Provide detailed scores for all 4 categories (consistency, experience, education, skills) with EXTENSIVE justifications.
+        CATEGORIES TO SCORE (provide DETAILED, THOROUGH analysis for each - at least 3-5 sentences per category):
 
-NEXT STEPS: 5-7 verification actions
-INTERVIEW QUESTIONS: 7-10 targeted questions`;
+        1. CONSISTENCY (consistency_score, consistency_details):
+        - Evaluate timeline coherence: Do dates make sense? Any overlapping positions or impossible timelines?
+        - Check for logical career progression: Does the career path make sense for the industry?
+        - Assess role-to-role transitions: Are title jumps reasonable or suspiciously rapid?
+        - Look for gaps in employment and how they might be explained
+        - Verify internal consistency: Do skills mentioned match the roles claimed?
+
+        2. EXPERIENCE VERIFICATION (experience_verification, experience_details):
+        - Evaluate company legitimacy: Are these real, verifiable companies?
+        - Assess role descriptions: Are responsibilities specific or generic copy-paste content?
+        - Check for measurable achievements: Are there concrete metrics, numbers, outcomes?
+        - Compare claimed responsibilities to typical role expectations
+        - Look for evidence of actual impact vs. inflated claims
+
+        3. EDUCATION VERIFICATION (education_verification, education_details):
+        - Verify institution recognition and accreditation status
+        - Assess degree claims against institution offerings
+        - Check graduation dates against career timeline
+        - Evaluate honors, GPA claims, and academic achievements
+        - Look for certifications and their issuing bodies' legitimacy
+
+        4. SKILLS ALIGNMENT (skills_alignment, skills_details):
+        - Compare listed skills against claimed experience
+        - Assess technical skills relevance to roles held
+        - Check for anachronistic skills (technologies that didn't exist during claimed usage)
+        - Evaluate skill depth vs. breadth claims
+        - Look for buzzword stuffing vs. genuine expertise indicators
+
+        BE THOROUGH AND DETAILED in your analysis. Each details field should be 3-5 sentences minimum explaining your assessment with specific examples from the resume.
+
+        RED FLAGS: List specific concerns with evidence from the resume
+        GREEN FLAGS: List positive indicators with evidence from the resume
+        SUMMARY: 2-3 sentence overall assessment
+
+        NEXT STEPS: 5-7 specific verification actions (e.g., "Contact TechCorp HR to verify Senior Developer role 2019-2022")
+        INTERVIEW QUESTIONS: 7-10 targeted questions based on specific resume claims that need probing`;
     
       const analysisSchema = isUniversityMode ? {
           type: "object",
