@@ -207,10 +207,29 @@ Provide detailed scores for all 4 categories (consistency, experience, education
 NEXT STEPS: 5-7 verification actions
 INTERVIEW QUESTIONS: 7-10 targeted questions`;
     
-      const analysis = await base44.integrations.Core.InvokeLLM({
-        prompt: analysisPrompt,
-        file_urls: [file_url],
-        response_json_schema: {
+      const analysisSchema = isUniversityMode ? {
+          type: "object",
+          properties: {
+            candidate_name: { type: "string", description: "Student's full name" },
+            candidate_email: { type: "string", description: "Student's email if found" },
+            overall_score: { type: "number", description: "Overall legitimacy score 0-100" },
+            consistency_score: { type: "number", description: "Timeline & Progression score 0-100" },
+            consistency_details: { type: "string", description: "Detailed 3-5 sentence analysis of timeline, progression through education, gaps, and logical flow" },
+            experience_verification: { type: "number", description: "Experience & Activities score 0-100" },
+            experience_details: { type: "string", description: "Detailed 3-5 sentence analysis of internships, research, volunteer work, and part-time jobs" },
+            education_verification: { type: "number", description: "Academic Background score 0-100" },
+            education_details: { type: "string", description: "Detailed 3-5 sentence analysis of institution, GPA, honors, coursework, and academic achievements" },
+            skills_alignment: { type: "number", description: "Skills & Leadership score 0-100" },
+            skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of clubs, sports, certifications, extracurriculars, and leadership roles" },
+            red_flags: { type: "array", items: { type: "string" }, description: "List of concerns or issues found" },
+            green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators and strengths" },
+            summary: { type: "string", description: "2-3 sentence overall assessment of the applicant" },
+            next_steps: { type: "array", items: { type: "string" }, description: "5-7 verification actions for admissions" },
+            interview_questions: { type: "array", items: { type: "string" }, description: "7-10 questions for admissions interview" },
+            company_names: { type: "array", items: { type: "string" }, description: "All organizations, schools, companies mentioned" }
+          },
+          required: ["overall_score", "consistency_score", "consistency_details", "experience_verification", "experience_details", "education_verification", "education_details", "skills_alignment", "skills_details", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
+        } : {
           type: "object",
           properties: {
             candidate_name: { type: "string" },
@@ -232,7 +251,12 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
             company_names: { type: "array", items: { type: "string" } }
           },
           required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
-        }
+        };
+
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: analysisPrompt,
+        file_urls: [file_url],
+        response_json_schema: analysisSchema
       });
         
       let companyNames = analysis.company_names && Array.isArray(analysis.company_names) ? analysis.company_names : [];
