@@ -266,25 +266,25 @@ export default function Scan() {
         } : {
           type: "object",
           properties: {
-            candidate_name: { type: "string" },
-            candidate_email: { type: "string" },
-            overall_score: { type: "number" },
-            consistency_score: { type: "number" },
-            consistency_details: { type: "string" },
-            experience_verification: { type: "number" },
-            experience_details: { type: "string" },
-            education_verification: { type: "number" },
-            education_details: { type: "string" },
-            skills_alignment: { type: "number" },
-            skills_details: { type: "string" },
-            red_flags: { type: "array", items: { type: "string" } },
-            green_flags: { type: "array", items: { type: "string" } },
-            summary: { type: "string" },
-            next_steps: { type: "array", items: { type: "string" } },
-            interview_questions: { type: "array", items: { type: "string" } },
-            company_names: { type: "array", items: { type: "string" } }
+            candidate_name: { type: "string", description: "Candidate's full name" },
+            candidate_email: { type: "string", description: "Candidate's email if found" },
+            overall_score: { type: "number", description: "Overall legitimacy score 0-100" },
+            consistency_score: { type: "number", description: "Consistency score 0-100" },
+            consistency_details: { type: "string", description: "Detailed 3-5 sentence analysis of timeline coherence, career progression, role transitions, and internal consistency" },
+            experience_verification: { type: "number", description: "Experience verification score 0-100" },
+            experience_details: { type: "string", description: "Detailed 3-5 sentence analysis of company legitimacy, role descriptions, measurable achievements, and impact claims" },
+            education_verification: { type: "number", description: "Education verification score 0-100" },
+            education_details: { type: "string", description: "Detailed 3-5 sentence analysis of institution recognition, degree validity, graduation timeline, and certifications" },
+            skills_alignment: { type: "number", description: "Skills alignment score 0-100" },
+            skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of skills vs experience match, technical relevance, and expertise indicators" },
+            red_flags: { type: "array", items: { type: "string" }, description: "List of specific concerns with evidence" },
+            green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators with evidence" },
+            summary: { type: "string", description: "2-3 sentence overall assessment" },
+            next_steps: { type: "array", items: { type: "string" }, description: "5-7 specific verification actions" },
+            interview_questions: { type: "array", items: { type: "string" }, description: "7-10 targeted questions based on resume claims" },
+            company_names: { type: "array", items: { type: "string" }, description: "All company names from work experience" }
           },
-          required: ["overall_score", "consistency_score", "experience_verification", "education_verification", "skills_alignment", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
+          required: ["overall_score", "consistency_score", "consistency_details", "experience_verification", "experience_details", "education_verification", "education_details", "skills_alignment", "skills_details", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
         };
 
       const analysis = await base44.integrations.Core.InvokeLLM({
