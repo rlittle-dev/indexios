@@ -62,7 +62,14 @@ export default function AnalysisCard({ title, score, details, icon: Icon, delay 
           </div>
         </div>
         
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+        {/* Preview text when collapsed */}
+        {details && !isExpanded && (
+          <p className="text-white/50 text-xs mt-3 line-clamp-2 leading-relaxed">
+            {details}
+          </p>
+        )}
+
+        <div className="h-2 bg-white/10 rounded-full overflow-hidden mt-3">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${score}%` }}
