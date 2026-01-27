@@ -561,11 +561,39 @@ INTERVIEW QUESTIONS: 7-10 targeted questions`;
                     <EmploymentVerificationBox companyNames={selectedCandidate.analysis.company_names || []} candidateId={selectedCandidate.id} candidateName={selectedCandidate.name} uniqueCandidateId={selectedCandidate.unique_candidate_id} userTier={user?.subscription_tier || 'free'} />
 
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <AnalysisCard title="Consistency" score={selectedCandidate.analysis.consistency_score || 0} details={selectedCandidate.analysis.consistency_details} icon={User} delay={0} />
-                      <AnalysisCard title={selectedCandidate.analysis.is_university_mode ? "Experience & Activities" : "Experience"} score={selectedCandidate.analysis.experience_verification || 0} details={selectedCandidate.analysis.experience_details} icon={Briefcase} delay={0.1} />
-                      <AnalysisCard title="Education" score={selectedCandidate.analysis.education_verification || 0} details={selectedCandidate.analysis.education_details} icon={GraduationCap} delay={0.2} />
-                      <AnalysisCard title={selectedCandidate.analysis.is_university_mode ? "Skills & Extracurriculars" : "Skills Alignment"} score={selectedCandidate.analysis.skills_alignment || 0} details={selectedCandidate.analysis.skills_details} icon={Sparkles} delay={0.3} />
-                    </div>
+                        <AnalysisCard 
+                          title={selectedCandidate.analysis.is_university_mode ? "Timeline & Progression" : "Consistency"} 
+                          score={selectedCandidate.analysis.consistency_score || 0} 
+                          details={selectedCandidate.analysis.consistency_details} 
+                          icon={User} 
+                          delay={0}
+                          subtitle={selectedCandidate.analysis.is_university_mode ? "Academic & activity timeline" : undefined}
+                        />
+                        <AnalysisCard 
+                          title={selectedCandidate.analysis.is_university_mode ? "Experience & Activities" : "Experience"} 
+                          score={selectedCandidate.analysis.experience_verification || 0} 
+                          details={selectedCandidate.analysis.experience_details} 
+                          icon={Briefcase} 
+                          delay={0.1}
+                          subtitle={selectedCandidate.analysis.is_university_mode ? "Internships, research, volunteer work" : undefined}
+                        />
+                        <AnalysisCard 
+                          title={selectedCandidate.analysis.is_university_mode ? "Academic Background" : "Education"} 
+                          score={selectedCandidate.analysis.education_verification || 0} 
+                          details={selectedCandidate.analysis.education_details} 
+                          icon={GraduationCap} 
+                          delay={0.2}
+                          subtitle={selectedCandidate.analysis.is_university_mode ? "GPA, coursework, honors" : undefined}
+                        />
+                        <AnalysisCard 
+                          title={selectedCandidate.analysis.is_university_mode ? "Skills & Leadership" : "Skills Alignment"} 
+                          score={selectedCandidate.analysis.skills_alignment || 0} 
+                          details={selectedCandidate.analysis.skills_details} 
+                          icon={Sparkles} 
+                          delay={0.3}
+                          subtitle={selectedCandidate.analysis.is_university_mode ? "Clubs, sports, certifications" : undefined}
+                        />
+                      </div>
 
                     <FlagsList redFlags={selectedCandidate.analysis.red_flags || []} greenFlags={selectedCandidate.analysis.green_flags || []} />
                     <NextSteps nextSteps={selectedCandidate.analysis.next_steps} interviewQuestions={selectedCandidate.analysis.interview_questions} />
