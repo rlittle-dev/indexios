@@ -64,11 +64,8 @@ const FloatingParticles = () => (
 );
 
 const TIERS = [
-  { tier: 'free', name: 'Free', price: 0, scans: 1, features: ['1 resume upload', 'Employer extraction', 'Timeline overlap detection'] },
-  { tier: 'starter', name: 'Starter', price: 29, scans: 50, popular: true, features: ['All Free features', '50 uploads/month', 'Web evidence search', 'Scan history', 'Share & download'] },
-  { tier: 'professional', name: 'Professional', price: 99, scans: 200, features: ['All Starter features', '200 uploads/month', '15 phone verifications/mo', 'Email verifications', 'API access'] },
-  { tier: 'corporate', name: 'Corporate', price: 299, scans: 1000, features: ['All Pro features', '1000 uploads/month', '100 verifications/mo', 'Team collaboration', 'Blockchain attestations'] },
-  { tier: 'enterprise', name: 'Enterprise', price: null, scans: 'Custom', features: ['All Corporate features', 'Unlimited uploads', 'Unlimited verifications', 'Custom integrations', 'SLA & priority support'], contact: true }
+  { tier: 'personal', name: 'Personal', price: 30, scans: 25, popular: true, features: ['25 verifications/month', 'Web evidence search', 'Phone & email verification', 'Blockchain attestations', 'Scan history'] },
+  { tier: 'enterprise', name: 'Enterprise', price: null, scans: 'Custom', features: ['Unlimited verifications', 'Custom integrations', 'Priority support', 'Dedicated account manager', 'SLA guarantee'], contact: true }
 ];
 
 const FAQS = [
