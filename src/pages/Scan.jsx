@@ -408,26 +408,41 @@ Be thorough in extracting ALL employers listed.`,
                       <div className="w-2 h-2 rounded-full bg-emerald-400" />
                       <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Resume Processed</span>
                     </div>
+                    <span className="text-[10px] font-mono text-white/40">
+                      {selectedCandidate.id?.startsWith('temp-') ? 'anonymous' : selectedCandidate.id?.slice(0, 8)}
+                    </span>
                   </div>
                   <div className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-white/60" />
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-white/60" />
                       </div>
                       <div className="flex-1">
-                        <h2 className="text-xl font-medium text-white">{selectedCandidate.name}</h2>
-                        {selectedCandidate.email && <p className="text-white/40 text-sm">{selectedCandidate.email}</p>}
-                        <div className="flex items-center gap-2 mt-2">
+                        <h2 className="text-2xl font-medium text-white">{selectedCandidate.name}</h2>
+                        {selectedCandidate.email && <p className="text-white/40 text-sm mt-1">{selectedCandidate.email}</p>}
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
                           <Badge className="bg-blue-500/20 text-blue-300 border-0">
                             <Building2 className="w-3 h-3 mr-1" />
-                            {selectedCandidate.analysis?.company_names?.length || 0} Employers Found
+                            {selectedCandidate.analysis?.company_names?.length || 0} Employers
                           </Badge>
-                          {selectedCandidate.resume_url && (
-                            <a href={selectedCandidate.resume_url} target="_blank" rel="noopener noreferrer" className="text-purple-400/80 hover:text-purple-400 text-xs flex items-center gap-1">
-                              <ExternalLink className="w-3 h-3" /> View Resume
-                            </a>
+                          {verificationResults && (
+                            <Badge className="bg-emerald-500/20 text-emerald-300 border-0">
+                              <Search className="w-3 h-3 mr-1" />
+                              {Object.values(verificationResults).filter(r => r.sources?.length > 0).length} with Evidence
+                            </Badge>
+                          )}
+                          {Object.keys(existingAttestations).length > 0 && (
+                            <Badge className="bg-purple-500/20 text-purple-300 border-0">
+                              <Link2 className="w-3 h-3 mr-1" />
+                              {Object.keys(existingAttestations).length} Verified
+                            </Badge>
                           )}
                         </div>
+                        {selectedCandidate.resume_url && (
+                          <a href={selectedCandidate.resume_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-3 text-purple-400/80 hover:text-purple-400 text-sm transition-colors">
+                            <ExternalLink className="w-3.5 h-3.5" /> View Original Resume
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -536,20 +551,27 @@ Be thorough in extracting ALL employers listed.`,
                           {/* Verification Status Badges */}
                           <div className="flex flex-wrap gap-2 mb-3">
                             {manual && (
-                              <Badge className="bg-emerald-900/60 text-emerald-200 border border-emerald-700">
-                                <CheckCircle className="w-3 h-3 mr-1" /> Employer Verified
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-emerald-900/60 text-emerald-200 border border-emerald-700">
+                                  <CheckCircle className="w-3 h-3 mr-1" /> Employer Verified
+                                </Badge>
                                 {manual.attestation_uid && <OnChainBadge attestationUID={manual.attestation_uid} status="YES" />}
-                              </Badge>
+                              </div>
                             )}
                             {attestation && (
-                              <Badge className={
-                                attestation.result === 'YES' ? 'bg-green-900/40 text-green-300' :
-                                attestation.result === 'NO' ? 'bg-red-900/40 text-red-300' :
-                                'bg-yellow-900/40 text-yellow-300'
-                              }>
-                                <Phone className="w-3 h-3 mr-1" /> Call: {attestation.result}
+                              <div className="flex items-center gap-2">
+                                <Badge className={
+                                  attestation.result === 'YES' ? 'bg-green-900/40 text-green-300' :
+                                  attestation.result === 'NO' ? 'bg-red-900/40 text-red-300' :
+                                  'bg-yellow-900/40 text-yellow-300'
+                                }>
+                                  <Phone className="w-3 h-3 mr-1" /> 
+                                  {attestation.result === 'YES' ? 'Phone Verified' : 
+                                   attestation.result === 'NO' ? 'Denied' : 
+                                   attestation.result.replace(/_/g, ' ')}
+                                </Badge>
                                 {attestation.hasAttestation && <OnChainBadge attestationUID={attestation.attestationUID} status={attestation.result} />}
-                              </Badge>
+                              </div>
                             )}
                             {callResult && !attestation && (
                               <Badge className={
@@ -557,20 +579,54 @@ Be thorough in extracting ALL employers listed.`,
                                 callResult.result === 'NO' ? 'bg-red-900/40 text-red-300' :
                                 'bg-yellow-900/40 text-yellow-300'
                               }>
-                                <Phone className="w-3 h-3 mr-1" /> {callResult.result}
+                                <Phone className="w-3 h-3 mr-1" /> 
+                                {callResult.result === 'YES' ? 'Phone Verified' : 
+                                 callResult.result === 'NO' ? 'Denied' : 
+                                 callResult.result.replace(/_/g, ' ')}
                               </Badge>
                             )}
                             {emailStatus && emailStatus.status !== 'not_sent' && (
-                              <Badge className={
-                                emailStatus.status === 'yes' ? 'bg-green-900/40 text-green-300' :
-                                emailStatus.status === 'pending' ? 'bg-blue-900/40 text-blue-300' :
-                                'bg-yellow-900/40 text-yellow-300'
-                              }>
-                                <Mail className="w-3 h-3 mr-1" /> {emailStatus.status === 'pending' ? 'Awaiting Response' : `Email: ${emailStatus.status}`}
+                              <div className="flex items-center gap-2">
+                                <Badge className={
+                                  emailStatus.status === 'yes' ? 'bg-green-900/40 text-green-300' :
+                                  emailStatus.status === 'pending' ? 'bg-blue-900/40 text-blue-300' :
+                                  'bg-yellow-900/40 text-yellow-300'
+                                }>
+                                  <Mail className="w-3 h-3 mr-1" /> 
+                                  {emailStatus.status === 'pending' ? 'Email Pending' : 
+                                   emailStatus.status === 'yes' ? 'Email Verified' :
+                                   `Email: ${emailStatus.status.replace(/_/g, ' ')}`}
+                                </Badge>
                                 {emailStatus.hasAttestation && <OnChainBadge attestationUID={emailStatus.attestationUID} status={emailStatus.status.toUpperCase()} />}
-                              </Badge>
+                              </div>
                             )}
                           </div>
+
+                          {/* Attestation Details Box */}
+                          {(manual || (attestation?.hasAttestation) || (emailStatus?.hasAttestation)) && (
+                            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Link2 className="w-4 h-4 text-blue-400" />
+                                <span className="text-blue-300 text-xs font-medium">On-Chain Attestation</span>
+                              </div>
+                              <div className="space-y-1 text-xs font-mono">
+                                <div className="flex justify-between">
+                                  <span className="text-white/40">UID</span>
+                                  <span className="text-white/70">{(manual?.attestation_uid || attestation?.attestationUID || emailStatus?.attestationUID)?.slice(0, 10)}...</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/40">Status</span>
+                                  <span className={manual ? 'text-emerald-400' : attestation?.result === 'YES' || emailStatus?.status === 'yes' ? 'text-emerald-400' : 'text-yellow-400'}>
+                                    {manual ? 'VERIFIED' : attestation?.result || emailStatus?.status?.toUpperCase()}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/40">Network</span>
+                                  <span className="text-white/70">Base Sepolia</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Evidence View Button */}
                           {hasEvidence && (
@@ -584,33 +640,51 @@ Be thorough in extracting ALL employers listed.`,
                             </Button>
                           )}
 
-                          {/* Action Buttons - Only if no manual attestation */}
-                          {!manual && result && (hasPhone || hasEmail) && (
-                            <div className="flex flex-wrap gap-2 pt-3 border-t border-white/[0.06]">
-                              {hasPhone && !attestation && !callResult && (
-                                <Button
-                                  onClick={() => handleCallCompany(company, result.phone.number)}
-                                  disabled={isCalling || !selectedCandidate.unique_candidate_id}
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-500 text-white text-xs rounded-full"
-                                >
-                                  {isCalling ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Calling...</> : <><PhoneCall className="w-3 h-3 mr-1" /> Call HR</>}
-                                </Button>
-                              )}
-                              {hasEmail && !emailStatus && (
-                                <Button
-                                  onClick={() => handleEmailCompany(company, result.email.address)}
-                                  disabled={emailingCompany === company || !selectedCandidate.unique_candidate_id}
-                                  size="sm"
-                                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-full"
-                                >
-                                  {emailingCompany === company ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Sending...</> : <><Send className="w-3 h-3 mr-1" /> Email HR</>}
-                                </Button>
-                              )}
-                              {hasPhone && (
-                                <span className="text-white/40 text-xs flex items-center gap-1">
-                                  <Phone className="w-3 h-3" /> {result.phone.number}
-                                </span>
+                          {/* HR Contact Info & Action Buttons */}
+                          {result && (hasPhone || hasEmail) && (
+                            <div className="pt-3 border-t border-white/[0.06] space-y-3">
+                              {/* Contact Info */}
+                              <div className="space-y-2">
+                                {hasPhone && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Phone className="w-3 h-3 text-green-400" />
+                                    <span className="text-green-300">{result.phone.number}</span>
+                                    {result.phone.notes && <span className="text-white/40">• {result.phone.notes}</span>}
+                                  </div>
+                                )}
+                                {hasEmail && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Mail className="w-3 h-3 text-blue-400" />
+                                    <span className="text-blue-300">{result.email.address}</span>
+                                    {result.email.notes && <span className="text-white/40">• {result.email.notes}</span>}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Action Buttons - Only if no manual attestation */}
+                              {!manual && (
+                                <div className="flex flex-wrap gap-2">
+                                  {hasPhone && !attestation && !callResult && (
+                                    <Button
+                                      onClick={() => handleCallCompany(company, result.phone.number)}
+                                      disabled={isCalling || !selectedCandidate.unique_candidate_id}
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-500 text-white text-xs rounded-full"
+                                    >
+                                      {isCalling ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Calling...</> : <><PhoneCall className="w-3 h-3 mr-1" /> Call HR</>}
+                                    </Button>
+                                  )}
+                                  {hasEmail && !emailStatus && (
+                                    <Button
+                                      onClick={() => handleEmailCompany(company, result.email.address)}
+                                      disabled={emailingCompany === company || !selectedCandidate.unique_candidate_id}
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-full"
+                                    >
+                                      {emailingCompany === company ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Sending...</> : <><Send className="w-3 h-3 mr-1" /> Email HR</>}
+                                    </Button>
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
