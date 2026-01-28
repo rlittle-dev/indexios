@@ -374,12 +374,18 @@ Be thorough in extracting ALL employers listed.`,
                         </div>
                         <p className="text-white/70 mb-2">Drag and drop your resume here</p>
                         <p className="text-white/40 text-sm mb-6">or</p>
-                        <label>
-                          <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
-                          <Button className="bg-white hover:bg-white/90 text-black font-medium rounded-full px-8 cursor-pointer">
-                            <FileText className="w-4 h-4 mr-2" />
+                        <label htmlFor="resume-upload" className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            id="resume-upload"
+                            accept=".pdf" 
+                            onChange={handleFileChange} 
+                            className="sr-only" 
+                          />
+                          <span className="inline-flex items-center gap-2 bg-white hover:bg-white/90 text-black font-medium rounded-full px-8 py-2.5 cursor-pointer transition-colors">
+                            <FileText className="w-4 h-4" />
                             Select PDF
-                          </Button>
+                          </span>
                         </label>
                       </>
                     )}
