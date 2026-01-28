@@ -18,46 +18,51 @@ const DOCS_SECTIONS = [
         title: 'Introduction to Indexios',
         content: `# Introduction to Indexios
 
-Indexios is a comprehensive resume verification and employment background check platform designed for modern hiring teams. We combine AI-powered analysis with automated phone verification and blockchain attestations to provide the most thorough resume verification available.
+Indexios is a comprehensive employment verification platform designed for modern hiring teams. We combine AI-powered employer extraction with automated phone/email verification and blockchain attestations to provide the most thorough employment verification available.
 
 ## What Indexios Does
 
-Indexios provides a complete suite of tools for verifying candidate credentials:
+Indexios provides a complete suite of tools for verifying candidate employment:
 
-- **AI-Powered Resume Analysis**: Our advanced AI examines every resume for consistency, accuracy, and potential fraud indicators. We analyze timeline logic, achievement claims, education credentials, and skills alignment.
+- **Employer Extraction**: Upload any resume and our AI instantly extracts all employers listed, detecting timeline overlaps and preparing verification targets.
+
+- **Web Evidence Search**: Our system searches the web for public evidence of the candidate's employment at each company (LinkedIn mentions, press releases, company pages, etc.).
 
 - **Automated Phone Verification**: Our AI agents call HR departments directly to verify employment history. These calls confirm employment dates, titles, and gather information about company verification policies.
 
-- **Blockchain Attestations**: When employment is verified, we create an immutable record on the Base blockchain. This creates a portable, verifiable credential that candidates can share with future employers.
+- **Email Verification**: For international employers or when phone isn't available, we send verification requests to HR departments via email.
 
-- **Actionable Insights**: Beyond just scores, we provide specific interview questions to ask, next steps to take, and red flags to investigate.
+- **Blockchain Attestations**: When employment is verified, we create an immutable record on the Base blockchain. This creates a portable, verifiable credential that candidates can share with future employers.
 
 ## The Verification Process
 
-When you upload a resume, Indexios performs the following analysis:
+When you upload a resume, Indexios performs the following:
 
 **1. Document Parsing**
-We extract all relevant information from the resume including employment history, education, skills, and contact information.
+We extract all relevant information from the resume including employment history, dates, and contact information.
 
-**2. Timeline Analysis**
-We map out the complete employment timeline, looking for gaps, overlaps, and logical progression patterns.
+**2. Employer Extraction**
+We identify all companies listed and prepare them for verification.
 
-**3. Credential Verification**
-We cross-reference education claims against known institutions and verify the logical connection between degrees and career paths.
+**3. Timeline Analysis**
+We detect any overlapping employment periods (working at multiple companies simultaneously), which is a common red flag.
 
-**4. Achievement Scoring**
-We evaluate each claimed achievement for specificity, measurability, and appropriateness for the role level.
+**4. Web Evidence Search**
+We search for public evidence of the candidate's employment at each company.
 
-**5. Score Calculation**
-Based on all factors, we calculate component scores and an overall legitimacy score from 0-100.
+**5. Direct Verification**
+Via phone calls to HR or email verification requests, we confirm employment directly with employers.
+
+**6. Blockchain Attestation**
+Verified employment is recorded on-chain as a tamper-proof credential.
 
 ## Who Uses Indexios
 
-- **HR Teams**: Streamline candidate screening with instant verification
-- **Universities**: Screen applicants and verify academic credentials, work experience, and extracurricular claims
+- **HR Teams**: Streamline candidate verification with automated phone/email verification
+- **Universities**: Screen applicants and verify work experience claims
 - **Staffing Agencies**: Verify candidates at scale before placement
 - **Compliance Teams**: Maintain audit trails for regulatory requirements
-- **Hiring Managers**: Make confident final decisions with complete information
+- **Hiring Managers**: Make confident final decisions with verified employment history
 
 ## Platform Architecture
 
@@ -67,88 +72,78 @@ Indexios is built on a modern, secure architecture:
 - **Backend**: Serverless functions for scalability
 - **Database**: Encrypted at rest and in transit
 - **Blockchain**: Base network for attestations
-- **AI**: Latest language models for analysis`
+- **AI**: Latest language models for analysis and phone calls`
       },
       {
         id: 'quick-start',
         title: 'Quick Start Guide',
         content: `# Quick Start Guide
 
-Get started with Indexios in under 2 minutes. This guide walks you through your first resume scan.
+Get started with Indexios in under 2 minutes. This guide walks you through your first employment verification.
 
 ## Step 1: Upload a Resume
 
 1. Navigate to the **Scan** page
-2. Choose your scanning mode:
-   - **Professional**: For candidates with work experience (default)
-   - **University Applicant**: For students and recent graduates - uses adjusted scoring that values internships, research, volunteer work, and extracurriculars
-3. Drag and drop a PDF resume onto the upload zone, or click to browse files
-4. Supported formats: PDF (recommended), DOC, DOCX
+2. Drag and drop a PDF resume onto the upload zone, or click to browse files
+3. Supported format: PDF
 
 > **Tip**: For best results, upload resumes in PDF format. This preserves formatting and ensures accurate parsing.
 
-## Step 2: Wait for Analysis
+## Step 2: Review Extracted Data
 
-Our AI analyzes the resume in approximately 15-30 seconds. During this time, we:
+Our AI processes the resume in approximately 15-30 seconds. During this time, we:
 
 - Extract all text and structured data
-- Parse employment history and education
-- Analyze timeline consistency
-- Evaluate achievement claims
-- Calculate verification scores
-
-You'll see a loading indicator while analysis is in progress.
+- Identify all employers listed
+- Detect any timeline overlaps (employment at multiple companies simultaneously)
+- Prepare employers for verification
 
 ## Step 3: Review Results
 
-Once analysis is complete, you'll receive a comprehensive report:
+Once processing is complete, you'll see:
 
-### Legitimacy Score (0-100)
+### Candidate Information
+- Name and email extracted from the resume
+- Number of employers found
+- Link to view the original resume
 
-This is your primary indicator of resume trustworthiness:
+### Timeline Issues (Red Flags)
+If we detect overlapping employment periods, they'll be highlighted as potential red flags requiring investigation.
 
-| Score Range | Meaning |
-|-------------|---------|
-| 90-100 | Exceptional - highly verifiable with specific achievements |
-| 75-89 | Strong - mostly verifiable with minor gaps |
-| 60-74 | Acceptable - some concerns but generally credible |
-| 45-59 | Concerning - multiple red flags present |
-| 30-44 | High Risk - significant verification issues |
-| Below 30 | Critical - likely fraudulent claims |
+### Employer List
+All employers extracted from the resume, ready for verification.
 
-### Component Scores
+## Step 4: Run Employment Verification
 
-Each resume receives four component scores:
+Click **"Run Verification"** to search for web evidence of employment at each company. This searches for:
 
-1. **Consistency Score**: Timeline logic, gaps, and progression
-2. **Experience Score**: Achievement specificity and appropriateness
-3. **Education Score**: Credential verification and relevance
-4. **Skills Score**: Skill-role alignment and progression
+- LinkedIn mentions
+- Press releases
+- Company websites
+- News articles
+- Other public sources
 
-### Flags
+Results show how many evidence sources were found for each employer.
 
-- **Red Flags** 🚩: Issues requiring investigation
-- **Green Flags** ✅: Verified strengths and positives
+## Step 5: Direct Verification (Optional)
 
-## Step 4: Verify Employment (Optional)
+For employers where we found HR contact information:
 
-For Professional and Enterprise users:
+- **Call HR**: Our AI calls the company to verify employment directly
+- **Email HR**: Send a verification request via email
 
-1. Click "Run Verification" on the Employment Verification box
-2. Select employers to verify
-3. Choose verification method (phone or email)
-4. Results appear within 24-48 hours
+Verification results are recorded and can create blockchain attestations.
 
-## Step 5: Save or Share
+## Step 6: Save or Share
 
-- **Download**: Export a text report for your records
+- **Download**: Export results for your records
 - **Share**: Generate a shareable link for team members
 - **Save**: Store candidates in folders for organization
 
 ## Next Steps
 
-- [Understanding Legitimacy Scores](/docs/legitimacy-score)
 - [Employment Verification](/docs/phone-verification)
+- [Blockchain Attestations](/docs/blockchain-attestations)
 - [API Integration](/docs/api-authentication)`
       },
       {
@@ -206,14 +201,12 @@ Enterprise users can create collaborative teams:
 
 | Plan | Team Members |
 |------|--------------|
-| Free | None |
-| Starter | None |
-| Professional | None |
-| Enterprise | Up to 5 |
+| Personal | None |
+| Enterprise | Custom |
 
-Contact sales for larger team requirements.
+Contact sales for team requirements.
 
-## API Access (Professional+)
+## API Access (Enterprise)
 
 Generate API keys for programmatic access:
 
@@ -303,556 +296,162 @@ When submitting your resume:
   },
   {
     id: 'resume-analysis',
-    title: 'Resume Analysis',
+    title: 'Resume Processing',
     icon: FileText,
     articles: [
       {
-        id: 'legitimacy-score',
-        title: 'Understanding Legitimacy Scores',
-        content: `# Understanding Legitimacy Scores
+        id: 'employer-extraction',
+        title: 'Employer Extraction',
+        content: `# Employer Extraction
 
-The legitimacy score is Indexios's primary metric for resume verification. This comprehensive score reflects our AI's assessment of the resume's overall trustworthiness.
+When you upload a resume, Indexios automatically extracts all employers listed and prepares them for verification.
 
-## Score Calculation
+## What We Extract
 
-The legitimacy score (0-100) is calculated from four equally-weighted components:
+### Company Information
+- Company/organization names
+- Employment dates (start and end)
+- Job titles held
 
-\`\`\`
-Legitimacy Score = (Consistency + Experience + Education + Skills) / 4
-\`\`\`
+### Candidate Information
+- Full name
+- Email address (if present)
+- Contact information
 
-Each component contributes 25% to the final score.
+## Timeline Overlap Detection
 
-## Score Ranges Explained
+One of the key features of our extraction is detecting **employment overlaps** - periods where a candidate claims to have worked at multiple companies simultaneously.
 
-### 90-100: Exceptional
-Resumes in this range demonstrate:
-- Multiple specific achievements with metrics
-- Clear, logical career progression
-- Elite or easily verified institutions
-- Zero timeline inconsistencies
-- Rich detail throughout
+### Why Overlaps Matter
 
-**Hiring recommendation**: Strong candidate, proceed with confidence.
+Overlapping full-time positions at different companies are a significant red flag:
+- Physically impossible to work 2 full-time jobs
+- May indicate resume fabrication
+- Could suggest inflated experience
 
-### 75-89: Strong
-These resumes show:
-- Specific achievements with some metrics
-- Logical progression
-- Recognized institutions
-- Minor gaps (<1 month) if any
-- Generally detailed descriptions
+### Exceptions
 
-**Hiring recommendation**: Good candidate, verify key claims.
+Some overlaps are legitimate:
+- Part-time work alongside full-time employment
+- Consulting/freelance alongside employment
+- Very short transition periods (1-2 weeks)
 
-### 60-74: Acceptable
-Characteristics include:
-- Some specific details
-- Mostly logical progression
-- Identifiable institutions
-- Minor timeline issues
-- Credible but not exceptional
+### How We Report Overlaps
 
-**Hiring recommendation**: Proceed with additional verification.
+When detected, overlaps are highlighted in the results with:
+- The companies involved
+- The overlap period
+- Severity indicator (minor vs. significant)
 
-### 45-59: Concerning
-Red flags present:
-- Generic descriptions dominate
-- Vague achievement claims
-- Unverifiable companies
-- Gaps or overlaps present
-- Multiple inconsistencies
+## Accuracy
 
-**Hiring recommendation**: Significant verification required.
-
-### 30-44: High Risk
-Serious issues:
-- Multiple red flags
-- Inflated claims evident
-- Unverifiable institutions
-- Major timeline issues
-- Poor narrative coherence
-
-**Hiring recommendation**: Consider other candidates.
-
-### Below 30: Critical
-Likely fraudulent:
-- Fabricated credentials apparent
-- Impossible timeline
-- Severe inconsistencies
-- Non-existent institutions
-- Contradictory information
-
-**Hiring recommendation**: Do not proceed.
-
-## Important Context
-
-### University Applicant Mode
-For students and recent graduates, use the **University Applicant** toggle on the Scan page. This mode:
-- Calibrates scoring for limited professional experience
-- Values internships, research positions, and volunteer work
-- Considers academic projects and coursework as valid experience
-- Recognizes extracurricular leadership
-- Won't penalize for lack of full-time employment
-
-Typical student scores range from 55-80, reflecting their career stage rather than concerns about legitimacy.
-
-### Early-Career Candidates
-Candidates with less than 3 years of experience naturally score lower (typically 50-65) in Professional mode. This reflects limited track record, not fraud. Consider using University Applicant mode or evaluate trajectory and potential.
-
-### Industry Variations
-Some industries have fewer verifiable metrics. Adjust expectations for:
-- Creative roles
-- Startups (may not be verifiable)
-- International experience
-
-### Score Evolution
-Scores can improve with:
-- Phone verification
-- Blockchain attestations
-- Additional documentation`
+Our extraction is highly accurate for standard resume formats. Best results come from:
+- PDF format
+- Clear employment section
+- Explicit dates (month/year format)
+- Company names spelled correctly`
       },
       {
-        id: 'consistency-analysis',
-        title: 'Consistency Analysis',
-        content: `# Consistency Analysis
+        id: 'web-evidence',
+        title: 'Web Evidence Search',
+        content: `# Web Evidence Search
 
-The consistency score evaluates the logical coherence of the resume's timeline and career narrative.
+After extracting employers from a resume, you can run a web evidence search to find public mentions of the candidate's employment.
 
-## What We Analyze
+## What We Search For
 
-### Employment Timeline
-We map every position with exact dates:
-- Start and end dates for each role
-- Gaps between positions
-- Overlapping employment periods
-- Total career duration
+### LinkedIn Evidence
+- Profile mentions of the candidate at the company
+- Company page references
+- Colleague connections
 
-### Career Progression
-We evaluate the logical flow:
-- Title progression (Junior → Senior)
-- Responsibility growth
-- Industry transitions
-- Role coherence
+### Press & Media
+- Press releases mentioning the employee
+- News articles
+- Industry publications
 
-### Education-to-Work Alignment
-We verify:
-- Graduation date precedes first job
-- Degree relevance to career
-- Reasonable timeline for education
+### Company Sources
+- Company websites (team pages, about us)
+- Blog posts authored by the candidate
+- Project credits
 
-## Scoring Criteria
+### Other Sources
+- GitHub profiles and contributions
+- Conference speaker bios
+- Academic publications
 
-### 90-100: Perfect Alignment
-- Precise dates with no ambiguity
-- No gaps or overlaps
-- Clear logical transitions
-- Education aligns perfectly
+## Understanding Results
 
-### 75-89: Very Good
-- Gaps < 1 month (explained or contextual)
-- Consistent narrative
-- No role overlaps
-- Minor date imprecision acceptable
+### Evidence Found
+When we find evidence, you'll see:
+- Number of sources found
+- Type of evidence (LinkedIn, press, etc.)
+- Link to the source
+- Relevant excerpt
 
-### 60-74: Acceptable
-- Gaps 1-3 months present
-- Mostly logical transitions
-- No major conflicts
+### No Evidence Found
+Lack of evidence doesn't necessarily mean fraud:
+- Small companies may have limited online presence
+- Some industries are less public
+- Older employment may not have digital footprint
 
-### 45-59: Problematic
-- Gaps 3-6 months
-- Role overlaps exist
-- Narrative jumps unexplained
+## HR Contact Discovery
 
-### 30-44: Serious Issues
-- Major gaps > 6 months
-- Significant overlaps
-- Education/employment conflicts
+During web evidence search, we also attempt to find HR contact information:
+- HR department phone numbers
+- HR email addresses
+- Employment verification contacts
 
-### Below 30: Critical
-- Impossible timeline
-- Severe overlaps
-- Clear fabrication indicators
-
-## Common Red Flags
-
-### Employment Gaps
-| Gap Length | Severity | Notes |
-|------------|----------|-------|
-| < 1 month | Low | Common for job transitions |
-| 1-3 months | Medium | Worth asking about |
-| 3-6 months | High | Requires explanation |
-| > 6 months | Critical | Major red flag |
-
-### Overlapping Employment
-Simultaneous full-time positions at different companies are almost always a red flag. Exceptions:
-- Part-time/consulting alongside full-time
-- Transition periods (1-2 weeks)
-- Freelance alongside employment
-
-### Timeline Impossibilities
-- Starting work before graduation
-- Tenure longer than company existed
-- Future dates
-- Ages that don't match timeline`
+This enables direct verification via phone or email.`
       },
       {
-        id: 'experience-verification',
-        title: 'Experience Verification',
-        content: `# Experience Verification
+        id: 'red-flags',
+        title: 'Red Flags',
+        content: `# Red Flags
 
-The experience score evaluates the credibility and verifiability of claimed work experience and achievements.
+Indexios identifies potential red flags during resume processing to help you focus your verification efforts.
 
-## What We Evaluate
+## Timeline Red Flags 🚩
 
-### Achievement Specificity
-We look for concrete, measurable claims:
-- "Increased sales by 35%" vs "Improved sales"
-- "$5M budget managed" vs "Large budget"
-- "Team of 12 engineers" vs "Large team"
+### Employment Overlaps
+The primary red flag we detect is **overlapping employment periods**:
 
-### Role Appropriateness
-We verify achievements match role level:
-- Junior roles shouldn't claim executive decisions
-- Entry-level shouldn't show team leadership
-- Claims should match tenure length
+| Overlap Type | Severity | Notes |
+|--------------|----------|-------|
+| 1-2 weeks | Minor | Likely transition period |
+| 2-4 weeks | Medium | Worth asking about |
+| 1+ months | High | Significant concern |
+| 3+ months | Critical | Major red flag |
 
-### Verifiable Employers
-We assess company legitimacy:
-- Known companies = higher score
-- Startup/unknown = neutral (requires context)
-- Suspicious/non-existent = major red flag
+### What Overlaps Indicate
 
-## Scoring Breakdown
+- **Potential fabrication**: Adding fake experience
+- **Resume padding**: Extending dates to hide gaps
+- **Copy/paste errors**: Accidental mistakes
 
-### 90-100: Rich, Verifiable Experience
-- Multiple specific metrics
-- Quantified impact throughout
-- Achievements appropriate for level
-- Clear progression of responsibility
+## How to Handle Red Flags
 
-**Examples of strong claims:**
-- "Increased processing speed by 35% handling $50M+ in transactions"
-- "Led team of 5 engineers, shipped 3 major features"
-- "Reduced customer churn from 8% to 3% over 18 months"
+### 1. Don't Auto-Reject
+Red flags warrant investigation, not automatic rejection. There may be legitimate explanations.
 
-### 75-89: Multiple Measurable Results
-- Several quantified achievements
-- Impact clearly described
-- Most claims verifiable
+### 2. Verify Directly
+Use our phone or email verification to confirm employment with the companies in question.
 
-### 60-74: Some Specific Achievements
-- Limited metrics present
-- Basic impact description
-- Mix of specific and generic
+### 3. Ask in Interview
+If you proceed to interview, ask the candidate directly about the overlap. Note their explanation.
 
-### 45-59: Mostly Generic Language
-- "Responsible for..." dominates
-- Minimal quantification
-- Claims questionable for tenure
+### 4. Document Everything
+Keep records of what you found and how the candidate responded for compliance purposes.
 
-**Warning signs:**
-- "Involved in various projects"
-- "Helped improve processes"
-- "Worked on multiple initiatives"
+## Legitimate Explanations
 
-### 30-44: Vague or Inflated
-- No evidence of impact
-- Claims seem inflated
-- Responsibilities unclear
+Some overlaps have valid explanations:
+- **Consulting**: Running a consultancy while employed
+- **Board roles**: Serving on boards part-time
+- **Transition periods**: Brief overlaps during job changes
+- **Part-time work**: Working part-time at multiple places
 
-### Below 30: Fabricated
-- Impossible claims
-- Zero demonstrable impact
-- Obvious exaggeration
-
-## Verification Strategies
-
-### During Interview
-Ask for specifics:
-- "Walk me through how you achieved the 35% improvement"
-- "What was your specific contribution to that project?"
-- "Who else was involved and what were their roles?"
-
-### Reference Checks
-Verify with former colleagues:
-- Confirm role and responsibilities
-- Validate key achievements
-- Assess working relationship`
-      },
-      {
-        id: 'education-verification',
-        title: 'Education Verification',
-        content: `# Education Verification
-
-The education score assesses the credibility of academic credentials and their alignment with the candidate's career.
-
-## What We Verify
-
-### Institution Recognition
-We categorize schools by verifiability:
-
-| Tier | Description | Score Impact |
-|------|-------------|--------------|
-| Elite | Top 50 globally (MIT, Stanford, etc.) | +20 points |
-| Well-Known | Top 200 globally | +10 points |
-| Recognized | Accredited, findable online | Neutral |
-| Lesser-Known | Hard to verify | -10 points |
-| Unverifiable | Cannot confirm existence | -30 points |
-
-### Degree Relevance
-We assess how the degree relates to career:
-- Computer Science → Software Engineer = Strong
-- English Literature → Software Engineer = Weak (unless explained)
-- Unrelated degrees aren't automatic red flags but need context
-
-### Date Alignment
-We verify education timeline:
-- Graduation should precede first relevant job
-- Advanced degrees need appropriate prerequisites
-- Part-time/evening programs acceptable with employment
-
-## Scoring Criteria
-
-### 90-100: Elite, Perfectly Aligned
-- Top 50 institution globally
-- Graduation dates align perfectly
-- Degree directly relevant to career
-- Specific GPA/honors mentioned
-
-### 75-89: Well-Known, Reasonable
-- Top 200 institution
-- Dates reasonable
-- Relevant degree
-- Timeline makes sense
-
-### 60-74: Recognized, Related
-- Accredited institution
-- Dates mostly clear
-- Degree related to career
-- Minor ambiguities
-
-### 45-59: Lesser-Known, Weak Alignment
-- Difficult to verify institution
-- Date ambiguity present
-- Weak degree/career connection
-
-### 30-44: Credential Issues
-- Institution hard to verify
-- Major timeline conflicts
-- Degree relevance questionable
-
-### Below 30: Likely Fabricated
-- Non-existent institution
-- Impossible timeline
-- "Degree mill" indicators
-
-## Red Flags to Watch
-
-### Diploma Mills
-Warning signs:
-- "Life experience" degrees
-- Accreditation from unknown bodies
-- No campus or online presence
-- Suspiciously fast completion
-
-### Timeline Issues
-- Graduating before typical age
-- Multiple full degrees simultaneously
-- Employment during full-time study (unless part-time program)
-
-### Verification Tips
-- Most universities have registrar verification
-- LinkedIn education can be cross-referenced
-- Professional licenses often require degree verification`
-      },
-      {
-        id: 'skills-analysis',
-        title: 'Skills Analysis',
-        content: `# Skills Analysis
-
-The skills score evaluates how well claimed skills align with work history and demonstrate genuine expertise.
-
-## What We Evaluate
-
-### Skill-Role Alignment
-Each skill should appear in the context of work:
-- "Python" should appear with Python-using roles
-- "Leadership" should align with management positions
-- Skills should match industry expectations
-
-### Technology Timeline
-We verify technologies were available when claimed:
-- React in 2010 = Impossible (released 2013)
-- Cloud experience in 2005 = Suspicious
-- Emerging tech too early = Red flag
-
-### Progression Logic
-Skills should develop over career:
-- Junior → Basic technologies
-- Mid → Frameworks and tools
-- Senior → Architecture and leadership
-
-## Scoring Breakdown
-
-### 90-100: Clear Expertise Demonstrated
-- Skill progression through roles
-- Tools match era and industry
-- Depth shown (projects, certs)
-- Clear expertise evident
-
-### 75-89: Skills Align Well
-- Skills match roles
-- Reasonable progression
-- Some depth demonstrated
-
-### 60-74: Basic Alignment
-- Skills mostly match roles
-- Limited progression evidence
-- Adequate for claims made
-
-### 45-59: Weak Connections
-- Skill/role gaps present
-- Missing expected skills
-- Progression unclear
-
-### 30-44: Major Mismatches
-- Skills don't match experience
-- Unexplained expertise claims
-- Technology timeline issues
-
-### Below 30: Contradictory
-- Impossible skill claims
-- Clear expertise fabrication
-- Technology anachronisms
-
-## Technology Verification
-
-### Framework Timeline
-| Technology | Released | Suspicious Before |
-|------------|----------|-------------------|
-| React | 2013 | 2014 |
-| Vue.js | 2014 | 2015 |
-| TypeScript | 2012 | 2014 |
-| Docker | 2013 | 2014 |
-| Kubernetes | 2014 | 2016 |
-| GPT/LLMs | 2020 | 2021 |
-
-### Skill Depth Indicators
-Signs of genuine expertise:
-- Specific version mentions
-- Known limitations acknowledged
-- Integration experience
-- Community contributions
-
-### Certification Verification
-Many certifications are verifiable:
-- AWS certifications have verification codes
-- Google Cloud certifications are public
-- Microsoft certs can be verified online`
-      },
-      {
-        id: 'red-green-flags',
-        title: 'Red Flags & Green Flags',
-        content: `# Red Flags & Green Flags
-
-Flags provide quick, actionable insights into resume strengths and concerns.
-
-## Red Flags 🚩
-
-### Critical Red Flags
-These require immediate attention:
-
-**Timeline Issues**
-- Employment gaps > 3 months unexplained
-- Overlapping full-time positions
-- Dates that don't add up
-- Future dates listed
-
-**Credential Problems**
-- Unverifiable institutions
-- Degrees from diploma mills
-- Credentials that don't exist
-- Impossible timelines
-
-**Content Red Flags**
-- Generic descriptions only
-- No quantified achievements
-- Vague role responsibilities
-- Missing contact information
-
-### Moderate Red Flags
-Worth investigating:
-
-- Short tenure (< 1 year) at multiple jobs
-- Gaps 1-3 months unexplained
-- Skills without supporting experience
-- Lesser-known employers exclusively
-
-### Minor Red Flags
-Note but don't disqualify:
-
-- Small formatting inconsistencies
-- Minor date ambiguity
-- Industry-atypical progression
-
-## Green Flags ✅
-
-### Verified Green Flags
-These are confirmed positive indicators:
-
-**✅ Employment Verified**
-- Phone verification completed
-- HR confirmed employment
-- Dates matched resume
-
-**✅ Blockchain Attestation**
-- On-chain record created
-- Tamper-proof verification
-- Portable credential
-
-### Strong Green Flags
-Highly positive indicators:
-
-- Specific quantified metrics
-- Clear career progression
-- Elite institution credentials
-- Published work or patents
-- Industry certifications (verified)
-- 2+ year tenure consistently
-
-### Positive Indicators
-Good signs:
-
-- Detailed role descriptions
-- Logical skill progression
-- Verifiable employers
-- Professional references listed
-
-## Using Flags Effectively
-
-### In Screening
-1. Review red flags first
-2. Determine severity (critical vs. minor)
-3. Plan verification for concerns
-4. Note green flags as strengths
-
-### In Interviews
-1. Address red flags directly
-2. Ask for context on gaps
-3. Verify green flag claims
-4. Document explanations
-
-### Decision Framework
-
-| Red Flags | Green Flags | Recommendation |
-|-----------|-------------|----------------|
-| None | Multiple | Strong proceed |
-| Minor only | Multiple | Proceed |
-| Moderate | Multiple | Proceed with verification |
-| Critical | Any | Additional scrutiny |
-| Multiple critical | Any | Likely pass |`
+Always give candidates a chance to explain.`
       }
     ]
   },
@@ -932,9 +531,7 @@ Verification in progress:
 
 | Plan | Verifications |
 |------|---------------|
-| Free | None |
-| Starter | None |
-| Professional | 15/month |
+| Personal | 25/month |
 | Enterprise | Unlimited |
 
 ## Best Practices
@@ -1207,7 +804,7 @@ curl -X POST https://api.indexios.me/v1/scan \\
 
 | Plan | Requests/Hour |
 |------|---------------|
-| Professional | 100 |
+| Personal | 100 |
 | Enterprise | 1,000 |
 
 Exceeding limits returns \`429 Too Many Requests\`.
@@ -1534,10 +1131,8 @@ Your team is immediately ready for members.
 
 | Plan | Team Members |
 |------|--------------|
-| Free | None |
-| Starter | None |
-| Professional | None |
-| Enterprise | Up to 5 |
+| Personal | None |
+| Enterprise | Custom |
 
 For larger teams, contact sales.
 
@@ -2020,9 +1615,7 @@ Include:
 
 | Plan | Response Time |
 |------|---------------|
-| Free | 48-72 hours |
-| Starter | 24 hours |
-| Professional | 24 hours |
+| Personal | 24 hours |
 | Enterprise | 4 hours |
 
 ## Before Contacting Support
