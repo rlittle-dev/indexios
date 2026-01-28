@@ -1,35 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, History, User, Briefcase, GraduationCap, Sparkles, ArrowLeft, ExternalLink, Lock, Download, Share2, CheckCircle2, ArrowRight, BookOpen } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Shield, CheckCircle, AlertTriangle, Upload, FileText, Building2, Loader2, ArrowLeft, ExternalLink, Clock, Search, PhoneCall, Play, Eye, Phone, Mail, Send, ChevronDown, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import UploadZone from '@/components/upload/UploadZone';
-import ScoreCircle from '@/components/score/ScoreCircle';
-import AnalysisCard from '@/components/score/AnalysisCard';
-import FlagsList from '@/components/score/FlagsList';
-import CandidateCard from '@/components/candidates/CandidateCard';
-import UpgradePrompt from '@/components/paywall/UpgradePrompt';
-import NextSteps from '@/components/score/NextSteps';
-import EmploymentVerificationBox from '@/components/score/EmploymentVerificationBox';
+import OnChainBadge from '@/components/score/OnChainBadge';
 import { toast } from 'sonner';
-
-const TIER_LIMITS = { free: 1, starter: 50, professional: 200, corporate: 1000, enterprise: 999999 };
 
 export default function Scan() {
   const [currentView, setCurrentView] = useState('upload');
   const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [bulkResults, setBulkResults] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [isUniversityMode, setIsUniversityMode] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   
+  // Verification state
+  const [isRunningVerification, setIsRunningVerification] = useState(false);
+  const [verificationResults, setVerificationResults] = useState(null);
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [callingCompanies, setCallingCompanies] = useState({});
+  const [callResults, setCallResults] = useState({});
+  const [emailingCompany, setEmailingCompany] = useState(null);
+  const [emailResults, setEmailResults] = useState({});
+  const [existingAttestations, setExistingAttestations] = useState({});
+  const [existingEmailStatus, setExistingEmailStatus] = useState({});
+  const [manualAttestations, setManualAttestations] = useState({});
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -40,411 +42,274 @@ export default function Scan() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
       } else {
-        try {
-          const { data } = await base44.functions.invoke('getAnonymousScans');
-          setUser({ scans_used: data.scansUsed, subscription_tier: 'free' });
-        } catch (error) {
-          setUser({ scans_used: 0, subscription_tier: 'free' });
-        }
+        setUser({ subscription_tier: 'free' });
       }
       setAuthLoading(false);
-      const stored = localStorage.getItem('bulkResults');
-      if (stored) setBulkResults(JSON.parse(stored));
     };
     checkAuth();
   }, []);
-  
-  const { data: userTeams = [] } = useQuery({
-    queryKey: ['userTeams'],
-    queryFn: async () => {
-      if (!user) return [];
-      const memberships = await base44.entities.TeamMember.filter({ user_email: user.email, status: 'active' });
-      return memberships;
-    },
-    enabled: isAuthenticated && !!user,
-  });
 
-  const { data: candidates = [], isLoading: candidatesLoading } = useQuery({
-    queryKey: ['candidates', userTeams],
-    queryFn: async () => {
-      const personalScans = await base44.entities.Candidate.filter({ created_by: user.email }, '-created_date', 50);
-      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
-        const teamScans = await Promise.all(userTeams.map(membership => base44.entities.Candidate.filter({ team_id: membership.team_id }, '-created_date', 50)));
-        const allTeamScans = teamScans.flat();
-        const allScans = [...personalScans, ...allTeamScans];
-        const uniqueScans = Array.from(new Map(allScans.map(s => [s.id, s])).values());
-        return uniqueScans.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+  // Check for existing verifications
+  const checkExistingVerifications = async () => {
+    if (!selectedCandidate?.unique_candidate_id || !selectedCandidate?.analysis?.company_names?.length) return;
+
+    try {
+      const candidates = await base44.entities.UniqueCandidate.filter({ id: selectedCandidate.unique_candidate_id });
+      if (candidates?.[0]) {
+        const candidate = candidates[0];
+        const attestations = {};
+        const emailStatuses = {};
+        const manualAtts = {};
+
+        if (candidate.employers) {
+          for (const employer of candidate.employers) {
+            const employerNorm = employer.employer_name?.toLowerCase().trim();
+            for (const companyName of selectedCandidate.analysis.company_names) {
+              const companyNorm = companyName.toLowerCase().trim();
+              if (employerNorm === companyNorm || employerNorm?.includes(companyNorm) || companyNorm?.includes(employerNorm)) {
+                if (employer.manual_employer_attestation?.status === 'verified') {
+                  manualAtts[companyName] = employer.manual_employer_attestation;
+                }
+                if (employer.call_verification_status && employer.call_verification_status !== 'not_called' && employer.call_verification_status !== 'pending') {
+                  attestations[companyName] = {
+                    result: employer.call_verification_status.toUpperCase(),
+                    verifiedDate: employer.call_verified_date,
+                    attestationUID: employer.phone_attestation_uid || employer.attestation_uid,
+                    hasAttestation: !!(employer.phone_attestation_uid || employer.attestation_uid),
+                  };
+                }
+                if (employer.email_verification_status) {
+                  emailStatuses[companyName] = {
+                    status: employer.email_verification_status,
+                    sentDate: employer.email_sent_date,
+                    verifiedDate: employer.email_verified_date,
+                    attestationUID: employer.email_attestation_uid,
+                    hasAttestation: !!employer.email_attestation_uid,
+                  };
+                }
+              }
+            }
+          }
+        }
+        setExistingAttestations(attestations);
+        setExistingEmailStatus(emailStatuses);
+        setManualAttestations(manualAtts);
       }
-      return personalScans;
-    },
-    enabled: isAuthenticated && !!user,
-  });
+    } catch (error) {
+      console.error('Error checking verifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCandidate?.unique_candidate_id) {
+      checkExistingVerifications();
+    }
+  }, [selectedCandidate?.unique_candidate_id]);
+
+  // Polling for pending verifications
+  useEffect(() => {
+    const hasPending = Object.values(existingEmailStatus).some(s => s.status === 'pending') || Object.keys(callingCompanies).length > 0;
+    if (!hasPending) return;
+
+    const interval = setInterval(() => {
+      checkExistingVerifications();
+      Object.entries(callingCompanies).forEach(([company, callId]) => {
+        if (callId) pollCallStatus(company, callId);
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [existingEmailStatus, callingCompanies, selectedCandidate]);
+
+  const pollCallStatus = async (company, callId) => {
+    try {
+      const response = await base44.functions.invoke('vapiCallStatus', { callId });
+      if (response.data?.status === 'ended') {
+        setCallResults(prev => ({
+          ...prev,
+          [company]: {
+            result: response.data?.verificationResult || 'INCONCLUSIVE',
+            attestationCreated: response.data?.attestationCreated
+          }
+        }));
+        setCallingCompanies(prev => {
+          const updated = { ...prev };
+          delete updated[company];
+          return updated;
+        });
+        checkExistingVerifications();
+      }
+    } catch (error) {
+      console.error('Poll error:', error);
+    }
+  };
 
   const analyzeResume = async (file) => {
     setIsUploading(true);
     try {
-      if (!isAuthenticated) {
-        const trackResponse = await base44.functions.invoke('trackAnonymousScan');
-        if (!trackResponse.data.allowed) {
-          setIsUploading(false);
-          alert('Free scan limit reached. Please sign up to continue scanning resumes.');
-          setCurrentView('upgrade');
-          return;
-        }
-        setUser(prev => ({ ...prev, scans_used: trackResponse.data.scansUsed }));
-      } else {
-        const userTier = user?.subscription_tier || 'free';
-        const scansUsed = user?.scans_used || 0;
-        const scanLimit = TIER_LIMITS[userTier];
-        if (scansUsed >= scanLimit) {
-          setIsUploading(false);
-          setCurrentView('upgrade');
-          return;
-        }
-      }
-
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      let teamId = null;
-      if ((user?.subscription_tier === 'professional' || user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && userTeams.length > 0) {
-        teamId = userTeams[0].team_id;
-      }
-
-      let candidate = null;
-      if (isAuthenticated) {
-        candidate = await base44.entities.Candidate.create({ resume_url: file_url, status: 'pending', team_id: teamId });
-      }
-    
-      const analysisPrompt = isUniversityMode 
-          ? `You are an expert university admissions analyst evaluating student/applicant resumes for prospective students and transfer applicants. Perform RIGOROUS, DETAILED, COMPREHENSIVE analysis calibrated for students and recent graduates.
-
-      CONTEXT: This is a UNIVERSITY APPLICANT (prospective student or transfer student) - expect internships, part-time jobs, volunteer work, academic projects, research positions, and extracurriculars rather than full-time professional experience.
-
-      COMPANY/ORGANIZATION EXTRACTION (CRITICAL):
-      Extract the organization name for EACH position listed (internships, part-time jobs, volunteer organizations, research labs, schools, etc).
-      Return company_names as an array.
-
-      CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
-
-      STUDENT-CALIBRATED SCORING RUBRIC:
-      OVERALL LEGITIMACY SCORE (0-100):
-      90-100: Outstanding student. Verifiable internships at recognized companies, specific project outcomes, leadership roles in real organizations, consistent timeline, strong academic record.
-      75-89: Strong applicant. Good mix of internships/volunteer work, specific achievements, recognized institutions, logical progression.
-      60-74: Solid applicant. Some internships or part-time work, academic projects with details, extracurriculars that can be verified.
-      45-59: Average applicant. Limited experience but what's listed seems plausible, mostly academic achievements.
-      30-44: Weak/Concerning. Vague claims, unverifiable organizations, inflated responsibilities for student roles.
-      <30: High Risk. Fabricated internships, impossible timelines, fake organizations.
-
-      IMPORTANT FOR STUDENT EVALUATION:
-      - Don't penalize for lack of full-time work experience
-      - Value quality internships, research experience, and meaningful volunteer work
-      - Academic projects and coursework ARE valid experience for students
-      - Leadership in clubs/organizations shows initiative
-      - Part-time jobs (retail, food service, etc.) show work ethic - don't dismiss them
-      - Gap years or study abroad are normal, not red flags
-      - Consider community service and extracurricular depth
-
-      CATEGORIES TO SCORE (provide DETAILED, THOROUGH analysis for each - at least 3-4 sentences per category):
-
-      1. TIMELINE & PROGRESSION (consistency_score, consistency_details):
-      - Evaluate the logical flow from high school through current education
-      - Check for realistic timelines between schools, activities, and positions
-      - Assess progression in responsibilities and leadership roles over time
-      - Look for gaps or overlaps that need explanation
-      - Consider study abroad, gap years as normal parts of student journeys
-
-      2. EXPERIENCE & ACTIVITIES (experience_verification, experience_details):
-      - Evaluate internships: Are they at real companies? Are responsibilities appropriate for intern level?
-      - Assess research positions: Are the labs/professors verifiable? Are claimed contributions realistic?
-      - Review volunteer work: Are the organizations real? Are hours/impact claims reasonable?
-      - Consider part-time employment: Shows work ethic and time management
-      - Look for specific, measurable outcomes vs. vague descriptions
-
-      3. ACADEMIC BACKGROUND (education_verification, education_details):
-      - Verify institution recognition and accreditation
-      - Assess GPA claims against typical distributions
-      - Evaluate honors, awards, and academic achievements
-      - Check relevance and rigor of coursework mentioned
-      - Consider test scores, AP/IB courses, academic competitions
-
-      4. SKILLS & LEADERSHIP (skills_alignment, skills_details):
-      - Evaluate club memberships and leadership positions
-      - Assess sports, arts, or other extracurricular commitments
-      - Review certifications, technical skills, and languages
-      - Consider community involvement and civic engagement
-      - Look for depth over breadth - sustained commitment vs. resume padding
-
-      BE THOROUGH AND DETAILED in your analysis. Each details field should be 3-5 sentences minimum explaining your assessment.
-
-      SUMMARY: Detailed 4-6 sentence overall assessment covering: (1) key strengths and positive indicators, (2) major concerns or areas needing verification, (3) verification priorities, and (4) overall admissions recommendation with confidence level
-
-      NEXT STEPS: 5-7 verification actions appropriate for student applicants (contacting schools, verifying organizations, checking awards)
-      INTERVIEW QUESTIONS: 7-10 questions suited for admissions interviews (about motivations, experiences, goals)`
-        : `You are an expert fraud detection analyst. Perform RIGOROUS, REPRODUCIBLE analysis with strict consistency. BE HARSH ON SPARSE/GENERIC RESUMES.
-
-        COMPANY EXTRACTION (CRITICAL):
-        Extract the company name for EACH position listed in the work experience section.
-        Return company_names as an array.
-
-        CURRENT DATE FOR CONTEXT: ${new Date().toISOString().split('T')[0]}
-
-        CRITICAL CONSISTENCY RULES FOR REPRODUCIBILITY:
-        - ALWAYS extract exact name/email from resume text
-        - Apply IDENTICAL methodology to every resume
-        - Score independently before reviewing
-        - Use explicit rubric - removes subjectivity
-        - Scoring should be 100% reproducible
-        - BE RIGOROUS: Only high scores (75+) for candidates with rich, specific, verifiable details
-
-        DETAILED SCORING RUBRIC:
-        OVERALL LEGITIMACY SCORE (0-100):
-        90-100: Exceptional. Multiple specific achievements with metrics, clear career progression, elite/verified institutions, zero inconsistencies.
-        75-89: Strong. Specific achievements with some metrics, logical progression, recognized institutions.
-        60-74: Acceptable. Some specific details, mostly logical progression, identifiable institutions.
-        45-59: Concerning. Generic descriptions dominate, vague claims, gaps/overlaps.
-        30-44: High Risk. Multiple red flags, inflated claims, unverifiable institutions.
-        <30: Critical. Likely fraud - fabricated credentials, impossible timeline.
-
-        CATEGORIES TO SCORE (provide DETAILED, THOROUGH analysis for each - at least 3-5 sentences per category):
-
-        1. CONSISTENCY (consistency_score, consistency_details):
-        - Evaluate timeline coherence: Do dates make sense? Any overlapping positions or impossible timelines?
-        - Check for logical career progression: Does the career path make sense for the industry?
-        - Assess role-to-role transitions: Are title jumps reasonable or suspiciously rapid?
-        - Look for gaps in employment and how they might be explained
-        - Verify internal consistency: Do skills mentioned match the roles claimed?
-
-        2. EXPERIENCE VERIFICATION (experience_verification, experience_details):
-        - Evaluate company legitimacy: Are these real, verifiable companies?
-        - Assess role descriptions: Are responsibilities specific or generic copy-paste content?
-        - Check for measurable achievements: Are there concrete metrics, numbers, outcomes?
-        - Compare claimed responsibilities to typical role expectations
-        - Look for evidence of actual impact vs. inflated claims
-
-        3. EDUCATION VERIFICATION (education_verification, education_details):
-        - Verify institution recognition and accreditation status
-        - Assess degree claims against institution offerings
-        - Check graduation dates against career timeline
-        - Evaluate honors, GPA claims, and academic achievements
-        - Look for certifications and their issuing bodies' legitimacy
-
-        4. SKILLS ALIGNMENT (skills_alignment, skills_details):
-        - Compare listed skills against claimed experience
-        - Assess technical skills relevance to roles held
-        - Check for anachronistic skills (technologies that didn't exist during claimed usage)
-        - Evaluate skill depth vs. breadth claims
-        - Look for buzzword stuffing vs. genuine expertise indicators
-
-        BE THOROUGH AND DETAILED in your analysis. Each details field should be 3-5 sentences minimum explaining your assessment with specific examples from the resume.
-
-        RED FLAGS: List specific concerns with evidence from the resume
-        GREEN FLAGS: List positive indicators with evidence from the resume
-        SUMMARY: Detailed 4-6 sentence overall assessment covering: (1) key strengths and positive indicators, (2) major concerns or areas needing verification, (3) verification priorities, and (4) overall hiring recommendation with confidence level
-
-        NEXT STEPS: 5-7 specific verification actions (e.g., "Contact TechCorp HR to verify Senior Developer role 2019-2022")
-        INTERVIEW QUESTIONS: 7-10 targeted questions based on specific resume claims that need probing`;
-    
-      const analysisSchema = isUniversityMode ? {
-          type: "object",
-          properties: {
-            candidate_name: { type: "string", description: "Student's full name" },
-            candidate_email: { type: "string", description: "Student's email if found" },
-            overall_score: { type: "number", description: "Overall legitimacy score 0-100" },
-            consistency_score: { type: "number", description: "Timeline & Progression score 0-100" },
-            consistency_details: { type: "string", description: "Detailed 3-5 sentence analysis of timeline, progression through education, gaps, and logical flow" },
-            experience_verification: { type: "number", description: "Experience & Activities score 0-100" },
-            experience_details: { type: "string", description: "Detailed 3-5 sentence analysis of internships, research, volunteer work, and part-time jobs" },
-            education_verification: { type: "number", description: "Academic Background score 0-100" },
-            education_details: { type: "string", description: "Detailed 3-5 sentence analysis of institution, GPA, honors, coursework, and academic achievements" },
-            skills_alignment: { type: "number", description: "Skills & Leadership score 0-100" },
-            skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of clubs, sports, certifications, extracurriculars, and leadership roles" },
-            red_flags: { type: "array", items: { type: "string" }, description: "List of concerns or issues found" },
-            green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators and strengths" },
-            summary: { type: "string", description: "Detailed 4-6 sentence overall assessment covering key strengths, concerns, verification priorities, and recommendation for admission consideration" },
-            next_steps: { type: "array", items: { type: "string" }, description: "5-7 verification actions for admissions" },
-            interview_questions: { type: "array", items: { type: "string" }, description: "7-10 questions for admissions interview" },
-            company_names: { type: "array", items: { type: "string" }, description: "All organizations, schools, companies mentioned" }
-          },
-          required: ["overall_score", "consistency_score", "consistency_details", "experience_verification", "experience_details", "education_verification", "education_details", "skills_alignment", "skills_details", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
-        } : {
-          type: "object",
-          properties: {
-            candidate_name: { type: "string", description: "Candidate's full name" },
-            candidate_email: { type: "string", description: "Candidate's email if found" },
-            overall_score: { type: "number", description: "Overall legitimacy score 0-100" },
-            consistency_score: { type: "number", description: "Consistency score 0-100" },
-            consistency_details: { type: "string", description: "Detailed 3-5 sentence analysis of timeline coherence, career progression, role transitions, and internal consistency" },
-            experience_verification: { type: "number", description: "Experience verification score 0-100" },
-            experience_details: { type: "string", description: "Detailed 3-5 sentence analysis of company legitimacy, role descriptions, measurable achievements, and impact claims" },
-            education_verification: { type: "number", description: "Education verification score 0-100" },
-            education_details: { type: "string", description: "Detailed 3-5 sentence analysis of institution recognition, degree validity, graduation timeline, and certifications" },
-            skills_alignment: { type: "number", description: "Skills alignment score 0-100" },
-            skills_details: { type: "string", description: "Detailed 3-5 sentence analysis of skills vs experience match, technical relevance, and expertise indicators" },
-            red_flags: { type: "array", items: { type: "string" }, description: "List of specific concerns with evidence" },
-            green_flags: { type: "array", items: { type: "string" }, description: "List of positive indicators with evidence" },
-            summary: { type: "string", description: "Detailed 4-6 sentence overall assessment covering key strengths, major concerns, verification priorities, and hiring recommendation" },
-            next_steps: { type: "array", items: { type: "string" }, description: "5-7 specific verification actions" },
-            interview_questions: { type: "array", items: { type: "string" }, description: "7-10 targeted questions based on resume claims" },
-            company_names: { type: "array", items: { type: "string" }, description: "All company names from work experience" }
-          },
-          required: ["overall_score", "consistency_score", "consistency_details", "experience_verification", "experience_details", "education_verification", "education_details", "skills_alignment", "skills_details", "red_flags", "green_flags", "summary", "next_steps", "interview_questions", "company_names"]
-        };
 
       const analysis = await base44.integrations.Core.InvokeLLM({
-        prompt: analysisPrompt,
+        prompt: `Extract the following from this resume:
+1. Candidate's full name
+2. Candidate's email (if present)
+3. All company/organization names from work experience
+4. Check for any employment timeline overlaps (working at multiple companies during the same dates)
+
+CURRENT DATE: ${new Date().toISOString().split('T')[0]}
+
+Be thorough in extracting ALL employers listed.`,
         file_urls: [file_url],
-        response_json_schema: analysisSchema
+        response_json_schema: {
+          type: "object",
+          properties: {
+            candidate_name: { type: "string" },
+            candidate_email: { type: "string" },
+            company_names: { type: "array", items: { type: "string" } },
+            timeline_overlaps: { 
+              type: "array", 
+              items: { 
+                type: "object",
+                properties: {
+                  companies: { type: "array", items: { type: "string" } },
+                  overlap_period: { type: "string" },
+                  severity: { type: "string", enum: ["minor", "significant"] }
+                }
+              }
+            }
+          },
+          required: ["candidate_name", "company_names", "timeline_overlaps"]
+        }
       });
-        
-      let companyNames = analysis.company_names && Array.isArray(analysis.company_names) ? analysis.company_names : [];
 
-      const analysisData = {
-        consistency_score: analysis.consistency_score,
-        consistency_details: analysis.consistency_details,
-        experience_verification: analysis.experience_verification,
-        experience_details: analysis.experience_details,
-        education_verification: analysis.education_verification,
-        education_details: analysis.education_details,
-        skills_alignment: analysis.skills_alignment,
-        skills_details: analysis.skills_details,
-        red_flags: analysis.red_flags,
-        green_flags: analysis.green_flags,
-        summary: analysis.summary,
-        next_steps: analysis.next_steps || [],
-        interview_questions: analysis.interview_questions || [],
-        company_names: companyNames,
-        is_university_mode: isUniversityMode,
-      };
-
-      let updatedCandidate;
-      if (isAuthenticated && candidate) {
-        updatedCandidate = await base44.entities.Candidate.update(candidate.id, {
-          name: analysis.candidate_name || 'Unknown Candidate',
+      let candidate;
+      if (isAuthenticated) {
+        candidate = await base44.entities.Candidate.create({
+          name: analysis.candidate_name || 'Unknown',
           email: analysis.candidate_email || '',
-          legitimacy_score: analysis.overall_score,
-          analysis: analysisData,
-          status: 'analyzed'
-        });
-        await base44.auth.updateMe({ scans_used: (user?.scans_used || 0) + 1 });
-        const updatedUser = await base44.auth.me();
-        setUser(updatedUser);
-      } else {
-        updatedCandidate = {
-          id: 'temp-' + Date.now(),
-          name: analysis.candidate_name || 'Unknown Candidate',
-          email: analysis.candidate_email || '',
-          legitimacy_score: analysis.overall_score,
-          analysis: analysisData,
-          status: 'analyzed',
           resume_url: file_url,
-          created_date: new Date().toISOString()
+          status: 'analyzed',
+          analysis: {
+            company_names: analysis.company_names || [],
+            timeline_overlaps: analysis.timeline_overlaps || []
+          }
+        });
+        
+        // Link to UniqueCandidate
+        try {
+          const res = await base44.functions.invoke('linkCandidateScan', { candidateId: candidate.id });
+          if (res.data?.uniqueCandidateId) {
+            candidate.unique_candidate_id = res.data.uniqueCandidateId;
+          }
+        } catch (e) {}
+      } else {
+        candidate = {
+          id: 'temp-' + Date.now(),
+          name: analysis.candidate_name || 'Unknown',
+          email: analysis.candidate_email || '',
+          resume_url: file_url,
+          status: 'analyzed',
+          analysis: {
+            company_names: analysis.company_names || [],
+            timeline_overlaps: analysis.timeline_overlaps || []
+          }
         };
       }
-      
+
       setIsUploading(false);
-      setSelectedCandidate(updatedCandidate);
+      setSelectedCandidate(candidate);
       setCurrentView('result');
-      if (isAuthenticated) {
-        queryClient.invalidateQueries({ queryKey: ['candidates'] });
-        if (user?.email_notifications_enabled !== false) {
-          try {
-            await base44.integrations.Core.SendEmail({
-              to: user.email,
-              subject: `Resume Analysis Complete: ${updatedCandidate.name}`,
-              body: `Your resume analysis for ${updatedCandidate.name} is ready!\n\nLegitimacy Score: ${updatedCandidate.legitimacy_score}%\n\nLog in to Indexios to view the full analysis.`
-            });
-          } catch (error) {}
-        }
-      }
+      toast.success('Resume processed!', { description: `Found ${analysis.company_names?.length || 0} employers` });
 
-      toast.success('Analysis complete!', { description: `${updatedCandidate.name} scored ${updatedCandidate.legitimacy_score}%`, icon: <CheckCircle2 className="w-4 h-4" /> });
-
-      if (isAuthenticated && updatedCandidate.id && !updatedCandidate.id.startsWith('temp-')) {
-        base44.functions.invoke('linkCandidateScan', { candidateId: updatedCandidate.id })
-          .then(res => { if (res.data?.uniqueCandidateId) setSelectedCandidate(prev => ({ ...prev, unique_candidate_id: res.data.uniqueCandidateId })); })
-          .catch(err => {});
-      }
     } catch (error) {
       setIsUploading(false);
-      toast.error('Analysis failed', { description: 'Please check your resume and try again' });
+      toast.error('Processing failed', { description: 'Please try again' });
     }
   };
 
-  const handleUpload = async (file) => await analyzeResume(file);
-  const handleViewHistory = () => { if ((user?.subscription_tier || 'free') === 'free') { setCurrentView('history-locked'); return; } setCurrentView('history'); };
-  const handleSelectCandidate = async (candidate) => {
-    if ((user?.subscription_tier || 'free') === 'free') { setCurrentView('upgrade'); return; }
-    setSelectedCandidate(candidate);
-    setCurrentView('result');
-    if (!candidate.unique_candidate_id && candidate.id && !candidate.id.startsWith('temp-') && !candidate.id.startsWith('bulk-')) {
-      try {
-        const res = await base44.functions.invoke('linkCandidateScan', { candidateId: candidate.id });
-        if (res.data?.uniqueCandidateId) setSelectedCandidate(prev => ({ ...prev, unique_candidate_id: res.data.uniqueCandidateId }));
-      } catch (error) {}
-    }
-  };
-  const handleBack = () => { setCurrentView('upload'); setSelectedCandidate(null); };
-  const canUpload = () => (user?.scans_used || 0) < TIER_LIMITS[user?.subscription_tier || 'free'];
-  const handleLoginRedirect = () => base44.auth.redirectToLogin(createPageUrl('Scan'));
+  const handleRunVerification = async () => {
+    if (!selectedCandidate?.name || !selectedCandidate?.analysis?.company_names?.length) return;
 
-  const handleDownload = async (candidate) => {
-    const report = `INDEXIOS RESUME ANALYSIS REPORT\n================================\n\nCandidate: ${candidate.name || 'Unknown'}\nEmail: ${candidate.email || 'N/A'}\nScan Date: ${new Date(candidate.created_date).toLocaleDateString()}\n\nLEGITIMACY SCORE: ${candidate.legitimacy_score}%\n\nANALYSIS BREAKDOWN\n------------------\nConsistency: ${candidate.analysis?.consistency_score || 0}%\n${candidate.analysis?.consistency_details || ''}\n\nExperience: ${candidate.analysis?.experience_verification || 0}%\n${candidate.analysis?.experience_details || ''}\n\nEducation: ${candidate.analysis?.education_verification || 0}%\n${candidate.analysis?.education_details || ''}\n\nSkills Alignment: ${candidate.analysis?.skills_alignment || 0}%\n${candidate.analysis?.skills_details || ''}\n\nRED FLAGS\n---------\n${candidate.analysis?.red_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}\n\nGREEN FLAGS\n-----------\n${candidate.analysis?.green_flags?.map((flag, i) => `${i + 1}. ${flag}`).join('\n') || 'None detected'}\n\nSUMMARY\n-------\n${candidate.analysis?.summary || 'N/A'}\n\n---\nReport generated by Indexios`.trim();
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `indexios-scan-${candidate.name?.replace(/\s+/g, '-') || 'candidate'}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleShare = async (candidate) => {
-    const lastShareTime = localStorage.getItem(`lastShare_${candidate.id}`);
-    const now = Date.now();
-    const twelveHoursMs = 12 * 60 * 60 * 1000;
-    if (lastShareTime && now - parseInt(lastShareTime) < twelveHoursMs) {
-      const timeRemaining = Math.ceil((twelveHoursMs - (now - parseInt(lastShareTime))) / (60 * 60 * 1000));
-      alert(`You can share this report again in ${timeRemaining} hour${timeRemaining !== 1 ? 's' : ''}.`);
-      return;
-    }
-    const shareUrl = `${window.location.origin}${createPageUrl('SharedReport')}?id=${candidate.id}`;
-    localStorage.setItem(`lastShare_${candidate.id}`, now.toString());
-    if (navigator.share) {
-      try { await navigator.share({ title: `Indexios Scan - ${candidate.name || 'Candidate'}`, url: shareUrl }); } catch (error) {}
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-      alert('Report link copied to clipboard!');
-    }
-  };
-
-  const { data: folders = [] } = useQuery({
-    queryKey: ['folders'],
-    queryFn: () => base44.entities.Folder.filter({ user_email: user?.email }),
-    enabled: isAuthenticated && !!user,
-  });
-
-  const handleSaveToFolder = async (candidate, folderId) => {
-    if (!isAuthenticated || !user) { alert('Please sign in to save candidates'); return; }
+    setIsRunningVerification(true);
     try {
-      await base44.entities.SavedCandidate.create({ candidate_id: candidate.id, folder_id: folderId, user_email: user.email });
-      alert('Candidate saved to folder!');
-    } catch (error) { alert('Failed to save candidate'); }
+      const response = await base44.functions.invoke('employmentConfirmation', {
+        candidateName: selectedCandidate.name,
+        employers: selectedCandidate.analysis.company_names.map(name => ({ name })),
+        uniqueCandidateId: selectedCandidate.unique_candidate_id
+      });
+
+      if (response.data?.success) {
+        setVerificationResults(response.data.results);
+      }
+    } catch (error) {
+      toast.error('Verification failed');
+    } finally {
+      setIsRunningVerification(false);
+    }
   };
 
-  const handleSaveAllToFolder = async (results, folderId) => {
-    if (!isAuthenticated || !user) { alert('Please sign in to save candidates'); return; }
+  const handleCallCompany = async (company, phoneNumber) => {
+    setCallingCompanies(prev => ({ ...prev, [company]: null }));
     try {
-      const savePromises = results.filter(r => r.id).map(result => base44.entities.SavedCandidate.create({ candidate_id: result.id, folder_id: folderId, user_email: user.email }));
-      await Promise.all(savePromises);
-      alert(`Saved ${savePromises.length} candidate${savePromises.length !== 1 ? 's' : ''} to folder!`);
-    } catch (error) { alert('Failed to save candidates'); }
+      const response = await base44.functions.invoke('vapiEmploymentCall', {
+        phoneNumber,
+        companyName: company,
+        candidateName: selectedCandidate.name,
+        uniqueCandidateId: selectedCandidate.unique_candidate_id
+      });
+      if (response.data?.success) {
+        setCallingCompanies(prev => ({ ...prev, [company]: response.data.callId }));
+      }
+    } catch (error) {
+      setCallingCompanies(prev => {
+        const updated = { ...prev };
+        delete updated[company];
+        return updated;
+      });
+    }
+  };
+
+  const handleEmailCompany = async (company, hrEmail) => {
+    setEmailingCompany(company);
+    try {
+      const response = await base44.functions.invoke('sendVerificationEmailSG', {
+        hrEmail,
+        companyName: company,
+        candidateName: selectedCandidate.name,
+        uniqueCandidateId: selectedCandidate.unique_candidate_id
+      });
+      if (response.data?.success) {
+        setEmailResults(prev => ({ ...prev, [company]: { status: 'pending' } }));
+        checkExistingVerifications();
+      }
+    } catch (error) {
+      toast.error('Failed to send email');
+    } finally {
+      setEmailingCompany(null);
+    }
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.[0]) analyzeResume(e.dataTransfer.files[0]);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files?.[0]) analyzeResume(e.target.files[0]);
   };
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-4xl font-bold text-white">Indexios</motion.div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -453,306 +318,309 @@ export default function Scan() {
   return (
     <>
       <Helmet>
-        <title>Scan Resume - Resume Verification & Fraud Detection | Indexios</title>
-        <meta name="description" content="Upload and verify resume authenticity with advanced fraud detection." />
-        <link rel="canonical" href="https://indexios.me/Scan" />
+        <title>Verify Employment - Indexios</title>
+        <meta name="description" content="Upload a resume and verify employment history" />
       </Helmet>
-      
+
       <section className="relative min-h-screen bg-[#0a0a0a] overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 z-0" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.15 }}>
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/80 via-[#0a0a0a]/70 to-[#0a0a0a]" />
         </div>
-        <div className="absolute inset-0 pointer-events-none z-[2]" style={{ background: 'radial-gradient(70% 50%, transparent 0%, rgba(10, 10, 10, 0.5) 60%, rgba(10, 10, 10, 0.98) 100%)' }} />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/[0.04] rounded-full blur-[150px]" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 py-12 md:py-20">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 py-12 md:py-20">
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 mb-6">
               <Shield className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-medium text-purple-300">Resume Verification</span>
+              <span className="text-sm font-medium text-purple-300">Employment Verification</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] mb-4">
-              <span className="text-white/60">Scan &</span>
-              <span className="text-white font-medium"> Verify</span>
+            <h1 className="text-4xl md:text-5xl font-light tracking-tight leading-[1.1] mb-4">
+              <span className="text-white/60">Verify</span>
+              <span className="text-white font-medium"> Employment</span>
             </h1>
-            <p className="text-lg md:text-xl text-white/50 max-w-xl mx-auto">Upload a resume to analyze for legitimacy and fraud detection</p>
-          </motion.div>
-
-          {/* Navigation */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col items-center gap-4 mb-10">
-            <div className="flex justify-center gap-2 p-1 rounded-full bg-white/[0.03] border border-white/[0.06]">
-              <Button variant="ghost" onClick={handleBack} className={currentView === 'upload' ? 'bg-white text-black font-medium rounded-full hover:bg-white/90 px-6' : 'text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6'}>
-                <Shield className="w-4 h-4 mr-2" /> Scan
-              </Button>
-              <Button variant="ghost" onClick={handleViewHistory} className={currentView === 'history' ? 'bg-white text-black font-medium rounded-full hover:bg-white/90 px-6' : 'text-white/60 hover:text-white hover:bg-white/5 rounded-full px-6'}>
-                <History className="w-4 h-4 mr-2" /> History
-                {candidates.length > 0 && <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-full text-xs">{candidates.length}</span>}
-              </Button>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-white/40 text-sm">
-                <span className="font-semibold text-white/70">{user?.scans_used || 0}</span>
-                <span className="mx-1">/</span>
-                <span>{user?.subscription_tier === 'enterprise' ? '∞' : TIER_LIMITS[user?.subscription_tier || 'free'] || TIER_LIMITS.free}</span>
-                <span className="ml-1">scans used</span>
-              </p>
-              {isAuthenticated ? (
-                <Link to={createPageUrl('Home') + '#pricing'}><Button variant="link" className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto">Upgrade →</Button></Link>
-              ) : (
-                <Button variant="link" onClick={handleLoginRedirect} className="text-purple-400/80 hover:text-purple-400 text-xs p-0 h-auto">Sign up for more →</Button>
-              )}
-            </div>
+            <p className="text-lg text-white/50 max-w-xl mx-auto">Upload a resume to verify employment history</p>
           </motion.div>
 
           <AnimatePresence mode="wait">
             {/* Upload View */}
             {currentView === 'upload' && (
-              <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                {(user?.subscription_tier === 'corporate' || user?.subscription_tier === 'enterprise') && (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border border-purple-500/30 rounded-2xl p-5 mb-6">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-purple-500/20 rounded-full p-2"><Sparkles className="w-5 h-5 text-purple-400" /></div>
-                      <div className="flex-1">
-                        <p className="text-purple-300 font-medium text-sm mb-1">Enterprise Bulk Upload</p>
-                        <p className="text-white/60 text-xs mb-3">Upload 5+ resumes at once. Results display ordered by legitimacy score.</p>
-                        <input type="file" accept=".pdf" multiple onChange={async (e) => {
-                          const files = Array.from(e.target.files);
-                          if (files.length < 5) { alert('Please select at least 5 files for bulk upload'); e.target.value = ''; return; }
-                          setIsUploading(true);
-                          try {
-                            const uploadPromises = files.map(file => base44.integrations.Core.UploadFile({ file }));
-                            const uploads = await Promise.all(uploadPromises);
-                            const fileUrls = uploads.map(u => u.file_url);
-                            const response = await base44.functions.invoke('bulkAnalyze', { fileUrls });
-                            const results = response.data.analyses;
-                            localStorage.setItem('bulkResults', JSON.stringify(results));
-                            setBulkResults(results);
-                            setCurrentView('bulk-results');
-                          } catch (error) { alert('Failed to process bulk upload. Please try again.'); }
-                          setIsUploading(false);
-                          e.target.value = '';
-                        }} className="hidden" id="bulk-upload" />
-                        <label htmlFor="bulk-upload"><Button size="sm" className="bg-purple-500 hover:bg-purple-400 text-white font-semibold cursor-pointer rounded-full" asChild><span>Select 5+ Files</span></Button></label>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* University Applicant Toggle */}
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  className="flex items-center justify-center gap-3 mb-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]"
+              <motion.div key="upload" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  className={`rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                    dragActive ? 'border-purple-400 bg-purple-500/10' : 'border-white/10 bg-black/40 hover:border-white/20'
+                  }`}
                 >
-                  <Briefcase className={`w-4 h-4 transition-colors ${!isUniversityMode ? 'text-purple-400' : 'text-white/30'}`} />
-                  <span className={`text-sm transition-colors ${!isUniversityMode ? 'text-white' : 'text-white/40'}`}>Professional</span>
-                  <Switch 
-                    checked={isUniversityMode} 
-                    onCheckedChange={setIsUniversityMode}
-                    className="data-[state=checked]:bg-purple-500"
-                  />
-                  <span className={`text-sm transition-colors ${isUniversityMode ? 'text-white' : 'text-white/40'}`}>University Applicant</span>
-                  <GraduationCap className={`w-4 h-4 transition-colors ${isUniversityMode ? 'text-purple-400' : 'text-white/30'}`} />
-                </motion.div>
-
-                {isUniversityMode && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }} 
-                    animate={{ opacity: 1, height: 'auto' }} 
-                    className="mb-6 p-4 rounded-xl bg-purple-500/10 border border-purple-500/20"
-                  >
-                    <div className="flex items-start gap-3">
-                      <BookOpen className="w-5 h-5 text-purple-400 mt-0.5" />
-                      <div>
-                        <p className="text-purple-300 font-medium text-sm">University Applicant Mode</p>
-                        <p className="text-white/50 text-xs mt-1">Scoring calibrated for students - values internships, research, volunteer work, and extracurriculars. Won't penalize for limited professional experience.</p>
+                  <div className="p-12 text-center">
+                    {isUploading ? (
+                      <div className="space-y-4">
+                        <div className="inline-flex p-4 rounded-2xl bg-purple-500/10">
+                          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+                        </div>
+                        <p className="text-white/70">Processing resume...</p>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {canUpload() ? (
-                  <UploadZone onUpload={handleUpload} isUploading={isUploading} />
-                ) : (
-                  <UpgradePrompt scansUsed={user?.scans_used || 0} scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']} onUpgrade={() => window.location.href = createPageUrl('Home') + '#pricing'} />
-                )}
-                
-                {candidates.length > 0 && (user?.subscription_tier && user.subscription_tier !== 'free') && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-10">
-                    <h3 className="text-white/50 text-sm font-medium mb-4 uppercase tracking-wider">Recent Scans</h3>
-                    <div className="grid gap-3">
-                      {candidates.slice(0, 3).map((candidate, index) => (
-                        <CandidateCard key={candidate.id} candidate={candidate} onClick={() => handleSelectCandidate(candidate)} onDownload={handleDownload} onShare={handleShare} delay={index * 0.1} />
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
+                    ) : (
+                      <>
+                        <div className="inline-flex p-4 rounded-2xl bg-white/5 mb-6">
+                          <Upload className="w-8 h-8 text-white/40" />
+                        </div>
+                        <p className="text-white/70 mb-2">Drag and drop your resume here</p>
+                        <p className="text-white/40 text-sm mb-6">or</p>
+                        <label>
+                          <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+                          <Button className="bg-white hover:bg-white/90 text-black font-medium rounded-full px-8 cursor-pointer">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Select PDF
+                          </Button>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
 
             {/* Result View */}
             {currentView === 'result' && selectedCandidate && (
-              <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <Button variant="ghost" onClick={handleBack} className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                  </Button>
-                  <div className="flex gap-2">
-                    {folders.length > 0 && (
-                      <select onChange={(e) => { if (e.target.value) { handleSaveToFolder(selectedCandidate, e.target.value); e.target.value = ''; } }} className="bg-white/5 border border-white/10 text-white rounded-full px-4 py-2 text-sm hover:bg-white/10">
-                        <option value="">Save to folder...</option>
-                        {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                      </select>
-                    )}
-                    <Button variant="ghost" onClick={() => handleShare(selectedCandidate)} className="border border-white/10 text-white/70 hover:text-white hover:bg-white/5 rounded-full">
-                      <Share2 className="w-4 h-4 mr-2" /> Share
-                    </Button>
-                    <Button variant="ghost" onClick={() => handleDownload(selectedCandidate)} className="border border-white/10 text-white/70 hover:text-white hover:bg-white/5 rounded-full">
-                      <Download className="w-4 h-4 mr-2" /> Download
-                    </Button>
-                  </div>
-                </div>
+              <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
+                <Button variant="ghost" onClick={() => { setCurrentView('upload'); setSelectedCandidate(null); setVerificationResults(null); }} className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                </Button>
 
-                {/* Candidate Header */}
-                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 md:p-8">
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    <ScoreCircle score={selectedCandidate.legitimacy_score || 0} />
-                    <div className="flex-1 text-center md:text-left">
-                      <h2 className="text-2xl font-medium text-white mb-1">{selectedCandidate.name || 'Unknown Candidate'}</h2>
-                      {selectedCandidate.email && <p className="text-white/40 text-sm">{selectedCandidate.email}</p>}
-                      {selectedCandidate.analysis?.summary && <p className="text-white/50 mt-3 text-sm leading-relaxed">{selectedCandidate.analysis.summary}</p>}
-                      {selectedCandidate.resume_url && (
-                        <a href={selectedCandidate.resume_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-4 text-purple-400/80 hover:text-purple-400 text-sm font-medium transition-colors">
-                          <ExternalLink className="w-4 h-4" /> View Resume
-                        </a>
-                      )}
+                {/* Candidate Header Card - Styled like Home page */}
+                <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Resume Processed</span>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-white/60" />
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-xl font-medium text-white">{selectedCandidate.name}</h2>
+                        {selectedCandidate.email && <p className="text-white/40 text-sm">{selectedCandidate.email}</p>}
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge className="bg-blue-500/20 text-blue-300 border-0">
+                            <Building2 className="w-3 h-3 mr-1" />
+                            {selectedCandidate.analysis?.company_names?.length || 0} Employers Found
+                          </Badge>
+                          {selectedCandidate.resume_url && (
+                            <a href={selectedCandidate.resume_url} target="_blank" rel="noopener noreferrer" className="text-purple-400/80 hover:text-purple-400 text-xs flex items-center gap-1">
+                              <ExternalLink className="w-3 h-3" /> View Resume
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {(user?.subscription_tier === 'free' || !isAuthenticated) && (
-                  <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 p-5 text-center">
-                    <p className="text-white/60 text-sm">Upgrade to save your scan history and unlock team features</p>
-                    <Link to={createPageUrl('Home') + '#pricing'}><Button size="sm" className="mt-3 bg-white hover:bg-white/90 text-black font-medium rounded-full">View Plans</Button></Link>
-                  </div>
-                )}
-
-                {selectedCandidate.analysis && (
-                  <>
-                    <EmploymentVerificationBox companyNames={selectedCandidate.analysis.company_names || []} candidateId={selectedCandidate.id} candidateName={selectedCandidate.name} uniqueCandidateId={selectedCandidate.unique_candidate_id} userTier={user?.subscription_tier || 'free'} />
-
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <AnalysisCard 
-                          title={selectedCandidate.analysis.is_university_mode ? "Timeline & Progression" : "Consistency"} 
-                          score={selectedCandidate.analysis.consistency_score || 0} 
-                          details={selectedCandidate.analysis.consistency_details} 
-                          icon={User} 
-                          delay={0}
-                          subtitle={selectedCandidate.analysis.is_university_mode ? "Academic & activity timeline" : undefined}
-                        />
-                        <AnalysisCard 
-                          title={selectedCandidate.analysis.is_university_mode ? "Experience & Activities" : "Experience"} 
-                          score={selectedCandidate.analysis.experience_verification || 0} 
-                          details={selectedCandidate.analysis.experience_details} 
-                          icon={Briefcase} 
-                          delay={0.1}
-                          subtitle={selectedCandidate.analysis.is_university_mode ? "Internships, research, volunteer work" : undefined}
-                        />
-                        <AnalysisCard 
-                          title={selectedCandidate.analysis.is_university_mode ? "Academic Background" : "Education"} 
-                          score={selectedCandidate.analysis.education_verification || 0} 
-                          details={selectedCandidate.analysis.education_details} 
-                          icon={GraduationCap} 
-                          delay={0.2}
-                          subtitle={selectedCandidate.analysis.is_university_mode ? "GPA, coursework, honors" : undefined}
-                        />
-                        <AnalysisCard 
-                          title={selectedCandidate.analysis.is_university_mode ? "Skills & Leadership" : "Skills Alignment"} 
-                          score={selectedCandidate.analysis.skills_alignment || 0} 
-                          details={selectedCandidate.analysis.skills_details} 
-                          icon={Sparkles} 
-                          delay={0.3}
-                          subtitle={selectedCandidate.analysis.is_university_mode ? "Clubs, sports, certifications" : undefined}
-                        />
-                      </div>
-
-                    <FlagsList redFlags={selectedCandidate.analysis.red_flags || []} greenFlags={selectedCandidate.analysis.green_flags || []} />
-                    <NextSteps nextSteps={selectedCandidate.analysis.next_steps} interviewQuestions={selectedCandidate.analysis.interview_questions} />
-                  </>
-                )}
-              </motion.div>
-            )}
-
-            {/* Upgrade View */}
-            {currentView === 'upgrade' && (
-              <motion.div key="upgrade" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <Button variant="ghost" onClick={handleBack} className="mb-6 text-white/60 hover:text-white hover:bg-white/5 rounded-full"><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
-                <UpgradePrompt scansUsed={user?.scans_used || 0} scansLimit={TIER_LIMITS[user?.subscription_tier || 'free']} onUpgrade={() => window.location.href = createPageUrl('Home') + '#pricing'} reason={(user?.scans_used || 0) >= TIER_LIMITS[user?.subscription_tier || 'free'] ? 'scan limit' : 'feature access'} />
-              </motion.div>
-            )}
-
-            {/* Bulk Results View */}
-            {currentView === 'bulk-results' && (
-              <motion.div key="bulk-results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <Button variant="ghost" onClick={handleBack} className="mb-6 text-white/60 hover:text-white hover:bg-white/5 rounded-full"><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
-                <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-medium text-white mb-2">Bulk Analysis Results</h2>
-                    <p className="text-white/50">Sorted by legitimacy score (highest to lowest)</p>
-                  </div>
-                  {folders.length > 0 && (
-                    <select onChange={(e) => { if (e.target.value) { handleSaveAllToFolder(bulkResults, e.target.value); e.target.value = ''; } }} className="bg-white/5 border border-white/10 text-white rounded-full px-4 py-2 text-sm hover:bg-white/10">
-                      <option value="">Save all to folder...</option>
-                      {folders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                    </select>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  {bulkResults.map((candidate, index) => (
-                    <motion.div key={index} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 cursor-pointer hover:border-white/[0.12] transition-colors" onClick={() => { setSelectedCandidate({ id: `bulk-${index}`, name: candidate.name, email: candidate.email, legitimacy_score: candidate.overall_score, analysis: { consistency_score: candidate.consistency_score, consistency_details: candidate.consistency_details, experience_verification: candidate.experience_verification, experience_details: candidate.experience_details, education_verification: candidate.education_verification, education_details: candidate.education_details, skills_alignment: candidate.skills_alignment, skills_details: candidate.skills_details, red_flags: candidate.red_flags || [], green_flags: candidate.green_flags || [], summary: candidate.summary } }); setCurrentView('result'); }}>
-                      <div className="flex items-start gap-6">
-                        <div className="flex-shrink-0"><ScoreCircle score={candidate.overall_score || 0} /></div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-medium text-white mb-1">{candidate.name || 'Unknown'}</h3>
-                          {candidate.email && <p className="text-white/50 mb-2">{candidate.email}</p>}
-                          {candidate.summary && <p className="text-white/60 text-sm leading-relaxed">{candidate.summary}</p>}
+                {/* Red Flags Box - Timeline Overlaps */}
+                {selectedCandidate.analysis?.timeline_overlaps?.length > 0 && (
+                  <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-red-500/30 overflow-hidden">
+                    <div className="px-5 py-3 border-b border-red-500/20 flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-red-400" />
+                      <span className="text-[10px] font-mono text-red-400/80 uppercase tracking-wider">Timeline Issues</span>
+                    </div>
+                    <div className="p-6 space-y-3">
+                      {selectedCandidate.analysis.timeline_overlaps.map((overlap, idx) => (
+                        <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10">
+                          <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-red-300 text-sm font-medium">Employment Overlap</p>
+                            <p className="text-white/60 text-xs mt-1">
+                              {overlap.companies?.join(' & ')} — {overlap.overlap_period}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* History Locked */}
-            {currentView === 'history-locked' && (
-              <motion.div key="history-locked" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-12 text-center">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }} className="inline-flex p-4 rounded-2xl bg-red-500/10 mb-6"><Lock className="w-8 h-8 text-red-400" /></motion.div>
-                  <h2 className="text-2xl font-medium text-white mb-4">History Locked</h2>
-                  <p className="text-white/50 mb-6 max-w-md mx-auto">Upgrade to access your scan history and unlock advanced features</p>
-                  <Link to={createPageUrl('Home') + '#pricing'}><Button className="bg-white hover:bg-white/90 text-black font-semibold rounded-full px-8 py-5">View Plans</Button></Link>
-                </div>
-              </motion.div>
-            )}
+                {/* Employment Verification Box - Main Feature */}
+                <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-purple-500/30 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-purple-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      <span className="text-[10px] font-mono text-purple-400/80 uppercase tracking-wider">Employment Verification</span>
+                    </div>
+                    <Button
+                      onClick={handleRunVerification}
+                      disabled={isRunningVerification}
+                      size="sm"
+                      className="bg-purple-500 hover:bg-purple-400 text-white rounded-full"
+                    >
+                      {isRunningVerification ? (
+                        <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Verifying...</>
+                      ) : verificationResults ? (
+                        <><CheckCircle className="w-3 h-3 mr-1" /> Complete</>
+                      ) : (
+                        <><Play className="w-3 h-3 mr-1" /> Run Verification</>
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="p-6 space-y-4">
+                    {!verificationResults && (
+                      <p className="text-white/50 text-sm">Click "Run Verification" to search for web evidence of employment history</p>
+                    )}
 
-            {/* History View */}
-            {currentView === 'history' && (
-              <motion.div key="history" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                {candidatesLoading ? (
-                  <div className="flex justify-center py-12"><div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /></div>
-                ) : candidates.length > 0 ? (
-                  <div className="grid gap-3">{candidates.map((candidate, index) => <CandidateCard key={candidate.id} candidate={candidate} onClick={() => handleSelectCandidate(candidate)} onDownload={handleDownload} onShare={handleShare} delay={index * 0.05} />)}</div>
-                ) : (
-                  <div className="text-center py-16">
-                    <div className="p-4 rounded-2xl bg-white/5 inline-block mb-4"><History className="w-8 h-8 text-white/40" /></div>
-                    <p className="text-white/50">No scanned resumes yet</p>
+                    {selectedCandidate.analysis?.company_names?.map((company, idx) => {
+                      const result = verificationResults?.[company];
+                      const hasEvidence = result?.sources?.length > 0;
+                      const hasPhone = result?.phone?.number;
+                      const hasEmail = result?.email?.address;
+                      const attestation = existingAttestations[company];
+                      const emailStatus = existingEmailStatus[company];
+                      const manual = manualAttestations[company];
+                      const callResult = callResults[company];
+                      const isCalling = callingCompanies[company] !== undefined;
+
+                      return (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className={`p-4 rounded-xl ${
+                            manual || attestation?.result === 'YES' || emailStatus?.status === 'yes'
+                              ? 'bg-emerald-500/10 border border-emerald-500/20'
+                              : result
+                                ? hasEvidence ? 'bg-white/[0.02]' : 'bg-white/[0.01] opacity-60'
+                                : 'bg-white/[0.02]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                manual || attestation?.result === 'YES' || emailStatus?.status === 'yes'
+                                  ? 'bg-emerald-500/20'
+                                  : 'bg-white/5'
+                              }`}>
+                                {manual || attestation?.result === 'YES' || emailStatus?.status === 'yes' ? (
+                                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                ) : (
+                                  <Building2 className="w-4 h-4 text-white/40" />
+                                )}
+                              </div>
+                              <span className="text-white font-medium">{company}</span>
+                            </div>
+
+                            {result && (
+                              <Badge className={hasEvidence ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-white/40'}>
+                                <Search className="w-3 h-3 mr-1" />
+                                {result.evidence_count || 0} sources
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Verification Status Badges */}
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {manual && (
+                              <Badge className="bg-emerald-900/60 text-emerald-200 border border-emerald-700">
+                                <CheckCircle className="w-3 h-3 mr-1" /> Employer Verified
+                                {manual.attestation_uid && <OnChainBadge attestationUID={manual.attestation_uid} status="YES" />}
+                              </Badge>
+                            )}
+                            {attestation && (
+                              <Badge className={
+                                attestation.result === 'YES' ? 'bg-green-900/40 text-green-300' :
+                                attestation.result === 'NO' ? 'bg-red-900/40 text-red-300' :
+                                'bg-yellow-900/40 text-yellow-300'
+                              }>
+                                <Phone className="w-3 h-3 mr-1" /> Call: {attestation.result}
+                                {attestation.hasAttestation && <OnChainBadge attestationUID={attestation.attestationUID} status={attestation.result} />}
+                              </Badge>
+                            )}
+                            {callResult && !attestation && (
+                              <Badge className={
+                                callResult.result === 'YES' ? 'bg-green-900/40 text-green-300' :
+                                callResult.result === 'NO' ? 'bg-red-900/40 text-red-300' :
+                                'bg-yellow-900/40 text-yellow-300'
+                              }>
+                                <Phone className="w-3 h-3 mr-1" /> {callResult.result}
+                              </Badge>
+                            )}
+                            {emailStatus && emailStatus.status !== 'not_sent' && (
+                              <Badge className={
+                                emailStatus.status === 'yes' ? 'bg-green-900/40 text-green-300' :
+                                emailStatus.status === 'pending' ? 'bg-blue-900/40 text-blue-300' :
+                                'bg-yellow-900/40 text-yellow-300'
+                              }>
+                                <Mail className="w-3 h-3 mr-1" /> {emailStatus.status === 'pending' ? 'Awaiting Response' : `Email: ${emailStatus.status}`}
+                                {emailStatus.hasAttestation && <OnChainBadge attestationUID={emailStatus.attestationUID} status={emailStatus.status.toUpperCase()} />}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Evidence View Button */}
+                          {hasEvidence && (
+                            <Button
+                              onClick={() => setSelectedEvidence({ company, result })}
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-300 hover:text-blue-200 hover:bg-blue-500/10 text-xs mb-3"
+                            >
+                              <Eye className="w-3 h-3 mr-1" /> View Evidence
+                            </Button>
+                          )}
+
+                          {/* Action Buttons - Only if no manual attestation */}
+                          {!manual && result && (hasPhone || hasEmail) && (
+                            <div className="flex flex-wrap gap-2 pt-3 border-t border-white/[0.06]">
+                              {hasPhone && !attestation && !callResult && (
+                                <Button
+                                  onClick={() => handleCallCompany(company, result.phone.number)}
+                                  disabled={isCalling || !selectedCandidate.unique_candidate_id}
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-500 text-white text-xs rounded-full"
+                                >
+                                  {isCalling ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Calling...</> : <><PhoneCall className="w-3 h-3 mr-1" /> Call HR</>}
+                                </Button>
+                              )}
+                              {hasEmail && !emailStatus && (
+                                <Button
+                                  onClick={() => handleEmailCompany(company, result.email.address)}
+                                  disabled={emailingCompany === company || !selectedCandidate.unique_candidate_id}
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-full"
+                                >
+                                  {emailingCompany === company ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Sending...</> : <><Send className="w-3 h-3 mr-1" /> Email HR</>}
+                                </Button>
+                              )}
+                              {hasPhone && (
+                                <span className="text-white/40 text-xs flex items-center gap-1">
+                                  <Phone className="w-3 h-3" /> {result.phone.number}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Sign up prompt for anonymous users */}
+                {!isAuthenticated && (
+                  <div className="rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 p-6 text-center">
+                    <p className="text-white/60 text-sm mb-4">Sign up to save your verification history and access more features</p>
+                    <Button onClick={() => base44.auth.redirectToLogin(createPageUrl('Scan'))} className="bg-white hover:bg-white/90 text-black font-medium rounded-full">
+                      Sign Up Free
+                    </Button>
                   </div>
                 )}
               </motion.div>
@@ -760,6 +628,45 @@ export default function Scan() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Evidence Drawer */}
+      <AnimatePresence>
+        {selectedEvidence && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-end"
+            onClick={() => setSelectedEvidence(null)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="bg-zinc-900 w-full max-h-[70vh] overflow-y-auto rounded-t-xl border-t border-zinc-800 p-6"
+              onClick={e => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-bold text-white mb-4">{selectedEvidence.company} Evidence</h2>
+              <div className="space-y-4">
+                {selectedEvidence.result.sources?.map((source, idx) => (
+                  <div key={idx} className="bg-zinc-800/50 rounded-lg p-4 border-l-2 border-blue-500/30">
+                    <p className="text-white font-medium text-sm mb-2">{source.source}</p>
+                    <p className="text-white/70 text-xs mb-2 italic">"{source.text}"</p>
+                    {source.url && (
+                      <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs break-all">
+                        {source.url}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Button onClick={() => setSelectedEvidence(null)} className="w-full mt-6 bg-white hover:bg-gray-100 text-black font-medium">
+                Close
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
