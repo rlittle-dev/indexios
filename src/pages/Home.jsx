@@ -64,19 +64,19 @@ const FloatingParticles = () => (
 );
 
 const TIERS = [
-  { tier: 'free', name: 'Free', price: 0, scans: 1, features: ['1 resume scan', 'Advanced analysis', 'Red & green flags detection'] },
-  { tier: 'starter', name: 'Starter', price: 29, scans: 50, popular: true, features: ['All Free features', '50 scans/month', 'Detailed breakdown', 'Scan history', 'Share & download'] },
-  { tier: 'professional', name: 'Professional', price: 99, scans: 200, features: ['All Starter features', '200 scans/month', 'Interview questions', '15 verifications/mo', 'API access'] },
-  { tier: 'corporate', name: 'Corporate', price: 299, scans: 1000, features: ['All Pro features', '1000 scans/month', '100 verifications/mo', 'Team collaboration', 'Dedicated support'] },
-  { tier: 'enterprise', name: 'Enterprise', price: null, scans: 'Custom', features: ['All Corporate features', 'Unlimited scans', 'Unlimited verifications', 'Custom integrations', 'SLA & priority support'], contact: true }
+  { tier: 'free', name: 'Free', price: 0, scans: 1, features: ['1 resume upload', 'Employer extraction', 'Timeline overlap detection'] },
+  { tier: 'starter', name: 'Starter', price: 29, scans: 50, popular: true, features: ['All Free features', '50 uploads/month', 'Web evidence search', 'Scan history', 'Share & download'] },
+  { tier: 'professional', name: 'Professional', price: 99, scans: 200, features: ['All Starter features', '200 uploads/month', '15 phone verifications/mo', 'Email verifications', 'API access'] },
+  { tier: 'corporate', name: 'Corporate', price: 299, scans: 1000, features: ['All Pro features', '1000 uploads/month', '100 verifications/mo', 'Team collaboration', 'Blockchain attestations'] },
+  { tier: 'enterprise', name: 'Enterprise', price: null, scans: 'Custom', features: ['All Corporate features', 'Unlimited uploads', 'Unlimited verifications', 'Custom integrations', 'SLA & priority support'], contact: true }
 ];
 
 const FAQS = [
-  { q: 'How does resume verification work?', a: 'Our AI analyzes resumes for consistency, verifies employment through automated HR calls, and records verified claims on the blockchain for tamper-proof records.' },
+  { q: 'How does employment verification work?', a: 'Upload a resume and we extract all employers. Then run web evidence search to find public mentions, or trigger AI phone calls to HR departments for direct verification.' },
   { q: 'What is blockchain attestation?', a: 'When employment is verified, we create an immutable record on the Base blockchain. This creates a portable, verifiable credential that candidates can share with future employers.' },
-  { q: 'How accurate is the fraud detection?', a: 'Our system analyzes timeline consistency, credential verification, skill alignment, and cross-references claims with public data. Most verified resumes score 70-90% legitimacy.' },
+  { q: 'What verification methods are available?', a: 'We offer three methods: web evidence search (finds public mentions of the candidate at each company), AI phone calls to HR, and email verification requests.' },
   { q: 'Can I verify international candidates?', a: 'Yes, our system works globally. Phone verification is available for US companies, with email verification available worldwide.' },
-  { q: 'How do automated phone calls work?', a: 'Our AI calls company HR departments to verify employment dates and titles. Calls are recorded and transcribed, with results available in your dashboard.' },
+  { q: 'How do automated phone calls work?', a: 'Our AI calls company HR departments to verify employment dates and titles. Calls are recorded and transcribed, with results and blockchain attestation available in your dashboard.' },
 ];
 
 export default function Home() {
@@ -277,8 +277,8 @@ export default function Home() {
                     </div>
                     <div className="p-6 space-y-4">
                       {[
-                        { label: 'Resume Analysis', status: 'complete', score: '87%' },
-                        { label: 'Employment Verification', status: 'complete', company: 'TechCorp' },
+                        { label: 'Resume Uploaded', status: 'complete', detail: '3 employers found' },
+                        { label: 'Web Evidence Search', status: 'complete', detail: '12 sources found' },
                         { label: 'HR Phone Call', status: 'active', duration: '0:42' },
                         { label: 'Blockchain Attestation', status: 'pending' },
                       ].map((step, index) => (
@@ -294,8 +294,7 @@ export default function Home() {
                           </div>
                           <div className="flex-1">
                             <p className={`text-sm font-medium ${step.status === 'pending' ? 'text-white/40' : 'text-white/80'}`}>{step.label}</p>
-                            {step.score && <p className="text-xs text-emerald-400/80">Score: {step.score}</p>}
-                            {step.company && <p className="text-xs text-white/40">Verified: {step.company}</p>}
+                            {step.detail && <p className="text-xs text-emerald-400/80">{step.detail}</p>}
                             {step.duration && <p className="text-xs text-purple-400/80">Call duration: {step.duration}</p>}
                           </div>
                         </motion.div>
@@ -380,36 +379,38 @@ export default function Home() {
             {activeTab === 'scan' && (
               <motion.div key="scan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="grid lg:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
-                  <h3 className="text-2xl md:text-3xl font-light text-white">Instant <span className="font-medium">fraud detection</span></h3>
-                  <p className="text-white/50 leading-relaxed">Upload any resume and get a comprehensive legitimacy score within seconds. Our AI analyzes consistency, experience claims, education credentials, and skills alignment.</p>
+                  <h3 className="text-2xl md:text-3xl font-light text-white">Extract <span className="font-medium">employer data</span></h3>
+                  <p className="text-white/50 leading-relaxed">Upload any resume and instantly extract all employers listed. Our AI identifies companies, detects timeline overlaps, and prepares verification targets.</p>
                   <ul className="space-y-3">
-                    {['Real-time analysis engine', 'Red & green flag detection', 'Detailed breakdown by category'].map((item) => (
+                    {['Automatic employer extraction', 'Timeline overlap detection', 'Instant verification setup'].map((item) => (
                       <li key={item} className="flex items-center gap-3 text-white/70"><CheckCircle className="w-4 h-4 text-emerald-400" />{item}</li>
                     ))}
                   </ul>
                 </div>
                 <div className="rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
                   <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-emerald-400" /><span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Analysis Complete</span></div>
+                    <div className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-emerald-400" /><span className="text-[10px] font-mono text-white/50 uppercase tracking-wider">Resume Processed</span></div>
                     <span className="text-[10px] font-mono text-white/40">scan_7k3f2m</span>
                   </div>
                   <div className="p-6 space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                      <div className="flex items-center gap-3"><Shield className="w-5 h-5 text-emerald-400" /><span className="text-white font-medium">Legitimacy Score</span></div>
-                      <span className="text-2xl font-bold text-emerald-400">87%</span>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-center gap-3"><Building2 className="w-5 h-5 text-blue-400" /><span className="text-white font-medium">Employers Found</span></div>
+                      <span className="text-2xl font-bold text-blue-400">4</span>
                     </div>
-                    {[{ label: 'Consistency', score: 92 }, { label: 'Experience', score: 84 }, { label: 'Education', score: 88 }, { label: 'Skills', score: 79 }].map((item) => (
-                      <div key={item.label} className="flex items-center justify-between py-2">
-                        <span className="text-white/60 text-sm">{item.label}</span>
+                    {[{ company: 'TechCorp Inc.', dates: '2021 - Present' }, { company: 'DataSystems LLC', dates: '2019 - 2021' }, { company: 'StartupXYZ', dates: '2017 - 2019' }].map((item) => (
+                      <div key={item.company} className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02]">
                         <div className="flex items-center gap-3">
-                          <div className="w-24 h-1.5 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-purple-400 rounded-full" style={{ width: `${item.score}%` }} /></div>
-                          <span className="text-white/80 text-sm w-8">{item.score}%</span>
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                            <Building2 className="w-4 h-4 text-white/40" />
+                          </div>
+                          <span className="text-white/80 text-sm">{item.company}</span>
                         </div>
+                        <span className="text-white/40 text-xs">{item.dates}</span>
                       </div>
                     ))}
                     <div className="pt-4 border-t border-white/[0.06] space-y-2">
-                      <div className="flex items-start gap-2"><AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" /><span className="text-amber-400/80 text-xs">Gap in employment 2019-2020</span></div>
-                      <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" /><span className="text-emerald-400/80 text-xs">Education verified via LinkedIn</span></div>
+                      <div className="flex items-start gap-2"><AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" /><span className="text-amber-400/80 text-xs">Overlap detected: 2019 (2 employers)</span></div>
+                      <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" /><span className="text-emerald-400/80 text-xs">Ready for verification</span></div>
                     </div>
                   </div>
                 </div>
