@@ -9,40 +9,19 @@ import { createPageUrl } from '@/utils';
 
 const TIERS = [
   {
-    tier: 'free',
-    name: 'Free',
-    price: 0,
-    scans: 1,
-    features: ['1 resume scan', 'Advanced analysis for all resumes', 'Red & green flags detection']
-  },
-  {
-    tier: 'starter',
-    name: 'Starter',
-    price: 29,
-    scans: 50,
+    tier: 'personal',
+    name: 'Personal',
+    price: 30,
+    scans: 25,
     popular: true,
-    features: ['All Free features, plus:', '50 resume scans per month', 'Detailed analysis breakdown', 'Scan history', 'Share & download scans', 'Priority support']
-  },
-  {
-    tier: 'professional',
-    name: 'Professional',
-    price: 99,
-    scans: 200,
-    features: ['All Starter features, plus:', '200 resume scans per month', 'Next steps recommendations', 'Interview question generation', '15 employment verifications/month', 'Save candidates to folders', 'API access']
-  },
-  {
-    tier: 'corporate',
-    name: 'Corporate',
-    price: 299,
-    scans: 1000,
-    features: ['All Professional features, plus:', '1000 resume scans per month', '100 employment verifications/month', 'Bulk upload', 'Team collaboration (up to 5 members)', 'Dedicated support']
+    features: ['25 verifications/month', 'Web evidence search', 'Phone & email verification', 'Blockchain attestations', 'Scan history']
   },
   {
     tier: 'enterprise',
     name: 'Enterprise',
     price: null,
     scans: 'Custom',
-    features: ['All Corporate features, plus:', 'Unlimited resume scans', 'Unlimited employment verifications', 'Custom integrations', 'SLA & priority support'],
+    features: ['Unlimited verifications', 'Custom integrations', 'Priority support', 'Dedicated account manager', 'SLA guarantee'],
     contact: true
   }
 ];
@@ -72,7 +51,7 @@ export default function Pricing() {
       return;
     }
 
-    const tierLevels = { free: 0, starter: 1, professional: 2, corporate: 3, enterprise: 4 };
+    const tierLevels = { free: 0, personal: 1, enterprise: 2 };
     const currentLevel = tierLevels[user?.subscription_tier || 'free'];
     const targetLevel = tierLevels[tier];
 
@@ -100,8 +79,8 @@ export default function Pricing() {
   return (
     <>
       <Helmet>
-        <title>Pricing Plans - Resume Verification Starting at $29/month | Indexios</title>
-        <meta name="description" content="Choose the perfect Indexios plan for your hiring needs. Free tier available, Starter at $29/mo, Professional at $99/mo, or Enterprise for unlimited scans." />
+        <title>Pricing Plans - Employment Verification Starting at $30/month | Indexios</title>
+        <meta name="description" content="Choose the perfect Indexios plan for your hiring needs. Personal at $30/mo with 25 verifications, or Enterprise for unlimited verifications." />
         <link rel="canonical" href="https://indexios.me/Pricing" />
         <meta property="og:title" content="Indexios Pricing - Resume Verification Plans" />
         <meta property="og:url" content="https://indexios.me/Pricing" />
@@ -145,12 +124,12 @@ export default function Pricing() {
               <span className="text-white font-medium"> plan.</span>
             </h1>
             <p className="text-lg md:text-xl text-white/50 max-w-xl mx-auto">
-              Start with a free scan, then upgrade for more resume verification and employment background checks.
+              Start verifying employment today with our simple pricing plans.
             </p>
           </motion.div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {TIERS.map((tierData, index) => (
               <motion.div
                 key={tierData.tier}
@@ -240,7 +219,7 @@ export default function Pricing() {
           }}
         />
 
-        <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
+        <div className="relative z-10 max-w-[800px] mx-auto px-4 sm:px-6 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -265,63 +244,36 @@ export default function Pricing() {
                 <thead>
                   <tr className="border-b border-white/[0.06] bg-white/[0.02]">
                     <th className="text-left px-6 py-4 text-white font-medium">Feature</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Free</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Starter</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Professional</th>
-                    <th className="text-center px-6 py-4 text-white font-medium">Corporate</th>
+                    <th className="text-center px-6 py-4 text-white font-medium">Personal</th>
                     <th className="text-center px-6 py-4 text-white font-medium">Enterprise</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { feature: 'Monthly Scans', free: '1', starter: '50', pro: '200', corporate: '1,000', enterprise: 'Unlimited' },
-                    { feature: 'Advanced Analysis', free: true, starter: true, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Analysis Breakdown', free: false, starter: true, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Next Steps & Questions', free: false, starter: false, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Employment Verification', free: false, starter: false, pro: '15/month', corporate: '100/month', enterprise: 'Unlimited' },
-                    { feature: 'Scan History', free: false, starter: true, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Save Candidates', free: false, starter: false, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Share & Download', free: false, starter: true, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Bulk Upload', free: false, starter: false, pro: false, corporate: true, enterprise: true },
-                    { feature: 'API Access', free: false, starter: false, pro: true, corporate: true, enterprise: true },
-                    { feature: 'Team Collaboration', free: false, starter: false, pro: false, corporate: 'Up to 5', enterprise: 'Custom' },
-                    { feature: 'Support', free: '—', starter: 'Priority', pro: 'Priority', corporate: 'Dedicated', enterprise: 'SLA' },
+                    { feature: 'Monthly Verifications', personal: '25', enterprise: 'Unlimited' },
+                    { feature: 'Web Evidence Search', personal: true, enterprise: true },
+                    { feature: 'Phone Verification', personal: true, enterprise: true },
+                    { feature: 'Email Verification', personal: true, enterprise: true },
+                    { feature: 'Blockchain Attestations', personal: true, enterprise: true },
+                    { feature: 'Scan History', personal: true, enterprise: true },
+                    { feature: 'Custom Integrations', personal: false, enterprise: true },
+                    { feature: 'Dedicated Account Manager', personal: false, enterprise: true },
+                    { feature: 'Support', personal: 'Standard', enterprise: 'Priority + SLA' },
                   ].map((row, i) => (
                     <tr key={i} className="border-b border-white/[0.04]">
                       <td className="px-6 py-4 text-white/70">{row.feature}</td>
                       <td className="text-center px-6 py-4">
-                        {typeof row.free === 'boolean' ? (
-                          row.free ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
+                        {typeof row.personal === 'boolean' ? (
+                          row.personal ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
                         ) : (
-                          <span className={row.free === 'Unlimited' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.free}</span>
-                        )}
-                      </td>
-                      <td className="text-center px-6 py-4">
-                        {typeof row.starter === 'boolean' ? (
-                          row.starter ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
-                        ) : (
-                          <span className={row.starter === 'Unlimited' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.starter}</span>
-                        )}
-                      </td>
-                      <td className="text-center px-6 py-4">
-                        {typeof row.pro === 'boolean' ? (
-                          row.pro ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
-                        ) : (
-                          <span className={row.pro === 'Unlimited' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.pro}</span>
-                        )}
-                      </td>
-                      <td className="text-center px-6 py-4">
-                        {typeof row.corporate === 'boolean' ? (
-                          row.corporate ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
-                        ) : (
-                          <span className={row.corporate === 'Unlimited' || row.corporate === 'Dedicated' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.corporate}</span>
+                          <span className={row.personal === 'Unlimited' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.personal}</span>
                         )}
                       </td>
                       <td className="text-center px-6 py-4">
                         {typeof row.enterprise === 'boolean' ? (
                           row.enterprise ? <Check className="w-4 h-4 text-purple-400 mx-auto" /> : <span className="text-white/30">—</span>
                         ) : (
-                          <span className={row.enterprise === 'Unlimited' || row.enterprise === 'SLA' || row.enterprise === 'Custom' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.enterprise}</span>
+                          <span className={row.enterprise === 'Unlimited' || row.enterprise === 'Priority + SLA' ? 'text-purple-400 font-medium' : 'text-white/70'}>{row.enterprise}</span>
                         )}
                       </td>
                     </tr>

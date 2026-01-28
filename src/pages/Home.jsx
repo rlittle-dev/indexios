@@ -137,7 +137,7 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  const tierLevels = { free: 0, starter: 1, professional: 2, corporate: 3, enterprise: 4 };
+  const tierLevels = { free: 0, personal: 1, enterprise: 2 };
   
   const canSelectTier = (tier) => {
     const currentTierLevel = tierLevels[user?.subscription_tier || 'free'];
@@ -609,10 +609,10 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Pricing</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tight">Simple,<span className="font-medium"> transparent pricing.</span></h2>
-            <p className="text-lg text-white/50 mt-4 max-w-xl mx-auto">Start free. Upgrade when you need more.</p>
+            <p className="text-lg text-white/50 mt-4 max-w-xl mx-auto">Start verifying employment today.</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {TIERS.map((tier, index) => (
               <motion.div key={tier.tier} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} whileHover={{ y: -5 }} className={`relative rounded-2xl p-6 ${tier.popular ? 'bg-gradient-to-b from-purple-500/20 to-purple-500/5 border-2 border-purple-500/40' : 'bg-white/[0.02] border border-white/[0.06]'} hover:border-white/[0.15] transition-all`}>
                 {tier.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-purple-500 text-white text-xs font-semibold">Most Popular</div>}
