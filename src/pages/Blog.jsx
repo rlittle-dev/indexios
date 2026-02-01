@@ -151,7 +151,7 @@ export default function Blog() {
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
             <span className="text-purple-400/80 text-sm font-medium uppercase tracking-widest mb-4 block">Blog</span>
-            <h1 className="text-4xl md:text-5xl font-light text-white tracking-tight mb-4">Insights &<span className="font-medium"> Resources</span></h1>
+            <h1 className="text-4xl md:text-5xl font-light text-white tracking-tight mb-4">Insights &<span className="font-medium"> Updates</span></h1>
             <p className="text-lg text-white/50 max-w-xl mx-auto">Stay updated on resume verification, hiring best practices, and industry trends.</p>
             
             {isAdmin && (
