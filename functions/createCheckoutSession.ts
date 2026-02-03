@@ -7,8 +7,7 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
 
 // Price mapping for tiers
 const TIER_PRICES = {
-  starter: 'price_1SojEhFWVD2zRhT5Q5Ztjdk8',
-  professional: 'price_1SojF0FWVD2zRhT5df8Ekpi9',
+  personal: 'price_1SojEhFWVD2zRhT5Q5Ztjdk8',
   enterprise: 'price_1SojFRFWVD2zRhT5PHaUhVAW'
 };
 
