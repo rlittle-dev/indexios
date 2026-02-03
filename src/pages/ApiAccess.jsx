@@ -96,11 +96,11 @@ export default function ApiAccess() {
                 </div>
                 <h3 className="text-white text-2xl font-medium mb-3">Enterprise Feature</h3>
                 <p className="text-white/50 mb-6 max-w-md mx-auto">
-                  API access is available on Enterprise plans. Contact sales to get started.
+                  API access is available on Enterprise plans. Contact us to discuss your needs.
                 </p>
-                <Link to={createPageUrl('Pricing')}>
+                <Link to={createPageUrl('Contact')}>
                   <Button className="bg-white hover:bg-white/90 text-black font-medium rounded-full px-8">
-                    View Plans
+                    Contact Sales
                   </Button>
                 </Link>
               </div>
