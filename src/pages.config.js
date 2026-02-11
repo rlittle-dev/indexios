@@ -64,7 +64,6 @@ import SharedReport from './pages/SharedReport';
 import Team from './pages/Team';
 import TeamDashboard from './pages/TeamDashboard';
 import Tickets from './pages/Tickets';
-import AgentLane from './pages/AgentLane';
 import __Layout from './Layout.jsx';
 
 
@@ -86,7 +85,6 @@ export const PAGES = {
     "Team": Team,
     "TeamDashboard": TeamDashboard,
     "Tickets": Tickets,
-    "AgentLane": AgentLane,
 }
 
 export const pagesConfig = {
