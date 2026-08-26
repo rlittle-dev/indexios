@@ -1,0 +1,71 @@
+{
+  "name": "PortaldAgent",
+  "type": "object",
+  "properties": {
+    "action_code": {
+      "type": "string",
+      "description": "Unique action code provided by the agent"
+    },
+    "enrollment_code": {
+      "type": "string",
+      "description": "Code for user to enter to approve agent"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "enrolled",
+        "revoked"
+      ],
+      "default": "pending",
+      "description": "Agent enrollment status"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of user who enrolled this agent"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID of user who enrolled this agent"
+    },
+    "agent_name": {
+      "type": "string",
+      "description": "Friendly name for the agent"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of allowed action types"
+    },
+    "current_session_token": {
+      "type": "string",
+      "description": "Current active session token"
+    },
+    "session_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When current session expires"
+    },
+    "enrolled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When agent was enrolled"
+    },
+    "last_handshake": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last handshake timestamp"
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When agent was revoked"
+    }
+  },
+  "required": [
+    "action_code",
+    "status"
+  ]
+}

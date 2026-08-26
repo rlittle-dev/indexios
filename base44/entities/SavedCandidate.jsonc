@@ -1,0 +1,27 @@
+{
+  "name": "SavedCandidate",
+  "type": "object",
+  "properties": {
+    "candidate_id": {
+      "type": "string",
+      "description": "ID of the candidate"
+    },
+    "folder_id": {
+      "type": "string",
+      "description": "ID of the folder"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who saved this"
+    },
+    "notes": {
+      "type": "string",
+      "description": "User notes about this candidate"
+    }
+  },
+  "required": [
+    "candidate_id",
+    "folder_id",
+    "user_email"
+  ]
+}

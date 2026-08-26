@@ -1,0 +1,18 @@
+{
+  "name": "AnonymousScan",
+  "type": "object",
+  "properties": {
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the anonymous user"
+    },
+    "scans_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of scans used by this IP"
+    }
+  },
+  "required": [
+    "ip_address"
+  ]
+}

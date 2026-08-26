@@ -1,0 +1,109 @@
+{
+  "name": "VerifiedEmployment",
+  "type": "object",
+  "properties": {
+    "candidate_name": {
+      "type": "string",
+      "description": "Full name of the candidate"
+    },
+    "candidate_name_normalized": {
+      "type": "string",
+      "description": "Normalized version for matching"
+    },
+    "employer_name": {
+      "type": "string",
+      "description": "Name of the employer"
+    },
+    "employer_name_normalized": {
+      "type": "string",
+      "description": "Normalized version for matching"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "not_found"
+      ],
+      "description": "Verification status"
+    },
+    "sources": {
+      "type": "array",
+      "description": "Evidence sources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "phone": {
+      "type": "object",
+      "description": "HR/employment verification phone number",
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "email": {
+      "type": "object",
+      "description": "HR/employment verification email",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "phone_verification_result": {
+      "type": "string",
+      "description": "Result from phone verification call"
+    },
+    "phone_verification_transcript": {
+      "type": "string",
+      "description": "Transcript from phone verification call"
+    },
+    "phone_verification_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When phone verification was performed"
+    },
+    "verified_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this was verified"
+    }
+  },
+  "required": [
+    "candidate_name",
+    "candidate_name_normalized",
+    "employer_name",
+    "employer_name_normalized",
+    "status"
+  ]
+}

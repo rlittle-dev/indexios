@@ -1,0 +1,131 @@
+{
+  "name": "Candidate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Candidate's name extracted from resume"
+    },
+    "email": {
+      "type": "string",
+      "description": "Candidate's email if found"
+    },
+    "resume_url": {
+      "type": "string",
+      "description": "URL to the uploaded resume PDF"
+    },
+    "legitimacy_score": {
+      "type": "number",
+      "description": "Overall legitimacy percentage (0-100)"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "ID of the team this scan belongs to"
+    },
+    "analysis": {
+      "type": "object",
+      "description": "Detailed analysis breakdown",
+      "properties": {
+        "consistency_score": {
+          "type": "number"
+        },
+        "consistency_details": {
+          "type": "string"
+        },
+        "experience_verification": {
+          "type": "number"
+        },
+        "experience_details": {
+          "type": "string"
+        },
+        "education_verification": {
+          "type": "number"
+        },
+        "education_details": {
+          "type": "string"
+        },
+        "skills_alignment": {
+          "type": "number"
+        },
+        "skills_details": {
+          "type": "string"
+        },
+        "red_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "green_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "type": "string"
+        },
+        "next_steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Recommended next steps for the hiring process"
+        },
+        "interview_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Suggested interview questions based on the analysis"
+        },
+        "is_basic": {
+          "type": "boolean",
+          "description": "Whether this is a basic or advanced analysis"
+        },
+        "companies": {
+          "type": "array",
+          "description": "Array of company objects with phone data",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "object"
+              },
+              "phone_debug": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "company_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "company_phone_numbers": {
+          "type": "object"
+        },
+        "company_phone_debug": {
+          "type": "object"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "analyzed",
+        "failed"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "resume_url"
+  ]
+}

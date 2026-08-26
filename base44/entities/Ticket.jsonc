@@ -1,0 +1,62 @@
+{
+  "name": "Ticket",
+  "type": "object",
+  "properties": {
+    "subject": {
+      "type": "string",
+      "description": "Ticket subject line"
+    },
+    "message": {
+      "type": "string",
+      "description": "Initial ticket message/description"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who submitted the ticket"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "resolved"
+      ],
+      "default": "open",
+      "description": "Current status of the ticket"
+    },
+    "responses": {
+      "type": "array",
+      "description": "Admin responses to the ticket",
+      "items": {
+        "type": "object",
+        "properties": {
+          "responder_email": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium",
+      "description": "Ticket priority level"
+    }
+  },
+  "required": [
+    "subject",
+    "message",
+    "user_email"
+  ]
+}

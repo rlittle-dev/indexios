@@ -1,0 +1,46 @@
+{
+  "name": "Device",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who owns this device"
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Unique device identifier"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "Mobile",
+        "Desktop",
+        "Tablet"
+      ],
+      "description": "Type of device"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "User agent string for the device"
+    },
+    "last_active": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time device was active"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address of the device"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this device is currently active"
+    }
+  },
+  "required": [
+    "user_email",
+    "device_id",
+    "device_type"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "name": "PortaldAction",
+  "type": "object",
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "ID of the agent that submitted this action"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user this action is for"
+    },
+    "action_type": {
+      "type": "string",
+      "description": "Type of action (e.g., resume.scan, attestation.create)"
+    },
+    "action_payload": {
+      "type": "string",
+      "description": "JSON string of action parameters"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "med",
+        "high"
+      ],
+      "description": "Risk level of the action"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Current status of the action"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Unique key to prevent duplicate actions"
+    },
+    "callback_url": {
+      "type": "string",
+      "description": "URL to POST when action is decided"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When action was submitted"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When action was approved/denied"
+    },
+    "decided_by": {
+      "type": "string",
+      "description": "Email of user who made the decision"
+    },
+    "decision_reason": {
+      "type": "string",
+      "description": "Reason for approval/denial"
+    },
+    "executed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When action was executed"
+    },
+    "result": {
+      "type": "string",
+      "description": "JSON string of execution result"
+    }
+  },
+  "required": [
+    "agent_id",
+    "action_type",
+    "action_payload",
+    "status"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Blog post title"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly slug"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Short description/excerpt"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full blog post content in markdown"
+    },
+    "category": {
+      "type": "string",
+      "description": "Post category"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Featured image URL"
+    },
+    "read_time": {
+      "type": "string",
+      "description": "Estimated read time"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether post is published"
+    }
+  },
+  "required": [
+    "title",
+    "content"
+  ]
+}

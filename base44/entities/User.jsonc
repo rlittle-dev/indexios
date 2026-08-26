@@ -1,0 +1,44 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "starter",
+        "professional",
+        "enterprise"
+      ],
+      "default": "free"
+    },
+    "scans_used": {
+      "type": "number",
+      "default": 0
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string"
+    },
+    "email_notifications_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "employment_verifications_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of employment verifications used this month"
+    },
+    "employment_verifications_reset_month": {
+      "type": "string",
+      "description": "Month when verification count was last reset (YYYY-MM format)"
+    }
+  },
+  "required": [
+    "stripe_customer_id",
+    "stripe_subscription_id",
+    "employment_verifications_reset_month"
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "name": "UniqueCandidate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Candidate's name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Candidate's email (primary identifier)"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Candidate's phone number"
+    },
+    "linkedin_url": {
+      "type": "string",
+      "description": "LinkedIn profile URL"
+    },
+    "state": {
+      "type": "string",
+      "description": "US state where candidate is located"
+    },
+    "city": {
+      "type": "string",
+      "description": "City where candidate is located"
+    },
+    "employers": {
+      "type": "array",
+      "description": "List of employers with verification status",
+      "items": {
+        "type": "object",
+        "properties": {
+          "employer_name": {
+            "type": "string"
+          },
+          "web_evidence_status": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no"
+            ],
+            "description": "Whether web evidence was found (yes/no)"
+          },
+          "call_verification_status": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "inconclusive",
+              "refused_to_disclose",
+              "pending",
+              "not_called"
+            ],
+            "description": "Result from phone verification call"
+          },
+          "email_verification_status": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "inconclusive",
+              "refused_to_disclose",
+              "pending",
+              "not_sent"
+            ],
+            "description": "Result from email verification"
+          },
+          "manual_employer_attestation": {
+            "type": "object",
+            "description": "Manual attestation from employer portal",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "verified",
+                  "denied"
+                ]
+              },
+              "attested_by_email": {
+                "type": "string"
+              },
+              "attested_by_company": {
+                "type": "string"
+              },
+              "attested_date": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "attestation_uid": {
+                "type": "string"
+              },
+              "job_title": {
+                "type": "string"
+              },
+              "start_date": {
+                "type": "string"
+              },
+              "end_date": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              }
+            }
+          },
+          "evidence_count": {
+            "type": "number"
+          },
+          "hr_phone": {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          },
+          "hr_email": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            }
+          },
+          "web_verified_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "call_verified_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "email_verified_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "email_verification_token": {
+            "type": "string"
+          },
+          "email_sent_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "email_sent_to": {
+            "type": "string"
+          },
+          "email_response_from": {
+            "type": "string"
+          },
+          "email_response_preview": {
+            "type": "string"
+          },
+          "phone_attestation_uid": {
+            "type": "string",
+            "description": "Attestation UID from phone verification"
+          },
+          "email_attestation_uid": {
+            "type": "string",
+            "description": "Attestation UID from email verification"
+          }
+        }
+      }
+    },
+    "attestation_uid": {
+      "type": "string",
+      "description": "Base Sepolia attestation UID (legacy/primary)"
+    },
+    "attestation_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

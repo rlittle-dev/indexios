@@ -1,0 +1,23 @@
+{
+  "name": "Folder",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Folder name"
+    },
+    "color": {
+      "type": "string",
+      "default": "blue",
+      "description": "Folder color for visual organization"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who owns this folder"
+    }
+  },
+  "required": [
+    "name",
+    "user_email"
+  ]
+}

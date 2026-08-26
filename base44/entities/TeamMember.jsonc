@@ -1,0 +1,37 @@
+{
+  "name": "TeamMember",
+  "type": "object",
+  "properties": {
+    "team_id": {
+      "type": "string",
+      "description": "ID of the team"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the team member"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "member"
+      ],
+      "default": "member",
+      "description": "Role in the team"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "pending",
+        "removed"
+      ],
+      "default": "pending",
+      "description": "Membership status"
+    }
+  },
+  "required": [
+    "team_id",
+    "user_email"
+  ]
+}
